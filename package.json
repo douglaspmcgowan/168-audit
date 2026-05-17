@@ -1,0 +1,19 @@
+{
+  "name": "168-audit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive 168-hour weekly audit — plan an ideal week, log your actual week, compare and export.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test:live": "node tests/verify-live.mjs",
+    "test:local": "node tests/verify-live.mjs http://localhost:3168"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
+  }
+}
