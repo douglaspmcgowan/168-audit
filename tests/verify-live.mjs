@@ -263,24 +263,78 @@ async function inspectDesktop(browser) {
   await page.click('#vmDashboard');
   await page.waitForTimeout(120);
 
-  log("\nGuided tour (replay, walk all steps)");
+  log("\n? button opens What-is-this modal (tour + tutorial + close)");
   await page.click("#tourReplay");
+  await page.waitForTimeout(160);
+  const modalOpen = await page.evaluate(() => !document.getElementById("whatIs").hidden);
+  modalOpen ? ok("? opens modal") : fail("? did not open modal");
+  const modalCheck = await page.evaluate(() => {
+    const m = document.getElementById("whatIs");
+    return {
+      title: m.querySelector(".modal-title")?.textContent || "",
+      hasTour: !!m.querySelector("#startTourBtn"),
+      hasTutorial: !!m.querySelector("#startTutorialBtn"),
+    };
+  });
+  /168/.test(modalCheck.title) && modalCheck.hasTour && modalCheck.hasTutorial
+    ? ok(`modal: "${modalCheck.title}" + tour + tutorial buttons`)
+    : fail(`modal shape: ${JSON.stringify(modalCheck)}`);
+  await page.screenshot({ path: path.join(SHOTS, "10-what-is-modal.png"), fullPage: false });
+
+  log("\nLaunch quick tour from modal");
+  await page.click("#startTourBtn");
   await page.waitForTimeout(300);
   const tourVisible = await page.evaluate(() => !document.getElementById("tour").hidden);
-  tourVisible ? ok("tour opens on replay") : fail("tour didn't open");
+  tourVisible ? ok("tour launches from modal") : fail("tour didn't open from modal");
   const totalSteps = await page.evaluate(() => parseInt(document.getElementById("tourCount").textContent.split(" of ")[1] || "0"));
   totalSteps >= 8 ? ok(`tour has ${totalSteps} steps`) : fail(`tour steps: ${totalSteps}`);
   await page.screenshot({ path: path.join(SHOTS, "09a-tour-step-1.png"), fullPage: false });
-  ok("screenshot: 09a-tour-step-1.png");
-  // Walk to step 5 to verify view-switching steps don't crash
   for (let i = 0; i < 4; i++) { await page.click("#tourNext"); await page.waitForTimeout(150); }
   await page.screenshot({ path: path.join(SHOTS, "09b-tour-step-5.png"), fullPage: false });
-  ok("screenshot: 09b-tour-step-5.png");
-  // Skip out
   await page.click("#tourSkip");
   await page.waitForTimeout(150);
   const tourClosed = await page.evaluate(() => document.getElementById("tour").hidden && localStorage.getItem("168-audit:tour-seen") === "1");
   tourClosed ? ok("tour closes + marks seen") : fail("tour didn't close cleanly");
+
+  log("\nLaunch full tutorial from modal");
+  await page.click("#tourReplay");
+  await page.waitForTimeout(120);
+  await page.click("#startTutorialBtn");
+  await page.waitForTimeout(300);
+  const tut = await page.evaluate(() => {
+    const t = document.getElementById("tour");
+    return {
+      open: !t.hidden,
+      interactive: t.classList.contains("interactive"),
+      count: document.getElementById("tourCount").textContent
+    };
+  });
+  tut.open && tut.interactive && /Tutorial · Step 1 of/.test(tut.count)
+    ? ok(`tutorial open + interactive: ${tut.count}`)
+    : fail(`tutorial state: ${JSON.stringify(tut)}`);
+  await page.screenshot({ path: path.join(SHOTS, "11-tutorial-step-1.png"), fullPage: false });
+  // Walk to step 4 to verify category step (Eating w/ People)
+  for (let i = 0; i < 3; i++) { await page.click("#tourNext"); await page.waitForTimeout(150); }
+  await page.screenshot({ path: path.join(SHOTS, "11b-tutorial-category-step.png"), fullPage: false });
+  await page.click("#tourSkip");
+  await page.waitForTimeout(150);
+
+  log("\nColumn-width stability: range value width fixed regardless of value");
+  // Go back to sliders; check that the .range-val element width is constant for 0 vs 80
+  await page.click('.input-mode-btn[data-mode="sliders"]');
+  await page.waitForTimeout(180);
+  const valWidths = await page.evaluate(() => {
+    const cells = Array.from(document.querySelectorAll("#auditBody .range-cell"));
+    if (!cells.length) return null;
+    const a = cells[0].getBoundingClientRect().width;
+    const b = cells[cells.length - 1].getBoundingClientRect().width;
+    return { a: Math.round(a), b: Math.round(b) };
+  });
+  valWidths && Math.abs(valWidths.a - valWidths.b) <= 1
+    ? ok(`range-cell widths consistent: ${valWidths.a}px == ${valWidths.b}px`)
+    : fail(`range-cell widths differ: ${JSON.stringify(valWidths)}`);
+  await page.click('.input-mode-btn[data-mode="numbers"]');
+  await page.waitForTimeout(150);
 
   await ctx.close();
 }

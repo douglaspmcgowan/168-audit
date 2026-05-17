@@ -82,7 +82,7 @@ function buildPage() {
           <button type="button" class="viewmode-btn" data-mode="dashboard" id="vmDashboard">Dashboard</button>
           <button type="button" class="viewmode-btn" data-mode="app" id="vmApp">App</button>
         </div>
-        <button type="button" class="tour-replay" id="tourReplay" title="Replay guided tour" aria-label="Replay guided tour">?</button>
+        <button type="button" class="tour-replay" id="tourReplay" title="What is 168 / replay tour / full tutorial" aria-label="Help"><span class="tour-replay-glyph">?</span></button>
         <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme" title="Toggle theme">
           <span class="theme-icon-light">&#9728;</span>
           <span class="theme-icon-dark">&#9790;</span>
@@ -117,6 +117,30 @@ function buildPage() {
       <button class="export-btn" id="exportJson" role="menuitem">JSON</button>
       <button class="export-btn" id="exportMd" role="menuitem">Markdown</button>
       <button class="export-btn" id="exportPrint" role="menuitem">Print</button>
+    </div>
+  </div>
+
+  <div id="whatIs" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="whatIsTitle">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-panel">
+      <button type="button" class="modal-close" data-close="1" aria-label="Close">&times;</button>
+      <p class="modal-eyebrow">What is this?</p>
+      <h2 class="modal-title" id="whatIsTitle">168 hours, your week</h2>
+      <div class="modal-body">
+        <p>There are <strong>168 hours in a week</strong> — 24 × 7. Sleep, work, family, ministry, leisure, transit: all of it comes out of the same fixed budget.</p>
+        <p>This is a planning tool, not a tracker. You make two passes:</p>
+        <ul>
+          <li><strong>Ideal:</strong> the week you'd live if you were intentional about every hour.</li>
+          <li><strong>Actual:</strong> what last week really looked like.</li>
+        </ul>
+        <p>The gap between them is the useful part. Most people's first ideal week comes out 30–50 hours over budget — which is the whole point. It surfaces what you actually believe should give.</p>
+        <p>Adapted from the <a href="https://dpm5970digitalgarden.vercel.app/168-audit-your-week/" target="_blank" rel="noopener">"168 — Audit Your Week"</a> note in Douglas McGowan's digital garden, which in turn draws on Laura Vanderkam's <a href="https://lauravanderkam.com/start-here/" target="_blank" rel="noopener">168 Hours</a> work.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-quiet" data-close="1">Close</button>
+        <button type="button" class="btn" id="startTourBtn">Quick tour</button>
+        <button type="button" class="btn btn-primary" id="startTutorialBtn">Full tutorial</button>
+      </div>
     </div>
   </div>
 
@@ -398,27 +422,95 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
   .stats-sticky-row .stat strong { font-size: 0.88rem; }
 }
 
-/* Replay-tour pill */
+/* Replay-tour / help pill — "?" glyph centered both axes */
 .tour-replay {
   width: 2.4rem; height: 2.4rem;
-  appearance: none; border: 0; cursor: pointer;
+  appearance: none; border: 0; cursor: pointer; padding: 0;
   background: var(--paper-raised);
   color: var(--ink-soft);
   box-shadow: inset 0 0 0 1px var(--rule);
   border-radius: 999px;
   font-family: var(--sans);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 600;
+  line-height: 1;
   display: inline-flex; align-items: center; justify-content: center;
   transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out), transform var(--dur-out) var(--ease-out);
 }
+.tour-replay-glyph { display: inline-block; line-height: 1; transform: translateY(0.02em); }
 .tour-replay:hover { color: var(--accent); background: var(--paper-soft); transform: translateY(-1px); transition-duration: var(--dur-in); transition-timing-function: var(--ease-in); }
+
+/* "What is 168?" modal (and any future modal) */
+.modal { position: fixed; inset: 0; z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 1.2rem; }
+.modal[hidden] { display: none; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: modal-fade 180ms var(--ease-out); }
+.modal-panel {
+  position: relative;
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-modal);
+  border-radius: 14px;
+  padding: 1.75rem 1.85rem 1.4rem;
+  max-width: 34rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modal-rise 240ms var(--ease-out);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.modal-close {
+  position: absolute; top: 0.85rem; right: 0.95rem;
+  width: 2rem; height: 2rem; border-radius: 999px;
+  appearance: none; border: 0; cursor: pointer;
+  background: transparent; color: var(--ink-faint);
+  font-size: 1.35rem; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out);
+}
+.modal-close:hover { color: var(--ink); background: var(--paper-soft); }
+.modal-eyebrow {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: var(--label-spacing);
+  color: var(--accent); font-weight: 500; margin: 0 0 0.35rem;
+}
+.modal-title { margin: 0 0 1rem; font-size: 1.45rem; font-weight: 600; line-height: 1.18; letter-spacing: -0.02em; }
+.modal-body { color: var(--ink-soft); font-size: 0.96rem; line-height: 1.62; }
+.modal-body p { margin: 0 0 0.85rem; }
+.modal-body ul { margin: 0 0 0.95rem; padding-left: 1.25rem; }
+.modal-body li { margin-bottom: 0.25rem; }
+.modal-body strong { color: var(--ink); font-weight: 600; }
+.modal-body a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-line); transition: border-color var(--dur-out) var(--ease-out); }
+.modal-body a:hover { border-color: var(--accent); }
+.modal-actions {
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+@keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-rise { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
+@media (max-width: 600px) {
+  .modal { padding: 0.7rem; }
+  .modal-panel { padding: 1.4rem 1.3rem 1.1rem; border-radius: 12px; }
+  .modal-title { font-size: 1.25rem; }
+  .modal-body { font-size: 0.92rem; }
+  .modal-actions { justify-content: stretch; }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+}
 
 /* Guided tour overlay */
 .tour-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
 .tour-overlay:not([hidden]) { pointer-events: auto; }
+/* In interactive mode (tutorial) the backdrop dims but lets clicks through to the spotlighted UI */
+.tour-overlay.interactive { pointer-events: none; }
+.tour-overlay.interactive .tour-tooltip { pointer-events: auto; }
 .tour-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background-color 220ms var(--ease-out); }
 .tour-overlay:not([hidden]) .tour-backdrop { background: rgba(0,0,0,0.55); }
+.tour-overlay.interactive:not([hidden]) .tour-backdrop { background: rgba(0,0,0,0.36); }
 .tour-spotlight {
   position: absolute;
   border-radius: 12px;
@@ -733,7 +825,7 @@ table.audit td.col-cat {
 }
 table.audit td.col-cat.cat-merged { color: transparent; user-select: none; }
 table.audit td.col-sub { color: var(--ink-soft); font-size: 0.92rem; min-width: 10rem; }
-table.audit td.col-num { text-align: right; min-width: 7rem; }
+table.audit td.col-num { text-align: right; width: 13rem; min-width: 13rem; }
 table.audit td.col-notes { min-width: 10rem; }
 table.audit td.col-del { width: 2.4rem; text-align: center; }
 
@@ -779,13 +871,14 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 .cell-input.cell-cat-merged { color: transparent; }
 .cell-input.cell-cat-merged:hover, .cell-input.cell-cat-merged:focus-visible { color: var(--ink); }
 
-/* slider input mode */
+/* slider input mode — fixed widths so the column doesn't reflow as the value changes */
 .range-cell {
   display: grid;
-  grid-template-columns: 1fr 3.6rem;
+  grid-template-columns: 1fr 3.8rem;
   align-items: center;
   gap: 0.55rem;
-  min-width: 11rem;
+  width: 12rem;
+  max-width: 100%;
 }
 .range-input {
   -webkit-appearance: none;
@@ -840,6 +933,10 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   color: var(--ink);
   text-align: right;
   font-weight: 500;
+  width: 3.8rem;
+  min-width: 3.8rem;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 /* input mode toggle (Numbers ↔ Sliders) */
@@ -2335,7 +2432,225 @@ function getJS() {
     show();
   }
 
-  document.getElementById("tourReplay").addEventListener("click", function() { startTour(true); });
+  // ------ "What is 168?" modal ------
+  (function initWhatIs() {
+    const modal = document.getElementById("whatIs");
+    function open() { modal.hidden = false; document.body.style.overflow = "hidden"; }
+    function close() { modal.hidden = true; document.body.style.overflow = ""; }
+    document.getElementById("tourReplay").addEventListener("click", open);
+    modal.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", close));
+    document.addEventListener("keydown", function(e) { if (!modal.hidden && e.key === "Escape") close(); });
+    document.getElementById("startTourBtn").addEventListener("click", function() { close(); startTour(true); });
+    document.getElementById("startTutorialBtn").addEventListener("click", function() { close(); startTutorial(); });
+  })();
+
+  // ------ Full tutorial (interactive, category-by-category) ------
+  function rowsForCategory(catName) {
+    // Walk the rendered tbody and collect rows whose category matches.
+    const trs = Array.from(document.querySelectorAll("#auditBody tr"));
+    return trs.filter(tr => {
+      const cellCat = tr.querySelector(".cell-input.cell-cat");
+      return cellCat && cellCat.value === catName;
+    });
+  }
+  function unionRect(elements) {
+    if (!elements.length) return null;
+    let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
+    elements.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < top) top = r.top;
+      if (r.left < left) left = r.left;
+      if (r.right > right) right = r.right;
+      if (r.bottom > bottom) bottom = r.bottom;
+    });
+    return { top, left, right, bottom, width: right - left, height: bottom - top };
+  }
+
+  const TUTORIAL_STEPS = [
+    {
+      kind: "intro",
+      view: "worksheet",
+      title: "Why 168?",
+      body: "There are 168 hours in a week. Sleep, work, family, ministry, leisure — all of it comes out of the same fixed budget. We'll walk through each category and plan an ideal week together. About five minutes."
+    },
+    {
+      cat: "Work", view: "worksheet",
+      title: "1. Work",
+      body: "Mandatory work + anything voluntary (side projects, optional overtime). A standard US full-time job is around 40h. Type your ideal numbers in the highlighted rows."
+    },
+    {
+      cat: "Sleep", view: "worksheet",
+      title: "2. Sleep",
+      body: "Aim for 7–8 hours per night = 49–56h per week. Below ~49h, attention and mood degrade reliably. Don't shave this one."
+    },
+    {
+      cat: "Eating w/ People", view: "worksheet",
+      title: "3. Eating with people",
+      body: "Shared meals are one of the cheapest, highest-return uses of time. Log group lunches + family meals separately so you can see them."
+    },
+    {
+      cat: "Transit / Maintenance", view: "worksheet",
+      title: "4. Transit & maintenance",
+      body: "Commute, hygiene, cooking, admin, medical, housework. People reliably underestimate this — usually 25–35h. Be honest now to avoid the surprise later."
+    },
+    {
+      cat: "Productive Transit", view: "worksheet",
+      title: "5. Productive transit",
+      body: "Train or bus where you can read or work. Different from commute-by-car. Even 3–5h here absorbs a lot of background reading."
+    },
+    {
+      cat: "God Time", view: "worksheet",
+      title: "6. God time",
+      body: "Individual (prayer, scripture, sermons) and communal (church, small group). Communal often overlaps with people-time — that's fine; log it here for the spiritual dimension."
+    },
+    {
+      cat: "Play", view: "worksheet",
+      title: "7. Play",
+      body: "Active leisure. Hangouts, media, hobbies. Media tends to silently expand — log it as honestly as you can; the slider tops out at 20h for a reason."
+    },
+    {
+      cat: "Rest", view: "worksheet",
+      title: "8. Rest",
+      body: "Sabbath / quiet rest. Not the same as play. For introverts this means solitude; for extroverts it can mean low-stimulation time alone with God. Plan a real chunk — it's a command, not a suggestion."
+    },
+    {
+      cat: "Other", view: "worksheet",
+      title: "9. Other",
+      body: "Exercise + non-regular travel. Travel is the one that can blow up a normal week — plan an average if your travel is irregular."
+    },
+    {
+      kind: "total", view: "worksheet",
+      title: "Check the total",
+      body: "Does it add to 168? Most people's first pass goes 30–50h over. That's the whole point — it shows you which categories you're treating as 'always available' when they aren't."
+    },
+    {
+      view: "reflect",
+      title: "Reflect on it",
+      body: "Switch to Reflect and answer the prompts in writing. The honest answers are what make this useful — they show you what you actually believe vs what you wish you believed.",
+      selector: "#view-reflect .reflect-answer"
+    },
+    {
+      kind: "outro",
+      title: "That's the ideal week",
+      body: "Come back at the end of the week with actuals to see where the gap is. Save this as a profile (Profile chip top-right → New profile…) so you can iterate without losing it. Tap the ? any time."
+    }
+  ];
+
+  function startTutorial() {
+    // Make sure tour is closed before opening tutorial.
+    const tourOverlay = document.getElementById("tour");
+    tourOverlay.hidden = false;
+    tourOverlay.classList.add("interactive");
+
+    let idx = 0;
+    const spotlight = document.getElementById("tourSpotlight");
+    const tooltip = document.getElementById("tourTooltip");
+    const countEl = document.getElementById("tourCount");
+    const titleEl = document.getElementById("tourTitle");
+    const bodyEl = document.getElementById("tourBody");
+    const backBtn = document.getElementById("tourBack");
+    const nextBtn = document.getElementById("tourNext");
+    const skipBtn = document.getElementById("tourSkip");
+
+    function paint() {
+      const step = TUTORIAL_STEPS[idx];
+      if (step.view && activeView !== step.view) {
+        document.querySelector('.view-tab[data-view="' + step.view + '"]').click();
+        setTimeout(positionSpot, 80);
+      } else {
+        positionSpot();
+      }
+      countEl.textContent = "Tutorial · Step " + (idx + 1) + " of " + TUTORIAL_STEPS.length;
+      titleEl.textContent = step.title;
+      bodyEl.textContent = step.body;
+      backBtn.disabled = idx === 0;
+      nextBtn.textContent = (idx === TUTORIAL_STEPS.length - 1) ? "Done" : "Next →";
+    }
+    function positionSpot() {
+      const step = TUTORIAL_STEPS[idx];
+      let rect = null;
+      if (step.cat) {
+        const trs = rowsForCategory(step.cat);
+        rect = unionRect(trs);
+        if (rect && trs.length) trs[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (step.kind === "total") {
+        const foot = document.querySelector("tfoot.audit-foot");
+        if (foot) { foot.scrollIntoView({ behavior: "smooth", block: "center" }); rect = foot.getBoundingClientRect(); }
+      } else if (step.selector) {
+        const el = document.querySelector(step.selector);
+        if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); rect = el.getBoundingClientRect(); }
+      } else if (step.kind === "intro") {
+        const brand = document.querySelector(".brand-titles");
+        if (brand) rect = brand.getBoundingClientRect();
+      } else if (step.kind === "outro") {
+        const chip = document.getElementById("profileChip");
+        if (chip) rect = chip.getBoundingClientRect();
+      }
+      requestAnimationFrame(() => {
+        if (!rect) {
+          spotlight.style.opacity = "0";
+          tooltip.style.top = "50%";
+          tooltip.style.left = "50%";
+          tooltip.style.transform = "translate(-50%, -50%)";
+          return;
+        }
+        spotlight.style.opacity = "1";
+        const pad = 10;
+        spotlight.style.top = (rect.top - pad) + "px";
+        spotlight.style.left = (rect.left - pad) + "px";
+        spotlight.style.width = (rect.width + pad * 2) + "px";
+        spotlight.style.height = (rect.height + pad * 2) + "px";
+        positionTooltip(rect);
+      });
+    }
+    function positionTooltip(r) {
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+      tooltip.style.transform = "";
+      tooltip.style.top = "0px"; tooltip.style.left = "0px";
+      const tr = tooltip.getBoundingClientRect();
+      const tw = tr.width, th = tr.height, margin = 14;
+      let top, left;
+      if (r.bottom + th + margin < vh) top = r.bottom + margin;
+      else if (r.top - th - margin > 0) top = r.top - th - margin;
+      else top = Math.max(margin, Math.min(vh - th - margin, r.top));
+      left = Math.max(margin, Math.min(vw - tw - margin, r.left + r.width / 2 - tw / 2));
+      tooltip.style.top = top + "px";
+      tooltip.style.left = left + "px";
+    }
+    function next() {
+      if (idx === TUTORIAL_STEPS.length - 1) return done();
+      idx = Math.min(TUTORIAL_STEPS.length - 1, idx + 1);
+      paint();
+    }
+    function back() { idx = Math.max(0, idx - 1); paint(); }
+    function done() {
+      tourOverlay.hidden = true;
+      tourOverlay.classList.remove("interactive");
+      detach();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") done();
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") back();
+    }
+    function onResize() { positionSpot(); }
+    function detach() {
+      nextBtn.removeEventListener("click", next);
+      backBtn.removeEventListener("click", back);
+      skipBtn.removeEventListener("click", done);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onResize, true);
+    }
+    nextBtn.addEventListener("click", next);
+    backBtn.addEventListener("click", back);
+    skipBtn.addEventListener("click", done);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("scroll", onResize, true);
+    paint();
+  }
 
   // ------ Init ------
   loadState();
