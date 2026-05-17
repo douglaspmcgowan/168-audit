@@ -1,5 +1,5 @@
 const express = require("express");
-const { DEFAULT_ROWS, REFERENCE, REFLECTION, TARGET_HOURS } = require("./data/categories");
+const { DEFAULT_ROWS, REFERENCE, REFLECTION, TARGET_HOURS, DEFAULT_SLIDER_MAX } = require("./data/categories");
 
 const app = express();
 const PORT = process.env.PORT || 3168;
@@ -76,6 +76,7 @@ function buildPage() {
           <button type="button" class="viewmode-btn" data-mode="dashboard" id="vmDashboard">Dashboard</button>
           <button type="button" class="viewmode-btn" data-mode="app" id="vmApp">App</button>
         </div>
+        <button type="button" class="tour-replay" id="tourReplay" title="Replay guided tour" aria-label="Replay guided tour">?</button>
         <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme" title="Toggle theme">
           <span class="theme-icon-light">&#9728;</span>
           <span class="theme-icon-dark">&#9790;</span>
@@ -113,10 +114,27 @@ function buildPage() {
     </div>
   </div>
 
+  <div id="tour" class="tour-overlay" hidden>
+    <div class="tour-backdrop" id="tourBackdrop"></div>
+    <div class="tour-spotlight" id="tourSpotlight"></div>
+    <div class="tour-tooltip" id="tourTooltip" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourBody">
+      <div class="tour-step-count" id="tourCount"></div>
+      <h3 class="tour-step-title" id="tourTitle"></h3>
+      <p class="tour-step-body" id="tourBody"></p>
+      <div class="tour-actions">
+        <button type="button" class="tour-skip" id="tourSkip">Skip tour</button>
+        <div class="tour-nav">
+          <button type="button" class="tour-back" id="tourBack">Back</button>
+          <button type="button" class="tour-next" id="tourNext">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
 
   <footer class="colophon">
-    <span class="colophon-bit">Adapted from <a class="colophon-link" href="https://dpm5970digitalgarden.vercel.app/168-audit-your-week/" target="_blank" rel="noopener">Doug McGowan&rsquo;s digital garden</a></span>
+    <span class="colophon-bit">Adapted from <a class="colophon-link" href="https://dpm5970digitalgarden.vercel.app/168-audit-your-week/" target="_blank" rel="noopener">Douglas McGowan&rsquo;s digital garden</a></span>
     <span class="colophon-sep">/</span>
     <span class="colophon-bit"><a class="colophon-link" href="https://github.com/douglaspmcgowan/168-audit" target="_blank" rel="noopener">source</a></span>
   </footer>
@@ -126,6 +144,7 @@ window.__SEED__ = ${seedJson};
 window.__REFERENCE__ = ${referenceJson};
 window.__REFLECTION__ = ${reflectionJson};
 window.__TARGET__ = ${TARGET_HOURS};
+window.__SLIDER_MAX_DEFAULT__ = ${DEFAULT_SLIDER_MAX};
 </script>
 <script>${getJS()}</script>
 </body>
@@ -265,12 +284,12 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
   letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
 }
-.stat { display: inline-flex; align-items: baseline; gap: 0.46rem; min-height: 1.5rem; }
+.stat { display: inline-flex; align-items: baseline; gap: 0.48rem; min-height: 1.5rem; }
 .stat strong {
   font-family: var(--sans);
   font-weight: 600;
   color: var(--ink);
-  font-size: 1rem;
+  font-size: 1.08rem;
   letter-spacing: -0.02em;
   text-transform: none;
   line-height: 1;
@@ -314,6 +333,84 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 .theme-icon-dark { display: none; }
 [data-theme="dark"] .theme-icon-light { display: none; }
 [data-theme="dark"] .theme-icon-dark { display: inline; }
+
+/* Replay-tour pill */
+.tour-replay {
+  width: 2.2rem; height: 2.2rem;
+  appearance: none; border: 0; cursor: pointer;
+  background: var(--paper-raised);
+  color: var(--ink-soft);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out), transform var(--dur-out) var(--ease-out);
+}
+.tour-replay:hover { color: var(--accent); background: var(--paper-soft); transform: translateY(-1px); transition-duration: var(--dur-in); transition-timing-function: var(--ease-in); }
+
+/* Guided tour overlay */
+.tour-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+.tour-overlay:not([hidden]) { pointer-events: auto; }
+.tour-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background-color 220ms var(--ease-out); }
+.tour-overlay:not([hidden]) .tour-backdrop { background: rgba(0,0,0,0.55); }
+.tour-spotlight {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.62), 0 0 0 4px var(--accent-soft), 0 0 0 6px var(--accent-line);
+  pointer-events: none;
+  transition: top 240ms var(--ease-out), left 240ms var(--ease-out), width 240ms var(--ease-out), height 240ms var(--ease-out);
+}
+.tour-tooltip {
+  position: absolute;
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-modal);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 12px;
+  padding: 1.1rem 1.2rem 1rem;
+  max-width: 22rem;
+  width: max-content;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 180ms var(--ease-out), transform 220ms var(--ease-out), top 240ms var(--ease-out), left 240ms var(--ease-out);
+}
+.tour-overlay:not([hidden]) .tour-tooltip { opacity: 1; transform: translateY(0); }
+.tour-step-count {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: var(--label-spacing);
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+.tour-step-title { margin: 0 0 0.35rem; font-size: 1.05rem; font-weight: 600; line-height: 1.25; }
+.tour-step-body { margin: 0 0 1rem; color: var(--ink-soft); font-size: 0.92rem; line-height: 1.5; }
+.tour-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.tour-nav { display: inline-flex; gap: 0.4rem; }
+.tour-skip, .tour-back, .tour-next {
+  appearance: none; border: 0; cursor: pointer;
+  font-family: var(--sans); font-size: 0.82rem; font-weight: 500;
+  border-radius: 999px; padding: 0.45rem 0.85rem 0.47rem;
+  transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out);
+}
+.tour-skip { background: transparent; color: var(--ink-faint); padding-left: 0.2rem; padding-right: 0.2rem; }
+.tour-skip:hover { color: var(--ink); }
+.tour-back { background: var(--paper-soft); color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--rule-soft); }
+.tour-back:hover { color: var(--ink); }
+.tour-back:disabled { opacity: 0.4; cursor: not-allowed; }
+.tour-next { background: var(--accent); color: #fff; }
+[data-theme="dark"] .tour-next { color: var(--paper); }
+.tour-next:hover { transform: translateY(-1px); transition-duration: var(--dur-in); transition-timing-function: var(--ease-in); }
+@media (max-width: 600px) {
+  .tour-tooltip { max-width: calc(100vw - 2rem); width: calc(100vw - 2rem); padding: 0.95rem 1rem 0.85rem; }
+  .tour-actions { flex-direction: column-reverse; align-items: stretch; gap: 0.45rem; }
+  .tour-nav { justify-content: space-between; }
+  .tour-skip { padding: 0.4rem 0.4rem; text-align: left; }
+}
 
 /* Masthead actions row holds profile + view-mode + theme */
 .masthead-actions { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; justify-content: flex-end; }
@@ -440,6 +537,16 @@ body[data-mode="app"] table.audit td.col-num { text-align: left; }
 body[data-mode="app"] .num-input { width: 7rem; font-size: 1rem; }
 body[data-mode="app"] tfoot.audit-foot { display: none; }
 body[data-mode="app"] .brand-title { font-size: clamp(1.5rem, 4vw, 2rem); }
+body[data-mode="app"] table.audit tbody tr.cat-start { margin-top: 1.4rem; }
+body[data-mode="app"] table.audit tbody tr.cat-start::before {
+  content: "";
+  display: block;
+  width: 2rem; height: 2px;
+  background: var(--accent);
+  margin: 0 0 0.6rem;
+  border-radius: 999px;
+}
+body[data-mode="app"] table.audit tbody tr.cat-start td { border-top: 0; padding-top: 0.3rem; }
 
 /* ------ View tabs ------ */
 .viewbar { max-width: 78rem; margin: 0 auto; padding: 0 2rem; border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule); }
@@ -539,6 +646,12 @@ table.audit td {
   vertical-align: middle;
 }
 table.audit tbody tr:last-child td { border-bottom: 0; }
+table.audit tbody tr.cat-start td {
+  border-top: 2px solid var(--rule);
+  padding-top: 0.85rem;
+}
+table.audit tbody tr.cat-start td.col-cat { color: var(--ink); }
+table.audit tbody tr.cat-start td.col-cat .cell-input.cell-cat { font-weight: 600; }
 table.audit td.col-cat {
   font-weight: 500;
   color: var(--ink-soft);
@@ -1073,13 +1186,34 @@ body[data-view="reflect"] .export-fab { display: none; }
 
 /* ------ Mobile ------ */
 @media (max-width: 720px) {
-  .masthead { padding: 1.8rem 1.25rem 1rem; }
-  .brand-title { font-size: 1.4rem; }
-  .viewbar, main, .colophon { padding-left: 1.25rem; padding-right: 1.25rem; }
-  .masthead-lede { font-size: 0.96rem; margin-bottom: 1rem; }
+  .masthead { padding: 1.5rem 1.1rem 0.9rem; }
+  .masthead-row { flex-direction: column; align-items: stretch; gap: 0.85rem; padding-bottom: 0.7rem; }
+  .brand-title { font-size: 1.32rem; }
+  .masthead-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .profile-chip { padding: 0.4rem 0.7rem 0.4rem 0.85rem; font-size: 0.8rem; max-width: none; flex: 1 1 auto; min-width: 0; }
+  .profile-chip-name { max-width: none; }
+  .viewmode-toggle { padding: 0.18rem; }
+  .viewmode-btn { padding: 0.28rem 0.55rem; font-size: 0.74rem; }
+  .theme-toggle { width: 2.2rem; height: 2.2rem; flex-shrink: 0; }
+  .profile-menu { right: 0; left: 0; min-width: 0; }
+  .viewbar, main, .colophon { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .masthead-lede { font-size: 0.94rem; margin-bottom: 0.9rem; }
   .masthead-stats { gap: 0.5rem 1rem; }
-  .viewbar-inner { gap: 1rem; }
-  main { padding-bottom: 7rem; }
+  .viewbar-inner { gap: 0.9rem; }
+  main { padding-bottom: 6rem; }
+  .worksheet-toolbar { gap: 0.5rem; }
+  .worksheet-toolbar .input-mode-toggle { margin-left: 0; width: 100%; justify-content: stretch; }
+  .input-mode-toggle { flex-wrap: wrap; }
+  .input-mode-label { padding: 0 0.4rem 0 0.6rem; }
+  .input-mode-btn { flex: 1; }
+  .range-cell { grid-template-columns: 1fr 4.4rem; }
+  .export-fab { right: 0.85rem; bottom: 0.85rem; }
+  .export-trigger { padding: 0.6rem 1rem 0.62rem 0.85rem; font-size: 0.84rem; }
 
   /* table → card stack on mobile */
   table.audit thead { display: none; }
@@ -1091,6 +1225,19 @@ body[data-view="reflect"] .export-fab { display: none; }
     padding: 0.9rem 1rem;
     margin-bottom: 0.7rem;
     position: relative;
+  }
+  table.audit tbody tr.cat-start { margin-top: 1.5rem; }
+  table.audit tbody tr.cat-start::before {
+    content: "";
+    display: block;
+    width: 2rem; height: 2px;
+    background: var(--accent);
+    margin: 0 0 0.55rem;
+    border-radius: 999px;
+  }
+  table.audit tbody tr.cat-start td {
+    border-top: 0;
+    padding-top: 0.25rem;
   }
   table.audit td {
     border-bottom: 0;
@@ -1149,7 +1296,11 @@ function getJS() {
     try { return localStorage.getItem("168-audit:input-mode") || "numbers"; }
     catch(e) { return "numbers"; }
   })();
-  const SLIDER_MAX = 80; // hours per row; above this, switch to numbers mode
+  const SLIDER_MAX_DEFAULT = window.__SLIDER_MAX_DEFAULT__ || 15;
+  function sliderMaxFor(row) {
+    if (row && typeof row.sliderMax === "number") return row.sliderMax;
+    return SLIDER_MAX_DEFAULT;
+  }
 
   function freshRows() {
     return SEED.map(r => Object.assign({}, r, { ideal: "", actual: "", notes: "" }));
@@ -1352,8 +1503,9 @@ function getJS() {
     let prevCat = null;
     rows.forEach((row, i) => {
       const merged = row.category === prevCat;
+      const catStart = !merged && i > 0;
       prevCat = row.category;
-      html += '<tr data-idx="' + i + '">' +
+      html += '<tr data-idx="' + i + '"' + (catStart ? ' class="cat-start"' : '') + '>' +
         '<td class="col-cat' + (merged ? ' cat-merged' : '') + '" data-label="Category">' +
           '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category">' +
         '</td>' +
@@ -1398,12 +1550,13 @@ function getJS() {
   function valueCell(row, i, field) {
     const v = row[field];
     const numericValue = v === "" || v === null || v === undefined ? "" : v;
-    if (inputMode === "sliders" && (numericValue === "" || +numericValue <= SLIDER_MAX)) {
+    const rowMax = sliderMaxFor(row);
+    if (inputMode === "sliders" && (numericValue === "" || +numericValue <= rowMax)) {
       const sv = numericValue === "" ? 0 : +numericValue;
-      const fill = (Math.min(sv, SLIDER_MAX) / SLIDER_MAX * 100).toFixed(1);
-      return '<div class="range-cell">' +
-        '<input type="range" class="range-input range-' + field + '" data-field="' + field + '" data-idx="' + i + '" min="0" max="' + SLIDER_MAX + '" step="0.25" value="' + sv + '" style="--fill:' + fill + '%" aria-label="' + field + ' hours">' +
-        '<span class="range-val" data-val-for="' + field + '-' + i + '">' + (numericValue === "" ? "0" : fmtH(+numericValue)) + 'h</span>' +
+      const fill = (Math.min(sv, rowMax) / rowMax * 100).toFixed(1);
+      return '<div class="range-cell" data-row-max="' + rowMax + '">' +
+        '<input type="range" class="range-input range-' + field + '" data-field="' + field + '" data-idx="' + i + '" data-row-max="' + rowMax + '" min="0" max="' + rowMax + '" step="0.25" value="' + sv + '" style="--fill:' + fill + '%" aria-label="' + field + ' hours">' +
+        '<span class="range-val" data-val-for="' + field + '-' + i + '" title="Max for this row: ' + rowMax + 'h">' + (numericValue === "" ? "0" : fmtH(+numericValue)) + 'h</span>' +
         '</div>';
     }
     return '<input type="number" class="num-input" data-field="' + field + '" data-idx="' + i + '" value="' + numericValue + '" step="0.25" min="0" max="168" placeholder="0" inputmode="decimal" aria-label="' + field + ' hours">';
@@ -1421,8 +1574,9 @@ function getJS() {
     const inp = e.target;
     const idx = +inp.dataset.idx;
     const field = inp.dataset.field;
+    const max = +(inp.dataset.rowMax || inp.max || SLIDER_MAX_DEFAULT);
     const v = +inp.value;
-    inp.style.setProperty("--fill", (v / SLIDER_MAX * 100).toFixed(1) + "%");
+    inp.style.setProperty("--fill", (v / max * 100).toFixed(1) + "%");
     const label = inp.parentElement.querySelector("[data-val-for='" + field + "-" + idx + "']");
     if (label) label.textContent = fmtH(v) + "h";
     rows[idx][field] = v === 0 ? "" : v;
@@ -1899,12 +2053,188 @@ function getJS() {
     });
   })();
 
+  // ------ Guided tour ------
+  const TOUR_KEY = "168-audit:tour-seen";
+  const TOUR_STEPS = [
+    {
+      selector: ".brand-titles",
+      title: "168 hours, your week",
+      body: "Plan an ideal week, log your actual one, and see where the gap lives. Quick tour — about 60 seconds."
+    },
+    {
+      view: "worksheet",
+      selector: "#auditBody tr:first-child .col-sub .cell-input",
+      title: "Edit any row",
+      body: "Category and sub-category labels are editable. Click a cell to rename, and the Ideal/Actual fields take hours."
+    },
+    {
+      view: "worksheet",
+      selector: ".input-mode-toggle",
+      title: "Numbers or sliders",
+      body: "Switch input style. Sliders are sized per row — sleep and work scale to 80h, others to 15–20h."
+    },
+    {
+      selector: '.view-tab[data-view="compare"]',
+      title: "Compare ideal vs actual",
+      body: "See which categories diverge most, with a callout for the biggest gap."
+    },
+    {
+      view: "reflect",
+      selector: "#view-reflect .reflect-answer",
+      title: "Reflect in writing",
+      body: "Type answers under each prompt. They save per profile and land in the Markdown export."
+    },
+    {
+      selector: "#profileChip",
+      title: "Multiple schedules",
+      body: "Save separate weeks — Term, Summer, Sabbatical. Each profile keeps its own rows and reflections."
+    },
+    {
+      selector: ".viewmode-toggle",
+      title: "App or Dashboard",
+      body: "Dashboard is a dense table. App is a focused card-stack. Pick whichever fits the moment."
+    },
+    {
+      selector: "#exportTrigger",
+      title: "Export anytime",
+      body: "Tap to expand. CSV, JSON, Markdown (with answers), or print. Files are named for the active profile.",
+      before: function() { /* nothing — keep FAB closed for the highlight */ }
+    },
+    {
+      selector: "#themeBtn",
+      title: "You're set",
+      body: "Theme toggle here. Replay this tour with the ? button next to it. Have a useful audit.",
+      final: true
+    }
+  ];
+
+  function startTour(force) {
+    if (!force) {
+      try { if (localStorage.getItem(TOUR_KEY)) return; } catch(e) {}
+    }
+    let idx = 0;
+    const overlay = document.getElementById("tour");
+    const spotlight = document.getElementById("tourSpotlight");
+    const tooltip = document.getElementById("tourTooltip");
+    const countEl = document.getElementById("tourCount");
+    const titleEl = document.getElementById("tourTitle");
+    const bodyEl = document.getElementById("tourBody");
+    const backBtn = document.getElementById("tourBack");
+    const nextBtn = document.getElementById("tourNext");
+    const skipBtn = document.getElementById("tourSkip");
+
+    function show() {
+      overlay.hidden = false;
+      paint();
+    }
+    function paint() {
+      const step = TOUR_STEPS[idx];
+      if (step.view && activeView !== step.view) {
+        document.querySelector('.view-tab[data-view="' + step.view + '"]').click();
+        setTimeout(positionSpotlight, 80);
+      } else {
+        positionSpotlight();
+      }
+      countEl.textContent = "Step " + (idx + 1) + " of " + TOUR_STEPS.length;
+      titleEl.textContent = step.title;
+      bodyEl.textContent = step.body;
+      backBtn.disabled = idx === 0;
+      nextBtn.textContent = step.final ? "Done" : "Next →";
+      if (typeof step.before === "function") step.before();
+    }
+    function positionSpotlight() {
+      const step = TOUR_STEPS[idx];
+      const target = document.querySelector(step.selector);
+      if (!target) {
+        // Target missing — center the tooltip and skip the spotlight.
+        spotlight.style.opacity = "0";
+        tooltip.style.top = "50%";
+        tooltip.style.left = "50%";
+        tooltip.style.transform = "translate(-50%, -50%)";
+        return;
+      }
+      spotlight.style.opacity = "1";
+      target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      // Defer positioning a frame so scroll completes
+      requestAnimationFrame(() => {
+        const r = target.getBoundingClientRect();
+        const pad = 8;
+        spotlight.style.top = (r.top - pad) + "px";
+        spotlight.style.left = (r.left - pad) + "px";
+        spotlight.style.width = (r.width + pad * 2) + "px";
+        spotlight.style.height = (r.height + pad * 2) + "px";
+        positionTooltip(r);
+      });
+    }
+    function positionTooltip(r) {
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+      tooltip.style.transform = "";
+      // Reset any prior placement to measure naturally.
+      tooltip.style.top = "0px"; tooltip.style.left = "0px";
+      const tipRect = tooltip.getBoundingClientRect();
+      const tw = tipRect.width, th = tipRect.height;
+      const margin = 14;
+      let top, left;
+      // Prefer below the target
+      if (r.bottom + th + margin < vh) {
+        top = r.bottom + margin;
+      } else if (r.top - th - margin > 0) {
+        top = r.top - th - margin;
+      } else {
+        top = Math.max(margin, Math.min(vh - th - margin, r.top));
+      }
+      // Horizontally center on target, clamp to viewport.
+      left = Math.max(margin, Math.min(vw - tw - margin, r.left + r.width / 2 - tw / 2));
+      tooltip.style.top = top + "px";
+      tooltip.style.left = left + "px";
+    }
+    function next() {
+      if (TOUR_STEPS[idx].final) return done();
+      idx = Math.min(TOUR_STEPS.length - 1, idx + 1);
+      paint();
+    }
+    function back() {
+      idx = Math.max(0, idx - 1);
+      paint();
+    }
+    function done() {
+      try { localStorage.setItem(TOUR_KEY, "1"); } catch(e) {}
+      overlay.hidden = true;
+      detach();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") done();
+      else if (e.key === "ArrowRight" || e.key === "Enter") next();
+      else if (e.key === "ArrowLeft") back();
+    }
+    function onResize() { positionSpotlight(); }
+    function detach() {
+      nextBtn.removeEventListener("click", next);
+      backBtn.removeEventListener("click", back);
+      skipBtn.removeEventListener("click", done);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+    }
+    nextBtn.addEventListener("click", next);
+    backBtn.addEventListener("click", back);
+    skipBtn.addEventListener("click", done);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onResize);
+
+    show();
+  }
+
+  document.getElementById("tourReplay").addEventListener("click", function() { startTour(true); });
+
   // ------ Init ------
   loadState();
   applyViewMode(state.viewMode);
   renderProfileChip();
   renderWorksheet();
   renderStats();
+  // First-run tour, deferred so layout settles.
+  setTimeout(() => startTour(false), 350);
 })();
 `;
 }

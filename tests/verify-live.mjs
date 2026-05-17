@@ -18,6 +18,8 @@ async function inspectDesktop(browser) {
   log("\n=== Desktop (1440×900) ===");
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
+  // Suppress tour for the rest of the suite once we've inspected it.
+  await ctx.addInitScript(() => { try { localStorage.setItem("168-audit:tour-seen", "1"); } catch(e) {} });
   page.on("pageerror", (e) => fail(`pageerror: ${e.message}`));
   page.on("console", (m) => { if (m.type() === "error") fail(`console.error: ${m.text()}`); });
 
@@ -68,11 +70,29 @@ async function inspectDesktop(browser) {
   });
   catSaved === "Career" ? ok(`category persisted: ${catSaved}`) : fail(`category not saved: ${catSaved}`);
 
-  log("\nToggle to slider mode");
+  log("\nToggle to slider mode + per-row slider max");
   await page.click('.input-mode-btn[data-mode="sliders"]');
   await page.waitForTimeout(200);
   const sliders = await page.locator("input.range-input").count();
   sliders >= 30 ? ok(`${sliders} sliders rendered`) : fail(`only ${sliders} sliders`);
+  // Mandatory Work + Sleep should be max=80; everything else <=20
+  const maxes = await page.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll("#auditBody tr"));
+    return rows.map(tr => {
+      const sub = tr.querySelector(".cell-sub")?.value || "";
+      const range = tr.querySelector("input.range-input");
+      return { sub, max: range ? +range.max : null };
+    });
+  });
+  const work = maxes.find(m => /mandatory work/i.test(m.sub));
+  const sleep = maxes.find(m => /^Sleep$/i.test(m.sub));
+  const hobby = maxes.find(m => /personal hobby/i.test(m.sub));
+  const medical = maxes.find(m => /medical/i.test(m.sub));
+  (work && work.max === 80) ? ok(`Mandatory Work slider max=80`) : fail(`Mandatory Work: ${JSON.stringify(work)}`);
+  (sleep && sleep.max === 80) ? ok(`Sleep slider max=80`) : fail(`Sleep: ${JSON.stringify(sleep)}`);
+  (hobby && hobby.max <= 20) ? ok(`Personal Hobby slider max=${hobby.max}`) : fail(`hobby: ${JSON.stringify(hobby)}`);
+  (medical && medical.max <= 20) ? ok(`Medical slider max=${medical.max}`) : fail(`medical: ${JSON.stringify(medical)}`);
+
   const firstSlider = page.locator('input.range-input[data-field="actual"]').first();
   await firstSlider.evaluate((el) => { el.value = "12"; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); });
   await page.waitForTimeout(150);
@@ -86,6 +106,14 @@ async function inspectDesktop(browser) {
   // Back to numbers for the rest
   await page.click('.input-mode-btn[data-mode="numbers"]');
   await page.waitForTimeout(150);
+
+  log("\nCategory dividers (cat-start class on top-level transitions)");
+  const dividerCount = await page.locator("#auditBody tr.cat-start").count();
+  dividerCount >= 6 ? ok(`${dividerCount} category dividers in worksheet`) : fail(`only ${dividerCount} dividers`);
+
+  log("\nFooter name");
+  const footerText = await page.locator(".colophon").innerText();
+  /Douglas McGowan/i.test(footerText) ? ok(`footer reads "Douglas"`) : fail(`footer: ${footerText.trim()}`);
 
   log("\nTheme toggle");
   await page.click("#themeBtn");
@@ -194,6 +222,25 @@ async function inspectDesktop(browser) {
   await page.click('#vmDashboard');
   await page.waitForTimeout(120);
 
+  log("\nGuided tour (replay, walk all steps)");
+  await page.click("#tourReplay");
+  await page.waitForTimeout(300);
+  const tourVisible = await page.evaluate(() => !document.getElementById("tour").hidden);
+  tourVisible ? ok("tour opens on replay") : fail("tour didn't open");
+  const totalSteps = await page.evaluate(() => parseInt(document.getElementById("tourCount").textContent.split(" of ")[1] || "0"));
+  totalSteps >= 8 ? ok(`tour has ${totalSteps} steps`) : fail(`tour steps: ${totalSteps}`);
+  await page.screenshot({ path: path.join(SHOTS, "09a-tour-step-1.png"), fullPage: false });
+  ok("screenshot: 09a-tour-step-1.png");
+  // Walk to step 5 to verify view-switching steps don't crash
+  for (let i = 0; i < 4; i++) { await page.click("#tourNext"); await page.waitForTimeout(150); }
+  await page.screenshot({ path: path.join(SHOTS, "09b-tour-step-5.png"), fullPage: false });
+  ok("screenshot: 09b-tour-step-5.png");
+  // Skip out
+  await page.click("#tourSkip");
+  await page.waitForTimeout(150);
+  const tourClosed = await page.evaluate(() => document.getElementById("tour").hidden && localStorage.getItem("168-audit:tour-seen") === "1");
+  tourClosed ? ok("tour closes + marks seen") : fail("tour didn't close cleanly");
+
   await ctx.close();
 }
 
@@ -201,9 +248,27 @@ async function inspectMobile(browser) {
   log("\n=== Mobile (375×812, iPhone 13) ===");
   const ctx = await browser.newContext({ ...devices["iPhone 13"] });
   const page = await ctx.newPage();
+  await ctx.addInitScript(() => { try { localStorage.setItem("168-audit:tour-seen", "1"); } catch(e) {} });
   page.on("pageerror", (e) => fail(`pageerror: ${e.message}`));
 
   await page.goto(URL, { waitUntil: "networkidle", timeout: 30000 });
+
+  log("\nMobile chrome: profile chip + viewmode + FAB visible and contained");
+  const chromeCheck = await page.evaluate(() => {
+    const vw = document.documentElement.clientWidth;
+    function info(sel) {
+      const el = document.querySelector(sel);
+      if (!el) return { sel, present: false };
+      const r = el.getBoundingClientRect();
+      return { sel, present: true, right: Math.round(r.right), within: r.right <= vw + 1 && r.left >= -1 };
+    }
+    return [info(".profile-chip"), info(".viewmode-toggle"), info(".export-fab")];
+  });
+  chromeCheck.forEach(c => {
+    if (!c.present) fail(`${c.sel} missing on mobile`);
+    else if (!c.within) fail(`${c.sel} overflows mobile viewport (right=${c.right})`);
+    else ok(`${c.sel} fits mobile`);
+  });
 
   log("\nMobile masthead + viewport");
   const overflowX = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
