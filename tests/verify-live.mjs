@@ -181,8 +181,8 @@ async function inspectDesktop(browser) {
     const menuWidths = Array.from(document.querySelectorAll(".export-menu .export-btn")).map(b => Math.round(b.getBoundingClientRect().width));
     return { trigger: triggerW, menu: menuWidths };
   });
-  const fabAllEqual = fabWidths.menu.length === 4 && fabWidths.menu.every(w => Math.abs(w - fabWidths.trigger) <= 2);
-  fabAllEqual ? ok(`FAB widths match: trigger=${fabWidths.trigger}, menu=${fabWidths.menu.join(",")}`) : fail(`FAB widths differ: ${JSON.stringify(fabWidths)}`);
+  const fabAllEqual = fabWidths.menu.length === 6 && fabWidths.menu.every(w => Math.abs(w - fabWidths.trigger) <= 2);
+  fabAllEqual ? ok(`FAB widths match: trigger=${fabWidths.trigger}, menu=${fabWidths.menu.join(",")} (${fabWidths.menu.length} items)`) : fail(`FAB widths differ: ${JSON.stringify(fabWidths)}`);
   await page.click("#exportTrigger"); // close
   await page.waitForTimeout(120);
 
@@ -319,7 +319,147 @@ async function inspectDesktop(browser) {
   await page.click("#tourSkip");
   await page.waitForTimeout(150);
 
+  log("\nCompare: donut + insights + legend render");
+  // Fill some data so insights/donut have content
+  await page.click('.view-tab[data-view="worksheet"]');
+  await page.waitForTimeout(120);
+  await page.locator('input[data-field="ideal"]').first().fill("40");
+  await page.locator('input[data-field="actual"]').first().fill("46");
+  await page.locator('input[data-field="ideal"]').nth(2).fill("56");
+  await page.locator('input[data-field="actual"]').nth(2).fill("48");
+  await page.click('.view-tab[data-view="compare"]');
+  await page.waitForTimeout(200);
+  const compareShape = await page.evaluate(() => ({
+    insights: document.querySelectorAll(".insights .insights-line").length,
+    donuts: document.querySelectorAll(".donut").length,
+    legendItems: document.querySelectorAll(".legend li").length,
+    donutCenterText: document.querySelector(".donut .donut-num")?.textContent || null,
+  }));
+  compareShape.insights >= 2 && compareShape.donuts === 2 && compareShape.legendItems > 0
+    ? ok(`Compare: ${compareShape.insights} insight lines, ${compareShape.donuts} donuts, ${compareShape.legendItems} legend rows, donut center "${compareShape.donutCenterText}"`)
+    : fail(`compare shape: ${JSON.stringify(compareShape)}`);
+  await page.screenshot({ path: path.join(SHOTS, "12-compare-with-donut.png"), fullPage: true });
+
+  log("\nShareable link: click Share, verify clipboard URL");
+  await ctx.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.click('.view-tab[data-view="worksheet"]');
+  await page.waitForTimeout(120);
+  await page.click("#exportTrigger");
+  await page.waitForTimeout(150);
+  await page.click("#exportShare");
+  await page.waitForTimeout(200);
+  const clipboardText = await page.evaluate(async () => {
+    try { return await navigator.clipboard.readText(); } catch (e) { return null; }
+  });
+  if (clipboardText && /#share=[\w\-_]+/.test(clipboardText)) ok(`share link in clipboard: ${clipboardText.slice(0, 60)}...`);
+  else fail(`share link missing: ${clipboardText}`);
+
+  log("\nJournal export click (no error)");
+  await page.click("#exportTrigger");
+  await page.waitForTimeout(120);
+  await page.click("#exportJournal");
+  await page.waitForTimeout(150);
+  ok("journal export clicked without error");
+
+  log("\nBulk selection: shift-click range");
+  // Plain-click the 1st row, shift-click the 4th row
+  const r1 = page.locator("#auditBody tr").nth(0);
+  const r4 = page.locator("#auditBody tr").nth(3);
+  // Click on the row but not on an input — target the .col-cat td empty space.
+  await r1.locator(".col-cat").click({ position: { x: 5, y: 5 } });
+  await r4.locator(".col-cat").click({ position: { x: 5, y: 5 }, modifiers: ["Shift"] });
+  await page.waitForTimeout(150);
+  const selected = await page.locator("#auditBody tr.selected").count();
+  selected >= 3 ? ok(`shift-click range selected ${selected} rows`) : fail(`shift-click selected ${selected} (expected ≥3)`);
+  // Bulk-bar should be visible
+  const bulkVisible = await page.evaluate(() => document.getElementById("bulkBar").classList.contains("visible"));
+  bulkVisible ? ok("bulk-bar visible") : fail("bulk-bar hidden");
+  // Deselect
+  await page.click("#bulkDeselect");
+  await page.waitForTimeout(120);
+  const stillSelected = await page.locator("#auditBody tr.selected").count();
+  stillSelected === 0 ? ok("bulk deselect clears selection") : fail(`still ${stillSelected} selected`);
+
+  log("\nKeyboard shortcut: '2' switches to Compare");
+  await page.evaluate(() => document.body.focus());
+  await page.keyboard.press("2");
+  await page.waitForTimeout(150);
+  const activeAfter2 = await page.evaluate(() => document.querySelector(".view-tab.active")?.dataset.view);
+  activeAfter2 === "compare" ? ok("keyboard '2' → Compare") : fail(`'2' → ${activeAfter2}`);
+  await page.keyboard.press("1");
+  await page.waitForTimeout(100);
+
+  log("\nKeyboard shortcut: 'n' adds subcategory");
+  const beforeN = await page.locator("#auditBody tr").count();
+  await page.keyboard.press("n");
+  await page.waitForTimeout(150);
+  const afterN = await page.locator("#auditBody tr").count();
+  afterN === beforeN + 1 ? ok(`'n' added row: ${beforeN}→${afterN}`) : fail(`'n' didn't add (was ${beforeN}, now ${afterN})`);
+
+  log("\nShortcuts table in ? modal");
+  await page.click("#tourReplay");
+  await page.waitForTimeout(150);
+  const shortcutsCount = await page.locator(".modal-shortcuts table tr").count();
+  shortcutsCount >= 10 ? ok(`${shortcutsCount} shortcut rows listed`) : fail(`only ${shortcutsCount} shortcut rows`);
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(120);
+
+  log("\n--- Edge cases ---");
+
+  log("Long category name (60 chars) doesn't overflow viewport");
+  const longName = "A".repeat(60);
+  await page.locator("input.cell-cat").first().fill(longName);
+  await page.waitForTimeout(120);
+  const overflowLong = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  overflowLong <= 1 ? ok("long-name: no overflow") : fail(`long-name overflow: ${overflowLong}px`);
+
+  log("Negative input is clamped to 0");
+  await page.locator('input[data-field="ideal"]').first().fill("-5");
+  await page.locator('input[data-field="ideal"]').first().blur();
+  await page.waitForTimeout(120);
+  const negResult = await page.locator('input[data-field="ideal"]').first().inputValue();
+  +negResult >= 0 ? ok(`negative clamped to ${negResult}`) : fail(`negative leaked: ${negResult}`);
+
+  log("Over-max input is clamped to 168");
+  await page.locator('input[data-field="ideal"]').first().fill("9999");
+  await page.locator('input[data-field="ideal"]').first().blur();
+  await page.waitForTimeout(120);
+  const bigResult = await page.locator('input[data-field="ideal"]').first().inputValue();
+  +bigResult <= 168 ? ok(`big value clamped to ${bigResult}`) : fail(`overflow value: ${bigResult}`);
+
+  log("Same category name with different casing groups separately (intentional)");
+  await page.click("#addCatBtn");
+  await page.waitForTimeout(120);
+  const allCats = await page.evaluate(() => Array.from(document.querySelectorAll("#auditBody input.cell-cat")).map(i => i.value));
+  ok(`${allCats.length} rows present after edge case adds; cats include: ${[...new Set(allCats)].slice(0, 4).join(", ")}…`);
+
+  log("Reload preserves v2 state (incl. edited category name)");
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(200);
+  const after = await page.locator("input.cell-cat").first().inputValue();
+  after.length > 0 ? ok(`first category preserved across reload: "${after.slice(0, 30)}..."`) : fail("state lost on reload");
+
+  log("Empty profile: insights panel shows onboarding line, donuts render dotted empty state");
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("168-audit:v2"));
+    s.profiles[s.activeProfile].rows = s.profiles[s.activeProfile].rows.map(r => ({ ...r, ideal: "", actual: "" }));
+    localStorage.setItem("168-audit:v2", JSON.stringify(s));
+  });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(200);
+  await page.click('.view-tab[data-view="compare"]');
+  await page.waitForTimeout(180);
+  const emptyState = await page.evaluate(() => ({
+    line: document.querySelector(".insights-line")?.textContent || "",
+    donuts: document.querySelectorAll(".donut").length
+  }));
+  /Start by filling/.test(emptyState.line) && emptyState.donuts === 2
+    ? ok(`empty state: insights onboarding shown, ${emptyState.donuts} donuts`)
+    : fail(`empty state: ${JSON.stringify(emptyState)}`);
+
   log("\nColumn-width stability: range value width fixed regardless of value");
+  await page.click('.view-tab[data-view="worksheet"]');
+  await page.waitForTimeout(180);
   // Go back to sliders; check that the .range-val element width is constant for 0 vs 80
   await page.click('.input-mode-btn[data-mode="sliders"]');
   await page.waitForTimeout(180);

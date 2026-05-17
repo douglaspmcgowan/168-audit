@@ -116,6 +116,8 @@ function buildPage() {
       <button class="export-btn" id="exportCsv" role="menuitem">CSV</button>
       <button class="export-btn" id="exportJson" role="menuitem">JSON</button>
       <button class="export-btn" id="exportMd" role="menuitem">Markdown</button>
+      <button class="export-btn" id="exportJournal" role="menuitem">Journal</button>
+      <button class="export-btn" id="exportShare" role="menuitem">Share link</button>
       <button class="export-btn" id="exportPrint" role="menuitem">Print</button>
     </div>
   </div>
@@ -135,6 +137,22 @@ function buildPage() {
         </ul>
         <p>The gap between them is the useful part. Most people's first ideal week comes out 30–50 hours over budget — which is the whole point. It surfaces what you actually believe should give.</p>
         <p>Adapted from the <a href="https://dpm5970digitalgarden.vercel.app/168-audit-your-week/" target="_blank" rel="noopener">"168 — Audit Your Week"</a> note in Douglas McGowan's digital garden, which in turn draws on Laura Vanderkam's <a href="https://lauravanderkam.com/start-here/" target="_blank" rel="noopener">168 Hours</a> work.</p>
+        <details class="modal-shortcuts">
+          <summary>Keyboard shortcuts</summary>
+          <table>
+            <tr><td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd></td><td>Switch to Worksheet / Compare / Reflect</td></tr>
+            <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
+            <tr><td><kbd>M</kbd></td><td>Toggle App / Dashboard mode</td></tr>
+            <tr><td><kbd>I</kbd></td><td>Toggle Numbers / Sliders input</td></tr>
+            <tr><td><kbd>N</kbd></td><td>New subcategory row</td></tr>
+            <tr><td><kbd>Shift</kbd>+<kbd>N</kbd></td><td>New category row</td></tr>
+            <tr><td><kbd>E</kbd></td><td>Open export menu</td></tr>
+            <tr><td><kbd>?</kbd></td><td>Open this help</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Close modal / tour / menu</td></tr>
+            <tr><td><kbd>Click</kbd> a row's left edge</td><td>Select row (Shift to extend range, Ctrl/Cmd to toggle)</td></tr>
+            <tr><td><kbd>Delete</kbd> or <kbd>Backspace</kbd></td><td>Remove selected rows</td></tr>
+          </table>
+        </details>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-quiet" data-close="1">Close</button>
@@ -491,6 +509,51 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
   gap: 0.5rem;
   flex-wrap: wrap;
 }
+.modal-shortcuts { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--rule-soft); }
+.modal-shortcuts summary { cursor: pointer; font-size: 0.78rem; text-transform: uppercase; letter-spacing: var(--label-spacing); color: var(--ink-faint); font-weight: 500; padding: 0.3rem 0; }
+.modal-shortcuts summary:hover { color: var(--ink); }
+.modal-shortcuts table { width: 100%; margin-top: 0.6rem; border-collapse: collapse; font-size: 0.86rem; }
+.modal-shortcuts td { padding: 0.32rem 0.4rem; vertical-align: top; color: var(--ink-soft); border-bottom: 1px solid var(--rule-soft); }
+.modal-shortcuts tr:last-child td { border-bottom: 0; }
+.modal-shortcuts td:first-child { width: 8.5rem; color: var(--ink); }
+kbd {
+  display: inline-block;
+  font-family: var(--sans); font-size: 0.78rem; font-weight: 500;
+  padding: 0.08rem 0.4rem 0.12rem;
+  border-radius: 4px;
+  background: var(--paper-soft);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--rule), 0 1px 0 var(--rule-soft);
+  margin: 0 0.05rem;
+}
+
+/* Row selection (bulk actions) */
+table.audit tbody tr.selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+table.audit tbody tr.selected td { color: var(--ink); }
+.bulk-bar {
+  display: none;
+  align-items: center; justify-content: space-between; gap: 0.85rem;
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 0.55rem 0.95rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.88rem;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.bulk-bar.visible { display: flex; }
+.bulk-bar-count strong { font-weight: 600; }
+.bulk-bar-actions { display: inline-flex; gap: 0.4rem; }
+.bulk-bar-actions button {
+  appearance: none; border: 0; cursor: pointer;
+  background: var(--paper-raised); color: var(--ink);
+  padding: 0.32rem 0.75rem; border-radius: 999px;
+  font: inherit; font-size: 0.82rem; font-weight: 500;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out);
+}
+.bulk-bar-actions button.danger:hover { color: var(--urgent); }
+.bulk-bar-actions button:hover { color: var(--ink); background: var(--paper-soft); }
 @keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-rise { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
 @media (max-width: 600px) {
@@ -1046,6 +1109,59 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
 [data-theme="dark"] .chip-urgent { box-shadow: inset 0 0 0 1px rgba(255, 123, 117, 0.22); }
 
 /* ------ Compare view ------ */
+.insights {
+  background: var(--paper-raised);
+  border-radius: 10px;
+  padding: 1rem 1.2rem 1.1rem;
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+  margin-bottom: 1.5rem;
+}
+.insights-eyebrow {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: var(--label-spacing);
+  color: var(--accent); font-weight: 500; margin: 0 0 0.55rem;
+}
+.insights-line { margin: 0 0 0.45rem; color: var(--ink); font-size: 0.96rem; line-height: 1.55; }
+.insights-line:last-child { margin-bottom: 0; }
+.insights-line strong { color: var(--ink); font-weight: 600; }
+
+/* Donut + legend */
+.donut-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 1.5rem 2rem;
+  align-items: start;
+  margin-bottom: 1.8rem;
+}
+.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.55rem; }
+.donut { width: 11rem; height: 11rem; display: block; }
+.donut .donut-num {
+  font-family: var(--sans); font-weight: 600;
+  font-size: 1.55rem;
+  fill: var(--ink); letter-spacing: -0.02em;
+}
+.donut .donut-unit { font-family: var(--sans); font-size: 0.7rem; fill: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+.donut-label {
+  margin: 0;
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: var(--label-spacing);
+  color: var(--ink-faint); font-weight: 500;
+}
+.donut-legend { padding-top: 0.35rem; }
+.legend-eyebrow {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: var(--label-spacing);
+  color: var(--ink-faint); font-weight: 500; margin: 0 0 0.55rem;
+}
+.legend { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.32rem 1rem; }
+.legend li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.86rem; color: var(--ink-soft); }
+.legend-swatch { width: 0.7rem; height: 0.7rem; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+.legend-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend-val { font-variant-numeric: tabular-nums; color: var(--ink-faint); font-size: 0.82rem; }
+
+@media (max-width: 720px) {
+  .donut-row { grid-template-columns: 1fr 1fr; gap: 1rem 1rem; }
+  .donut-legend { grid-column: 1 / -1; }
+  .donut { width: 9rem; height: 9rem; }
+}
+
 .compare-callout {
   display: flex;
   align-items: baseline;
@@ -1474,6 +1590,8 @@ function getJS() {
     try { return localStorage.getItem("168-audit:input-mode") || "numbers"; }
     catch(e) { return "numbers"; }
   })();
+  let selectedRows = new Set(); // row indices currently selected (for bulk actions)
+  let lastClickedRowIdx = null; // for Shift+click range
   const SLIDER_MAX_DEFAULT = window.__SLIDER_MAX_DEFAULT__ || 15;
   function sliderMaxFor(row) {
     if (row && typeof row.sliderMax === "number") return row.sliderMax;
@@ -1672,8 +1790,8 @@ function getJS() {
     const container = views.worksheet;
 
     let html = '<div class="worksheet-toolbar">' +
-      '<button class="btn btn-primary" id="addSubBtn" title="Add a row under the last category">+ Subcategory</button>' +
-      '<button class="btn" id="addCatBtn" title="Start a new top-level category">+ Category</button>' +
+      '<button class="btn btn-primary" id="addSubBtn" title="Add a row under the last category (N)">+ Subcategory</button>' +
+      '<button class="btn" id="addCatBtn" title="Start a new top-level category (Shift+N)">+ Category</button>' +
       '<button class="btn btn-quiet" id="resetBtn">Reset</button>' +
       '<div class="input-mode-toggle" style="margin-left:auto" role="group" aria-label="Input mode">' +
         '<span class="input-mode-label">Input</span>' +
@@ -1681,6 +1799,12 @@ function getJS() {
         '<button class="input-mode-btn' + (inputMode === "sliders" ? " active" : "") + '" data-mode="sliders" type="button">Sliders</button>' +
       '</div>' +
       '</div>';
+
+    html += '<div class="bulk-bar" id="bulkBar" role="status"><span class="bulk-bar-count" id="bulkBarCount"></span>' +
+      '<div class="bulk-bar-actions">' +
+        '<button type="button" id="bulkDeselect">Deselect</button>' +
+        '<button type="button" id="bulkDelete" class="danger">Remove rows</button>' +
+      '</div></div>';
 
     html += '<div class="table-wrap"><table class="audit">';
     html += '<thead><tr>' +
@@ -1739,6 +1863,68 @@ function getJS() {
     container.querySelectorAll(".notes-input").forEach(inp => inp.addEventListener("input", onNotesChange));
     container.querySelectorAll(".cell-input.cell-cat, .cell-input.cell-sub").forEach(inp => inp.addEventListener("input", onCellTextChange));
     container.querySelectorAll(".del-btn").forEach(btn => btn.addEventListener("click", onDelete));
+
+    // Row-selection: click on the row's left gutter (the category cell empty space) toggles selection.
+    container.querySelectorAll("#auditBody tr").forEach(tr => {
+      tr.addEventListener("click", function(e) {
+        // Only treat as selection-click if the user actually clicked the row chrome,
+        // not an input/button inside it.
+        if (e.target.closest("input, button, textarea, select, a")) return;
+        const idx = +this.dataset.idx;
+        if (e.shiftKey && lastClickedRowIdx !== null) {
+          const lo = Math.min(lastClickedRowIdx, idx);
+          const hi = Math.max(lastClickedRowIdx, idx);
+          for (let i = lo; i <= hi; i++) selectedRows.add(i);
+        } else if (e.ctrlKey || e.metaKey) {
+          if (selectedRows.has(idx)) selectedRows.delete(idx); else selectedRows.add(idx);
+        } else {
+          // Plain click: toggle just this row, clear others
+          const wasOnly = selectedRows.size === 1 && selectedRows.has(idx);
+          selectedRows.clear();
+          if (!wasOnly) selectedRows.add(idx);
+        }
+        lastClickedRowIdx = idx;
+        renderSelection();
+      });
+    });
+
+    // Bulk-bar handlers
+    const bdel = document.getElementById("bulkDelete");
+    const bdes = document.getElementById("bulkDeselect");
+    if (bdel) bdel.addEventListener("click", bulkDeleteSelected);
+    if (bdes) bdes.addEventListener("click", function() { selectedRows.clear(); renderSelection(); });
+
+    renderSelection();
+  }
+
+  function renderSelection() {
+    document.querySelectorAll("#auditBody tr").forEach(tr => {
+      const idx = +tr.dataset.idx;
+      tr.classList.toggle("selected", selectedRows.has(idx));
+    });
+    const bar = document.getElementById("bulkBar");
+    const count = document.getElementById("bulkBarCount");
+    if (!bar || !count) return;
+    if (selectedRows.size > 0) {
+      bar.classList.add("visible");
+      count.innerHTML = '<strong>' + selectedRows.size + '</strong> row' + (selectedRows.size === 1 ? '' : 's') + ' selected';
+    } else {
+      bar.classList.remove("visible");
+    }
+  }
+
+  function bulkDeleteSelected() {
+    if (selectedRows.size === 0) return;
+    const count = selectedRows.size;
+    undoStack = { rows: rows.slice() };
+    const keep = rows.filter((_, i) => !selectedRows.has(i));
+    rows = keep;
+    selectedRows.clear();
+    lastClickedRowIdx = null;
+    saveState();
+    renderWorksheet();
+    renderStats();
+    showToast("Removed " + count + " row" + (count === 1 ? '' : 's'), true);
   }
 
   function valueCell(row, i, field) {
@@ -1870,6 +2056,105 @@ function getJS() {
   }
 
   // ------ Compare ------
+  // Pleasant palette for category slices, dark-mode tuned.
+  const SLICE_COLORS = ["#7A9CFF", "#D2AD79", "#6FBF7E", "#FF9B6B", "#C28BE0", "#5FBEA6", "#E07A97", "#9DB07A", "#F2C56B", "#86C4E0"];
+  function colorFor(cat, cats) {
+    const i = cats.indexOf(cat);
+    return SLICE_COLORS[i % SLICE_COLORS.length];
+  }
+  function buildDonut(byCat, cats, label, totalH) {
+    const r = 64, c = 80, stroke = 18;
+    const circ = 2 * Math.PI * r;
+    const sum = cats.reduce((a, k) => a + byCat[k], 0);
+    let offset = 0;
+    let segments = "";
+    cats.forEach(cat => {
+      const v = byCat[cat];
+      if (v <= 0) return;
+      const frac = v / TARGET;
+      const len = Math.max(0, Math.min(circ, frac * circ));
+      segments += '<circle cx="' + c + '" cy="' + c + '" r="' + r +
+        '" fill="none" stroke="' + colorFor(cat, cats) + '" stroke-width="' + stroke +
+        '" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) +
+        '" stroke-dashoffset="' + (-offset).toFixed(2) + '" transform="rotate(-90 ' + c + ' ' + c + ')">' +
+        '<title>' + escHtml(cat) + ': ' + fmtH(v) + 'h</title></circle>';
+      offset += len;
+    });
+    const unalloc = Math.max(0, TARGET - sum);
+    if (unalloc > 0 && sum > 0) {
+      const len = unalloc / TARGET * circ;
+      segments += '<circle cx="' + c + '" cy="' + c + '" r="' + r +
+        '" fill="none" stroke="var(--paper-soft)" stroke-width="' + stroke +
+        '" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) +
+        '" stroke-dashoffset="' + (-offset).toFixed(2) + '" transform="rotate(-90 ' + c + ' ' + c + ')" opacity="0.5">' +
+        '<title>Unallocated: ' + fmtH(unalloc) + 'h</title></circle>';
+    }
+    if (sum === 0) {
+      // Empty-state ring
+      segments += '<circle cx="' + c + '" cy="' + c + '" r="' + r +
+        '" fill="none" stroke="var(--rule)" stroke-width="' + stroke + '" stroke-dasharray="3 6" opacity="0.6"></circle>';
+    }
+    const center = '<text x="' + c + '" y="' + (c - 2) + '" text-anchor="middle" class="donut-num">' + fmtH(totalH) + '</text>' +
+      '<text x="' + c + '" y="' + (c + 14) + '" text-anchor="middle" class="donut-unit">of ' + TARGET + 'h</text>';
+    return '<div class="donut-wrap">' +
+      '<svg viewBox="0 0 ' + (c * 2) + ' ' + (c * 2) + '" class="donut" aria-label="' + label + ' breakdown donut">' + segments + center + '</svg>' +
+      '<p class="donut-label">' + label + '</p>' +
+      '</div>';
+  }
+  function buildLegend(cats, byCat) {
+    if (!cats.length) return '';
+    let html = '<ul class="legend">';
+    cats.forEach(cat => {
+      html += '<li><span class="legend-swatch" style="background:' + colorFor(cat, cats) + '"></span>' +
+        '<span class="legend-name">' + escHtml(cat) + '</span>' +
+        '<span class="legend-val">' + fmtH(byCat[cat]) + 'h</span></li>';
+    });
+    return html + '</ul>';
+  }
+  function buildInsights(byIdeal, byActual, cats) {
+    const sumI = cats.reduce((a, c) => a + byIdeal[c], 0);
+    const sumA = cats.reduce((a, c) => a + byActual[c], 0);
+    if (sumI === 0 && sumA === 0) {
+      return '<p class="insights-line">Start by filling in your <strong>ideal</strong> week — type hours per row in the worksheet, then come back here.</p>';
+    }
+    const out = [];
+    // Ideal commentary
+    if (sumI > 0) {
+      if (sumI > TARGET + 0.5) out.push("Your ideal week is " + fmtH(sumI - TARGET) + "h <strong>over</strong> the 168 target — something has to give.");
+      else if (sumI < TARGET - 0.5) out.push("Your ideal week is " + fmtH(TARGET - sumI) + "h <strong>under</strong> 168 — room to be more ambitious.");
+      else out.push("Your ideal week is <strong>balanced</strong> at 168h.");
+    }
+    // Actual commentary
+    if (sumA > 0) {
+      if (sumA > TARGET + 0.5) out.push("Your actual week ran " + fmtH(sumA - TARGET) + "h over.");
+      else if (sumA < TARGET - 0.5) out.push("Your actual week ran " + fmtH(TARGET - sumA) + "h under — what's filling the unaccounted hours?");
+    }
+    // Biggest delta (if both sides have data)
+    if (sumI > 0 && sumA > 0) {
+      let bigCat = null, bigDelta = 0;
+      cats.forEach(c => {
+        const d = byActual[c] - byIdeal[c];
+        if (Math.abs(d) > Math.abs(bigDelta)) { bigDelta = d; bigCat = c; }
+      });
+      if (bigCat && Math.abs(bigDelta) >= 1) {
+        const dir = bigDelta > 0 ? "more time on" : "less time on";
+        out.push("Biggest divergence: you lived " + fmtH(Math.abs(bigDelta)) + "h " + dir + " <strong>" + escHtml(bigCat) + "</strong> than you planned.");
+      }
+    }
+    // Quiet inflow: identify a high-actual category not in top-3 ideals
+    if (sumA > 0) {
+      const sorted = cats.slice().sort((a, b) => byActual[b] - byActual[a]);
+      const topActualCat = sorted[0];
+      if (topActualCat && byActual[topActualCat] > 0) {
+        const idealRank = cats.slice().sort((a, b) => byIdeal[b] - byIdeal[a]).indexOf(topActualCat);
+        if (idealRank > 2 && byActual[topActualCat] >= 6) {
+          out.push("<strong>" + escHtml(topActualCat) + "</strong> ate " + fmtH(byActual[topActualCat]) + "h — that's bigger than you planned for.");
+        }
+      }
+    }
+    return out.map(s => '<p class="insights-line">' + s + '</p>').join("");
+  }
+
   function renderCompare() {
     const container = views.compare;
 
@@ -1880,6 +2165,8 @@ function getJS() {
     rows.forEach(r => { byIdeal[r.category] += num(r.ideal); byActual[r.category] += num(r.actual); });
 
     const maxVal = Math.max(TARGET, ...cats.map(c => Math.max(byIdeal[c], byActual[c])), 1);
+    const sumI = cats.reduce((a, c) => a + byIdeal[c], 0);
+    const sumA = cats.reduce((a, c) => a + byActual[c], 0);
 
     // biggest gap
     let biggestCat = null, biggestDelta = 0;
@@ -1889,7 +2176,18 @@ function getJS() {
     });
 
     let html = "";
-    if (biggestCat !== null) {
+
+    // Insights panel (top)
+    html += '<section class="insights"><p class="insights-eyebrow">Insights</p>' + buildInsights(byIdeal, byActual, cats) + '</section>';
+
+    // Donut row
+    html += '<div class="donut-row">' +
+      buildDonut(byIdeal, cats, "Ideal", sumI) +
+      buildDonut(byActual, cats, "Actual", sumA) +
+      '<div class="donut-legend"><p class="legend-eyebrow">Categories</p>' + buildLegend(cats, byIdeal) + '</div>' +
+      '</div>';
+
+    if (biggestCat !== null && (sumI > 0 || sumA > 0)) {
       const id = byIdeal[biggestCat], ac = byActual[biggestCat];
       const signed = (ac - id >= 0 ? "+" : "") + fmtH(ac - id);
       html += '<div class="compare-callout"><strong>Biggest gap:</strong> ' + escHtml(biggestCat) +
@@ -2099,9 +2397,92 @@ function getJS() {
     download(profileFilename("md"), "text/markdown", md);
   });
 
+  document.getElementById("exportJournal").addEventListener("click", function() {
+    const cp = currentProfile();
+    const dateLabel = new Date().toISOString().slice(0, 10);
+    let md = "# Weekly journal — " + dateLabel + "\\n";
+    md += "**Profile:** " + cp.name + "\\n\\n";
+    md += "## What I planned vs what happened\\n\\n";
+    const sumI = sumIdeal(), sumA = sumActual();
+    md += "- Ideal: " + fmtH(sumI) + "h\\n";
+    md += "- Actual: " + fmtH(sumA) + "h\\n";
+    md += "- Delta: " + ((sumA - sumI) >= 0 ? "+" : "") + fmtH(sumA - sumI) + "h\\n\\n";
+    function answered(list) { return list.map(p => ({ p, a: getReflection(p) })).filter(x => x.a && x.a.trim()); }
+    function sect(title, list) {
+      const items = answered(list);
+      if (!items.length) return "";
+      let s = "## " + title + "\\n\\n";
+      items.forEach(x => { s += "**" + x.p + "**\\n\\n" + x.a + "\\n\\n"; });
+      return s;
+    }
+    md += sect("Ideal-week reflections", REFLECTION.ideal);
+    md += sect("Actual-week reflections", REFLECTION.actual);
+    md += sect("Vital reflections", REFLECTION.vital);
+    md += "## Categories I want to change next week\\n\\n_Write here._\\n\\n";
+    md += "## One thing I'm grateful for this week\\n\\n_Write here._\\n";
+    download("168-audit-" + slugify(cp.name) + "-journal-" + dateLabel + ".md", "text/markdown", md);
+  });
+
+  document.getElementById("exportShare").addEventListener("click", async function() {
+    const cp = currentProfile();
+    const payload = {
+      name: cp.name,
+      rows: cp.rows.map(r => ({ category: r.category, sub: r.sub, ideal: r.ideal, actual: r.actual, notes: r.notes, sliderMax: r.sliderMax })),
+      reflections: cp.reflections || {}
+    };
+    try {
+      const json = JSON.stringify(payload);
+      const encoded = btoa(unescape(encodeURIComponent(json))).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
+      const url = location.origin + location.pathname + "#share=" + encoded;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        showToast("Share link copied — anyone with it sees a read-only copy.", false);
+      } else {
+        // Fallback: show the URL in a prompt for manual copy
+        prompt("Share link (Ctrl+C to copy):", url);
+      }
+    } catch (e) {
+      showToast("Couldn't build share link: " + e.message, false);
+    }
+  });
+
   document.getElementById("exportPrint").addEventListener("click", function() {
     window.print();
   });
+
+  // ------ Share-link import (URL hash) ------
+  (function importShareIfPresent() {
+    const m = location.hash.match(/^#share=([\\w\\-_]+)/);
+    if (!m) return;
+    try {
+      const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+      const padded = b64 + "===".slice(0, (4 - b64.length % 4) % 4);
+      const json = decodeURIComponent(escape(atob(padded)));
+      const payload = JSON.parse(json);
+      if (!payload || !Array.isArray(payload.rows)) return;
+      // Defer until state is loaded; queue it.
+      window.__SHARE_IMPORT__ = payload;
+    } catch (e) {
+      console.warn("share import parse failed:", e);
+    }
+  })();
+  function applyShareImportIfQueued() {
+    const payload = window.__SHARE_IMPORT__;
+    if (!payload) return;
+    window.__SHARE_IMPORT__ = null;
+    const id = uniqueProfileId();
+    state.profiles[id] = {
+      id: id,
+      name: (payload.name || "Shared") + " (imported)",
+      rows: payload.rows.map(r => Object.assign({ id: "import-" + Math.random().toString(36).slice(2, 7), group: "", hint: "" }, r)),
+      reflections: payload.reflections || {}
+    };
+    state.activeProfile = id;
+    syncRows();
+    saveState();
+    history.replaceState(null, "", location.pathname);
+    showToast("Imported shared schedule as '" + state.profiles[id].name + "'.", false);
+  }
 
   function download(filename, mime, content) {
     const a = document.createElement("a");
@@ -2652,8 +3033,45 @@ function getJS() {
     paint();
   }
 
+  // ------ Global keyboard shortcuts ------
+  document.addEventListener("keydown", function(e) {
+    // Don't hijack typing in inputs/textareas/contenteditable
+    const t = e.target;
+    const isTyping = t && (
+      t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable ||
+      t.tagName === "SELECT"
+    );
+    // Allow Delete/Backspace as bulk-delete only when bulk-bar is visible AND not typing
+    if (!isTyping && (e.key === "Delete" || e.key === "Backspace") && selectedRows.size > 0) {
+      e.preventDefault();
+      bulkDeleteSelected();
+      return;
+    }
+    if (isTyping) return;
+    // Don't fire shortcuts while any modal/tour is open
+    if (!document.getElementById("whatIs").hidden) return;
+    if (!document.getElementById("tour").hidden) return;
+    const k = e.key;
+    if (k === "1") { document.querySelector('.view-tab[data-view="worksheet"]').click(); e.preventDefault(); }
+    else if (k === "2") { document.querySelector('.view-tab[data-view="compare"]').click(); e.preventDefault(); }
+    else if (k === "3") { document.querySelector('.view-tab[data-view="reflect"]').click(); e.preventDefault(); }
+    else if (k === "t" || k === "T") { document.getElementById("themeBtn").click(); }
+    else if (k === "m" || k === "M") { applyViewMode(state.viewMode === "app" ? "dashboard" : "app"); }
+    else if (k === "i" || k === "I") {
+      const next = inputMode === "numbers" ? "sliders" : "numbers";
+      inputMode = next;
+      try { localStorage.setItem("168-audit:input-mode", next); } catch (err) {}
+      if (activeView === "worksheet") renderWorksheet();
+    }
+    else if (k === "n" && !e.shiftKey && !e.ctrlKey && !e.metaKey) { if (activeView === "worksheet") { addRow("sub"); e.preventDefault(); } }
+    else if ((k === "N" || (k === "n" && e.shiftKey)) && !e.ctrlKey && !e.metaKey) { if (activeView === "worksheet") { addRow("cat"); e.preventDefault(); } }
+    else if (k === "e" || k === "E") { document.getElementById("exportTrigger").click(); }
+    else if (k === "?" || (k === "/" && e.shiftKey)) { document.getElementById("tourReplay").click(); e.preventDefault(); }
+  });
+
   // ------ Init ------
   loadState();
+  applyShareImportIfQueued();
   applyViewMode(state.viewMode);
   renderProfileChip();
   renderWorksheet();
