@@ -45,18 +45,41 @@ async function inspectDesktop(browser) {
   rowCount >= 18 ? ok(`${rowCount} seeded rows`) : fail(`only ${rowCount} rows`);
 
   log("\nEdit a cell + verify total");
-  const firstIdeal = page.locator('input[data-field="ideal"], input.cell-ideal, input[name*="ideal"], tbody tr input[type="number"]').first();
+  const firstIdeal = page.locator('input[data-field="ideal"]').first();
   await firstIdeal.fill("40");
   await firstIdeal.blur();
   await page.waitForTimeout(200);
   const statsText = await page.locator("#stats").innerText();
   /40/.test(statsText) ? ok(`stats shows 40: ${statsText.replace(/\s+/g, " ").trim()}`) : fail(`stats: ${statsText}`);
-  // Also check the tfoot total cell on desktop
   const footTotal = await page.evaluate(() => {
     const tds = document.querySelectorAll("tfoot.audit-foot td");
     return tds.length ? Array.from(tds).map(t => t.textContent.trim()) : null;
   });
   footTotal && footTotal.some(t => /40/.test(t)) ? ok(`tfoot total: ${footTotal.join(" | ")}`) : fail(`tfoot total: ${JSON.stringify(footTotal)}`);
+
+  log("\nInline-edit category label");
+  const firstCat = page.locator('input.cell-cat').first();
+  await firstCat.fill("Career");
+  await firstCat.blur();
+  await page.waitForTimeout(120);
+  const catSaved = await page.evaluate(() => JSON.parse(localStorage.getItem("168-audit:v1") || "{}").rows?.[0]?.category);
+  catSaved === "Career" ? ok(`category persisted: ${catSaved}`) : fail(`category not saved: ${catSaved}`);
+
+  log("\nToggle to slider mode");
+  await page.click('.input-mode-btn[data-mode="sliders"]');
+  await page.waitForTimeout(200);
+  const sliders = await page.locator("input.range-input").count();
+  sliders >= 30 ? ok(`${sliders} sliders rendered`) : fail(`only ${sliders} sliders`);
+  const firstSlider = page.locator('input.range-input[data-field="actual"]').first();
+  await firstSlider.evaluate((el) => { el.value = "12"; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); });
+  await page.waitForTimeout(150);
+  const sliderSaved = await page.evaluate(() => JSON.parse(localStorage.getItem("168-audit:v1") || "{}").rows?.[0]?.actual);
+  sliderSaved === 12 ? ok(`slider value persisted: ${sliderSaved}`) : fail(`slider not saved: ${sliderSaved}`);
+  await page.screenshot({ path: path.join(SHOTS, "02b-worksheet-sliders.png"), fullPage: true });
+  ok("screenshot: 02b-worksheet-sliders.png");
+  // Back to numbers for the rest
+  await page.click('.input-mode-btn[data-mode="numbers"]');
+  await page.waitForTimeout(150);
 
   log("\nTheme toggle");
   await page.click("#themeBtn");
@@ -135,6 +158,13 @@ async function inspectMobile(browser) {
   await page.waitForTimeout(200);
   const overflowCompare = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   overflowCompare <= 1 ? ok("compare: no overflow") : fail(`compare overflow: ${overflowCompare}px`);
+  const exportHidden = await page.evaluate(() => {
+    const el = document.querySelector(".export-bar");
+    if (!el) return "no-export-bar";
+    const cs = getComputedStyle(el);
+    return cs.display === "none" ? "hidden" : "visible";
+  });
+  exportHidden === "hidden" ? ok("export bar hidden on Compare view") : fail(`export bar on Compare: ${exportHidden}`);
   await page.screenshot({ path: path.join(SHOTS, "06-compare-mobile.png"), fullPage: true });
   ok("screenshot: 06-compare-mobile.png");
 

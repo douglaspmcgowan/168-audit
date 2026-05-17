@@ -41,7 +41,7 @@ function buildPage() {
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>${getCSS()}</style>
 </head>
 <body>
@@ -138,7 +138,8 @@ function getCSS() {
   --good-soft: rgba(47, 107, 63, 0.12);
   --tag-ink: #FAFAF7;
   --sans: "Inter Tight", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --mono: var(--sans);
+  --label-spacing: 0.08em;
   --measure: 65ch;
   --shadow-card: 0 18px 30px rgba(15, 15, 14, 0.035);
   --shadow-modal: 0 28px 72px rgba(15, 15, 14, 0.18);
@@ -299,8 +300,7 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 
 /* ------ View tabs ------ */
 .viewbar { max-width: 78rem; margin: 0 auto; padding: 0 2rem; border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule); }
-.viewbar-inner { display: flex; gap: 1.4rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.viewbar-inner::-webkit-scrollbar { display: none; }
+.viewbar-inner { display: flex; gap: 1.4rem; flex-wrap: wrap; }
 .view-tab {
   flex: 0 0 auto;
   background: transparent;
@@ -416,8 +416,8 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   border: 1px solid var(--rule);
   border-radius: 4px;
   padding: 0.3rem 0.55rem;
-  font-family: var(--mono);
-  font-size: 0.86rem;
+  font-family: var(--sans);
+  font-size: 0.92rem;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   transition: border-color var(--dur-out) var(--ease-out), background var(--dur-out) var(--ease-out);
@@ -427,6 +427,124 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 .num-input:hover { border-color: var(--ink-soft); }
 .num-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; background: var(--paper); }
+
+/* inline-editable text cell (category + sub-category) */
+.cell-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.32rem 0.5rem;
+  font: inherit;
+  color: inherit;
+  transition: border-color var(--dur-out) var(--ease-out), background var(--dur-out) var(--ease-out);
+}
+.cell-input:hover { border-color: var(--rule); background: var(--paper-soft); }
+.cell-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; background: var(--paper); }
+.cell-input.cell-cat { font-weight: 500; color: var(--ink); }
+.cell-input.cell-sub { color: var(--ink); }
+.cell-input.cell-cat-merged { color: transparent; }
+.cell-input.cell-cat-merged:hover, .cell-input.cell-cat-merged:focus-visible { color: var(--ink); }
+
+/* slider input mode */
+.range-cell {
+  display: grid;
+  grid-template-columns: 1fr 3.6rem;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 11rem;
+}
+.range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1.5rem;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+.range-input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent) 0 var(--fill, 0%), var(--paper-soft) var(--fill, 0%) 100%);
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+}
+.range-input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--paper-soft);
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+}
+.range-input::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1.5px var(--accent), 0 2px 6px rgba(0,0,0,0.18);
+  margin-top: -6px;
+  transition: transform 120ms var(--ease-in);
+}
+.range-input::-moz-range-thumb {
+  width: 16px; height: 16px; border: 0; border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1.5px var(--accent), 0 2px 6px rgba(0,0,0,0.18);
+}
+.range-input:hover::-webkit-slider-thumb { transform: scale(1.12); }
+.range-input.range-actual::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--ink-soft) 0 var(--fill, 0%), var(--paper-soft) var(--fill, 0%) 100%);
+}
+.range-input.range-actual::-moz-range-progress { background: var(--ink-soft); }
+.range-input.range-actual::-webkit-slider-thumb { box-shadow: 0 0 0 1.5px var(--ink-soft), 0 2px 6px rgba(0,0,0,0.18); }
+.range-input.range-actual::-moz-range-thumb { box-shadow: 0 0 0 1.5px var(--ink-soft), 0 2px 6px rgba(0,0,0,0.18); }
+.range-val {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+  color: var(--ink);
+  text-align: right;
+  font-weight: 500;
+}
+
+/* input mode toggle (Numbers ↔ Sliders) */
+.input-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--paper-soft);
+  border-radius: 999px;
+  padding: 0.22rem;
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+}
+.input-mode-label {
+  font-size: 0.72rem;
+  letter-spacing: var(--label-spacing);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 0.55rem 0 0.7rem;
+}
+.input-mode-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 0.32rem 0.78rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: background-color var(--dur-out) var(--ease-out), color var(--dur-out) var(--ease-out);
+}
+.input-mode-btn:hover { color: var(--ink); }
+.input-mode-btn.active {
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--rule), 0 1px 2px rgba(0,0,0,0.04);
+}
 
 /* notes input */
 .notes-input {
@@ -706,6 +824,9 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
   .export-btn { text-align: center; }
 }
 
+body[data-view="compare"] .export-bar,
+body[data-view="reflect"] .export-bar { display: none; }
+
 /* ------ Toast ------ */
 .toast {
   position: fixed;
@@ -837,6 +958,11 @@ function getJS() {
   let rows = [];
   let undoStack = null; // {rows, index} for single-step undo
   let toastTimer = null;
+  let inputMode = (function() {
+    try { return localStorage.getItem("168-audit:input-mode") || "numbers"; }
+    catch(e) { return "numbers"; }
+  })();
+  const SLIDER_MAX = 80; // hours per row; above this, switch to numbers mode
 
   function loadState() {
     try {
@@ -889,12 +1015,14 @@ function getJS() {
     reflect: document.getElementById("view-reflect"),
   };
   let activeView = "worksheet";
+  document.body.dataset.view = activeView;
 
   tabs.forEach(tab => {
     tab.addEventListener("click", function() {
       const v = this.dataset.view;
       if (v === activeView) return;
       activeView = v;
+      document.body.dataset.view = v;
       tabs.forEach(t => { t.classList.toggle("active", t.dataset.view === v); t.setAttribute("aria-selected", t.dataset.view === v); });
       Object.entries(views).forEach(([k, el]) => el.classList.toggle("hidden", k !== v));
       if (v === "compare") renderCompare();
@@ -939,6 +1067,11 @@ function getJS() {
     let html = '<div class="worksheet-toolbar">' +
       '<button class="btn btn-primary" id="addRowBtn">+ Add row</button>' +
       '<button class="btn" id="resetBtn">Reset to defaults</button>' +
+      '<div class="input-mode-toggle" style="margin-left:auto" role="group" aria-label="Input mode">' +
+        '<span class="input-mode-label">Input</span>' +
+        '<button class="input-mode-btn' + (inputMode === "numbers" ? " active" : "") + '" data-mode="numbers" type="button">Numbers</button>' +
+        '<button class="input-mode-btn' + (inputMode === "sliders" ? " active" : "") + '" data-mode="sliders" type="button">Sliders</button>' +
+      '</div>' +
       '</div>';
 
     html += '<div class="table-wrap"><table class="audit">';
@@ -957,10 +1090,14 @@ function getJS() {
       const merged = row.category === prevCat;
       prevCat = row.category;
       html += '<tr data-idx="' + i + '">' +
-        '<td class="col-cat' + (merged ? ' cat-merged' : '') + '" data-label="Category">' + escHtml(row.category) + '</td>' +
-        '<td class="col-sub" data-label="Sub-category">' + escHtml(row.sub) + '</td>' +
-        '<td class="col-num" data-label="Ideal (h)"><input type="number" class="num-input" data-field="ideal" data-idx="' + i + '" value="' + (row.ideal || "") + '" step="0.25" min="0" max="168" placeholder="0" inputmode="decimal"></td>' +
-        '<td class="col-num" data-label="Actual (h)"><input type="number" class="num-input" data-field="actual" data-idx="' + i + '" value="' + (row.actual || "") + '" step="0.25" min="0" max="168" placeholder="0" inputmode="decimal"></td>' +
+        '<td class="col-cat' + (merged ? ' cat-merged' : '') + '" data-label="Category">' +
+          '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category">' +
+        '</td>' +
+        '<td class="col-sub" data-label="Sub-category">' +
+          '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" aria-label="Sub-category">' +
+        '</td>' +
+        '<td class="col-num" data-label="Ideal (h)">' + valueCell(row, i, "ideal") + '</td>' +
+        '<td class="col-num" data-label="Actual (h)">' + valueCell(row, i, "actual") + '</td>' +
         '<td class="col-notes" data-label="Notes"><input type="text" class="notes-input" data-field="notes" data-idx="' + i + '" value="' + escAttr(row.notes || "") + '" placeholder="…"></td>' +
         '<td class="col-del"><button class="del-btn" data-del="' + i + '" aria-label="Remove row" title="Remove row">&times;</button></td>' +
         '</tr>';
@@ -983,9 +1120,65 @@ function getJS() {
     document.getElementById("addRowBtn").addEventListener("click", addRow);
     document.getElementById("resetBtn").addEventListener("click", resetToDefaults);
 
+    container.querySelectorAll(".input-mode-btn").forEach(btn => btn.addEventListener("click", onModeChange));
     container.querySelectorAll(".num-input").forEach(inp => inp.addEventListener("change", onNumChange));
+    container.querySelectorAll(".range-input").forEach(inp => {
+      inp.addEventListener("input", onRangeInput);
+      inp.addEventListener("change", onRangeChange);
+    });
     container.querySelectorAll(".notes-input").forEach(inp => inp.addEventListener("input", onNotesChange));
+    container.querySelectorAll(".cell-input.cell-cat, .cell-input.cell-sub").forEach(inp => inp.addEventListener("input", onCellTextChange));
     container.querySelectorAll(".del-btn").forEach(btn => btn.addEventListener("click", onDelete));
+  }
+
+  function valueCell(row, i, field) {
+    const v = row[field];
+    const numericValue = v === "" || v === null || v === undefined ? "" : v;
+    if (inputMode === "sliders" && (numericValue === "" || +numericValue <= SLIDER_MAX)) {
+      const sv = numericValue === "" ? 0 : +numericValue;
+      const fill = (Math.min(sv, SLIDER_MAX) / SLIDER_MAX * 100).toFixed(1);
+      return '<div class="range-cell">' +
+        '<input type="range" class="range-input range-' + field + '" data-field="' + field + '" data-idx="' + i + '" min="0" max="' + SLIDER_MAX + '" step="0.25" value="' + sv + '" style="--fill:' + fill + '%" aria-label="' + field + ' hours">' +
+        '<span class="range-val" data-val-for="' + field + '-' + i + '">' + (numericValue === "" ? "0" : fmtH(+numericValue)) + 'h</span>' +
+        '</div>';
+    }
+    return '<input type="number" class="num-input" data-field="' + field + '" data-idx="' + i + '" value="' + numericValue + '" step="0.25" min="0" max="168" placeholder="0" inputmode="decimal" aria-label="' + field + ' hours">';
+  }
+
+  function onModeChange(e) {
+    const mode = e.currentTarget.dataset.mode;
+    if (mode === inputMode) return;
+    inputMode = mode;
+    try { localStorage.setItem("168-audit:input-mode", mode); } catch(err) {}
+    renderWorksheet();
+  }
+
+  function onRangeInput(e) {
+    const inp = e.target;
+    const idx = +inp.dataset.idx;
+    const field = inp.dataset.field;
+    const v = +inp.value;
+    inp.style.setProperty("--fill", (v / SLIDER_MAX * 100).toFixed(1) + "%");
+    const label = inp.parentElement.querySelector("[data-val-for='" + field + "-" + idx + "']");
+    if (label) label.textContent = fmtH(v) + "h";
+    rows[idx][field] = v === 0 ? "" : v;
+    renderStats();
+    updateTotals();
+  }
+
+  function onRangeChange() {
+    saveState();
+  }
+
+  function onCellTextChange(e) {
+    const idx = +e.target.dataset.idx;
+    const field = e.target.dataset.field;
+    rows[idx][field] = e.target.value;
+    if (field === "category") {
+      // Reveal merged-cat sibling labels above this row if user typed in a hidden cell.
+      e.target.classList.remove("cell-cat-merged");
+    }
+    saveState();
   }
 
   function onNumChange(e) {
