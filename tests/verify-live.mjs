@@ -144,19 +144,60 @@ async function inspectDesktop(browser) {
   await page.screenshot({ path: path.join(SHOTS, "04-reflect-desktop.png"), fullPage: true });
   ok("screenshot: 04-reflect-desktop.png");
 
-  log("\nAdd row");
+  log("\nAdd Subcategory + Add Category buttons");
   await page.click('.view-tab[data-view="worksheet"]');
   await page.waitForTimeout(150);
-  const before = await page.locator("[data-row-id], #view-worksheet tbody tr").count();
-  const addBtn = page.locator('#addRowBtn, button:has-text("Add row"), button:has-text("+ Add")').first();
-  if (await addBtn.count()) {
-    await addBtn.click();
-    await page.waitForTimeout(150);
-    const after = await page.locator("[data-row-id], #view-worksheet tbody tr").count();
-    after > before ? ok(`add row: ${before} → ${after}`) : fail(`add row didn't grow: ${before} → ${after}`);
-  } else {
-    fail("no add-row button found");
-  }
+  const before = await page.locator("#auditBody tr").count();
+  const dividersBefore = await page.locator("#auditBody tr.cat-start").count();
+  await page.click("#addSubBtn");
+  await page.waitForTimeout(150);
+  const afterSub = await page.locator("#auditBody tr").count();
+  const dividersAfterSub = await page.locator("#auditBody tr.cat-start").count();
+  (afterSub === before + 1 && dividersAfterSub === dividersBefore)
+    ? ok(`+ Subcategory: rows ${before}→${afterSub}, dividers unchanged at ${dividersAfterSub}`)
+    : fail(`+ Subcategory rows=${afterSub} dividers=${dividersAfterSub}`);
+  await page.click("#addCatBtn");
+  await page.waitForTimeout(150);
+  const afterCat = await page.locator("#auditBody tr").count();
+  const dividersAfterCat = await page.locator("#auditBody tr.cat-start").count();
+  (afterCat === afterSub + 1 && dividersAfterCat === dividersAfterSub + 1)
+    ? ok(`+ Category: rows ${afterSub}→${afterCat}, dividers +1 to ${dividersAfterCat}`)
+    : fail(`+ Category rows=${afterCat} dividers=${dividersAfterCat}`);
+
+  log("\nChrome height parity");
+  const heights = await page.evaluate(() => {
+    function h(sel) { const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().height * 10) / 10 : null; }
+    return { profile: h(".profile-chip"), viewmode: h(".viewmode-toggle"), replay: h(".tour-replay"), theme: h(".theme-toggle") };
+  });
+  const allEqual = [heights.profile, heights.viewmode, heights.replay, heights.theme].every(v => v && Math.abs(v - heights.profile) <= 1);
+  allEqual ? ok(`chrome heights match: ${JSON.stringify(heights)}`) : fail(`chrome heights differ: ${JSON.stringify(heights)}`);
+
+  log("\nFAB widths: trigger == menu items");
+  await page.click("#exportTrigger");
+  await page.waitForTimeout(160);
+  const fabWidths = await page.evaluate(() => {
+    function w(sel) { const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().width) : null; }
+    const triggerW = w("#exportTrigger");
+    const menuWidths = Array.from(document.querySelectorAll(".export-menu .export-btn")).map(b => Math.round(b.getBoundingClientRect().width));
+    return { trigger: triggerW, menu: menuWidths };
+  });
+  const fabAllEqual = fabWidths.menu.length === 4 && fabWidths.menu.every(w => Math.abs(w - fabWidths.trigger) <= 2);
+  fabAllEqual ? ok(`FAB widths match: trigger=${fabWidths.trigger}, menu=${fabWidths.menu.join(",")}`) : fail(`FAB widths differ: ${JSON.stringify(fabWidths)}`);
+  await page.click("#exportTrigger"); // close
+  await page.waitForTimeout(120);
+
+  log("\nSticky stats bar appears on scroll");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(350);
+  const beforeScroll = await page.evaluate(() => document.getElementById("statsSticky").classList.contains("visible"));
+  beforeScroll === false ? ok("sticky bar hidden at top") : fail(`sticky bar visible at top: ${beforeScroll}`);
+  await page.evaluate(() => window.scrollTo(0, 1200));
+  await page.waitForTimeout(350);
+  const afterScroll = await page.evaluate(() => document.getElementById("statsSticky").classList.contains("visible"));
+  afterScroll ? ok("sticky bar visible after scroll") : fail("sticky bar didn't appear on scroll");
+  await page.screenshot({ path: path.join(SHOTS, "01c-sticky-stats.png"), fullPage: false });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(350);
 
   log("\nExport FAB (click trigger, menu opens, click CSV)");
   const fabBefore = await page.evaluate(() => document.getElementById("exportBar").dataset.open);
