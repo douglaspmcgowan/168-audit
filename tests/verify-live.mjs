@@ -62,7 +62,10 @@ async function inspectDesktop(browser) {
   await firstCat.fill("Career");
   await firstCat.blur();
   await page.waitForTimeout(120);
-  const catSaved = await page.evaluate(() => JSON.parse(localStorage.getItem("168-audit:v1") || "{}").rows?.[0]?.category);
+  const catSaved = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    return s.profiles?.[s.activeProfile]?.rows?.[0]?.category;
+  });
   catSaved === "Career" ? ok(`category persisted: ${catSaved}`) : fail(`category not saved: ${catSaved}`);
 
   log("\nToggle to slider mode");
@@ -73,7 +76,10 @@ async function inspectDesktop(browser) {
   const firstSlider = page.locator('input.range-input[data-field="actual"]').first();
   await firstSlider.evaluate((el) => { el.value = "12"; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); });
   await page.waitForTimeout(150);
-  const sliderSaved = await page.evaluate(() => JSON.parse(localStorage.getItem("168-audit:v1") || "{}").rows?.[0]?.actual);
+  const sliderSaved = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    return s.profiles?.[s.activeProfile]?.rows?.[0]?.actual;
+  });
   sliderSaved === 12 ? ok(`slider value persisted: ${sliderSaved}`) : fail(`slider not saved: ${sliderSaved}`);
   await page.screenshot({ path: path.join(SHOTS, "02b-worksheet-sliders.png"), fullPage: true });
   ok("screenshot: 02b-worksheet-sliders.png");
@@ -124,17 +130,69 @@ async function inspectDesktop(browser) {
     fail("no add-row button found");
   }
 
-  log("\nExport CSV (no actual download — just verify handler doesn't error)");
+  log("\nExport FAB (click trigger, menu opens, click CSV)");
+  const fabBefore = await page.evaluate(() => document.getElementById("exportBar").dataset.open);
+  fabBefore === "false" ? ok("FAB starts closed") : fail(`FAB initial state: ${fabBefore}`);
+  await page.click("#exportTrigger");
+  await page.waitForTimeout(180);
+  const fabAfter = await page.evaluate(() => document.getElementById("exportBar").dataset.open);
+  fabAfter === "true" ? ok("FAB opens on click") : fail(`FAB open state: ${fabAfter}`);
   const csvErrors = [];
   page.on("pageerror", (e) => csvErrors.push(e.message));
-  // Try export — most are anchor-download or blob URL, so we just click + verify no errors
   await page.click('#exportCsv').catch(() => fail("exportCsv click failed"));
-  await page.waitForTimeout(150);
+  await page.waitForTimeout(180);
   csvErrors.length === 0 ? ok("CSV export ran without errors") : fail("CSV export errors: " + csvErrors.join("; "));
+  const fabClosed = await page.evaluate(() => document.getElementById("exportBar").dataset.open);
+  fabClosed === "false" ? ok("FAB auto-closes after export click") : fail(`FAB after export: ${fabClosed}`);
 
-  log("\nLocalStorage persistence");
-  const stored = await page.evaluate(() => localStorage.getItem("168-audit:v1"));
-  stored && stored.length > 10 ? ok(`localStorage has ${stored.length} chars saved`) : fail(`localStorage: ${stored}`);
+  log("\nLocalStorage v2 + profile persistence");
+  const stored = await page.evaluate(() => localStorage.getItem("168-audit:v2"));
+  stored && stored.length > 10 ? ok(`localStorage v2 has ${stored.length} chars`) : fail(`localStorage v2: ${stored}`);
+  const profileShape = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    return { active: s.activeProfile, count: Object.keys(s.profiles || {}).length, name: s.profiles?.[s.activeProfile]?.name };
+  });
+  profileShape.active && profileShape.count >= 1 && profileShape.name ? ok(`profile: active="${profileShape.active}", ${profileShape.count} total, name="${profileShape.name}"`) : fail(`profile shape: ${JSON.stringify(profileShape)}`);
+
+  log("\nProfile picker: create a 2nd profile via dialog");
+  page.once("dialog", async d => { await d.accept("Summer schedule"); });
+  await page.click("#profileChip");
+  await page.waitForTimeout(120);
+  await page.click('[data-action="new"]');
+  await page.waitForTimeout(180);
+  const after2 = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    return { count: Object.keys(s.profiles).length, activeName: s.profiles[s.activeProfile].name };
+  });
+  after2.count === 2 && after2.activeName === "Summer schedule" ? ok(`new profile created: active="${after2.activeName}", total=${after2.count}`) : fail(`profile create: ${JSON.stringify(after2)}`);
+
+  log("\nReflect: type an answer, verify it's saved");
+  await page.click('.view-tab[data-view="reflect"]');
+  await page.waitForTimeout(200);
+  const firstAnswer = page.locator(".reflect-answer").first();
+  await firstAnswer.fill("I'd cut social media first.");
+  await firstAnswer.blur();
+  await page.waitForTimeout(120);
+  const reflSaved = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    const refs = s.profiles?.[s.activeProfile]?.reflections || {};
+    return Object.values(refs)[0] || null;
+  });
+  reflSaved === "I'd cut social media first." ? ok(`reflect answer saved`) : fail(`reflect answer: ${reflSaved}`);
+  await page.screenshot({ path: path.join(SHOTS, "04b-reflect-answers.png"), fullPage: true });
+  ok("screenshot: 04b-reflect-answers.png");
+
+  log("\nApp/Dashboard toggle");
+  await page.click('.view-tab[data-view="worksheet"]');
+  await page.waitForTimeout(120);
+  await page.click('#vmApp');
+  await page.waitForTimeout(150);
+  const mode = await page.evaluate(() => document.body.dataset.mode);
+  mode === "app" ? ok("body[data-mode] = app") : fail(`body[data-mode]: ${mode}`);
+  await page.screenshot({ path: path.join(SHOTS, "01b-worksheet-app-mode.png"), fullPage: true });
+  ok("screenshot: 01b-worksheet-app-mode.png");
+  await page.click('#vmDashboard');
+  await page.waitForTimeout(120);
 
   await ctx.close();
 }
@@ -159,12 +217,12 @@ async function inspectMobile(browser) {
   const overflowCompare = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   overflowCompare <= 1 ? ok("compare: no overflow") : fail(`compare overflow: ${overflowCompare}px`);
   const exportHidden = await page.evaluate(() => {
-    const el = document.querySelector(".export-bar");
-    if (!el) return "no-export-bar";
+    const el = document.querySelector(".export-fab");
+    if (!el) return "no-export-fab";
     const cs = getComputedStyle(el);
     return cs.display === "none" ? "hidden" : "visible";
   });
-  exportHidden === "hidden" ? ok("export bar hidden on Compare view") : fail(`export bar on Compare: ${exportHidden}`);
+  exportHidden === "hidden" ? ok("export FAB hidden on Compare view") : fail(`export FAB on Compare: ${exportHidden}`);
   await page.screenshot({ path: path.join(SHOTS, "06-compare-mobile.png"), fullPage: true });
   ok("screenshot: 06-compare-mobile.png");
 

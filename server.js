@@ -64,6 +64,18 @@ function buildPage() {
         </div>
       </div>
       <div class="masthead-actions">
+        <div class="profile-wrap" id="profileWrap" data-open="false">
+          <button type="button" class="profile-chip" id="profileChip" aria-haspopup="menu" aria-expanded="false">
+            <span class="profile-chip-eyebrow">Profile</span>
+            <span class="profile-chip-name" id="profileChipName">Default</span>
+            <span class="profile-chip-caret" aria-hidden="true">&#x25BE;</span>
+          </button>
+          <div class="profile-menu" id="profileMenu" role="menu"></div>
+        </div>
+        <div class="viewmode-toggle" role="group" aria-label="View mode">
+          <button type="button" class="viewmode-btn" data-mode="dashboard" id="vmDashboard">Dashboard</button>
+          <button type="button" class="viewmode-btn" data-mode="app" id="vmApp">App</button>
+        </div>
         <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme" title="Toggle theme">
           <span class="theme-icon-light">&#9728;</span>
           <span class="theme-icon-dark">&#9790;</span>
@@ -88,12 +100,17 @@ function buildPage() {
     <section id="view-reflect" class="view hidden"></section>
   </main>
 
-  <div id="exportBar" class="export-bar">
-    <span class="export-label">Export</span>
-    <button class="export-btn" id="exportCsv">CSV</button>
-    <button class="export-btn" id="exportJson">JSON</button>
-    <button class="export-btn" id="exportMd">Markdown</button>
-    <button class="export-btn" id="exportPrint">Print</button>
+  <div id="exportBar" class="export-fab" data-open="false">
+    <button type="button" class="export-trigger" id="exportTrigger" aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu">
+      <span class="export-trigger-glyph" aria-hidden="true">&#x2913;</span>
+      <span class="export-trigger-label">Export</span>
+    </button>
+    <div class="export-menu" id="exportMenu" role="menu">
+      <button class="export-btn" id="exportCsv" role="menuitem">CSV</button>
+      <button class="export-btn" id="exportJson" role="menuitem">JSON</button>
+      <button class="export-btn" id="exportMd" role="menuitem">Markdown</button>
+      <button class="export-btn" id="exportPrint" role="menuitem">Print</button>
+    </div>
   </div>
 
   <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
@@ -297,6 +314,132 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 .theme-icon-dark { display: none; }
 [data-theme="dark"] .theme-icon-light { display: none; }
 [data-theme="dark"] .theme-icon-dark { display: inline; }
+
+/* Masthead actions row holds profile + view-mode + theme */
+.masthead-actions { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; justify-content: flex-end; }
+
+/* Profile picker */
+.profile-wrap { position: relative; }
+.profile-chip {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  padding: 0.5rem 0.8rem 0.5rem 0.95rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  max-width: 14rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out), transform var(--dur-out) var(--ease-out);
+}
+.profile-chip:hover { background: var(--paper-soft); transform: translateY(-1px); transition-duration: var(--dur-in); transition-timing-function: var(--ease-in); }
+.profile-chip-eyebrow { font-size: 0.66rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: var(--label-spacing); padding-right: 0.3rem; border-right: 1px solid var(--rule); }
+.profile-chip-name { font-weight: 500; max-width: 8rem; overflow: hidden; text-overflow: ellipsis; }
+.profile-chip-caret { color: var(--ink-faint); font-size: 0.7rem; }
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 17rem;
+  background: var(--paper-raised);
+  box-shadow: inset 0 0 0 1px var(--rule), var(--shadow-modal);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 10px;
+  padding: 0.55rem;
+  z-index: 200;
+  display: none;
+}
+.profile-wrap[data-open="true"] .profile-menu { display: block; }
+.profile-menu-section { display: flex; flex-direction: column; gap: 0.18rem; }
+.profile-menu-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink);
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  transition: background-color var(--dur-out) var(--ease-out);
+}
+.profile-menu-item:hover { background: var(--paper-soft); transition-duration: var(--dur-in); }
+.profile-menu-item.active { background: var(--accent-soft); color: var(--ink); }
+.profile-menu-item .pmi-check { width: 1rem; color: var(--accent); }
+.profile-menu-divider { height: 1px; background: var(--rule); margin: 0.3rem 0; }
+.profile-menu-action { color: var(--ink-soft); font-size: 0.82rem; }
+.profile-menu-action.danger { color: var(--urgent); }
+
+/* View-mode toggle (App ↔ Dashboard) */
+.viewmode-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--paper-raised);
+  border-radius: 999px;
+  padding: 0.22rem;
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+.viewmode-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  transition: background-color var(--dur-out) var(--ease-out), color var(--dur-out) var(--ease-out);
+}
+.viewmode-btn:hover { color: var(--ink); }
+.viewmode-btn.active { background: var(--ink); color: var(--paper); }
+[data-theme="dark"] .viewmode-btn.active { background: var(--paper-raised); color: var(--ink); box-shadow: inset 0 0 0 1px var(--rule); }
+
+/* App mode visual changes — scaffolded as card-stack everywhere */
+body[data-mode="app"] table.audit thead { display: none; }
+body[data-mode="app"] table.audit, body[data-mode="app"] table.audit tbody,
+body[data-mode="app"] table.audit tr, body[data-mode="app"] table.audit td { display: block; width: 100%; }
+body[data-mode="app"] table.audit tr {
+  background: var(--paper-raised);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.7rem;
+  position: relative;
+}
+body[data-mode="app"] table.audit td { border-bottom: 0; padding: 0.3rem 0; text-align: left; }
+body[data-mode="app"] table.audit td::before {
+  content: attr(data-label);
+  display: block;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: var(--label-spacing);
+  color: var(--ink-faint);
+  margin-bottom: 0.2rem;
+}
+body[data-mode="app"] table.audit td.col-cat.cat-merged { display: none; }
+body[data-mode="app"] table.audit td.col-del { position: absolute; top: 0.7rem; right: 0.7rem; width: auto; padding: 0; }
+body[data-mode="app"] table.audit td.col-del::before { display: none; }
+body[data-mode="app"] table.audit td.col-num { text-align: left; }
+body[data-mode="app"] .num-input { width: 7rem; font-size: 1rem; }
+body[data-mode="app"] tfoot.audit-foot { display: none; }
+body[data-mode="app"] .brand-title { font-size: clamp(1.5rem, 4vw, 2rem); }
 
 /* ------ View tabs ------ */
 .viewbar { max-width: 78rem; margin: 0 auto; padding: 0 2rem; border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule); }
@@ -579,31 +722,34 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 tfoot.audit-foot td {
   border-top: 2px solid var(--rule);
   background: var(--paper-soft);
-  padding: 0.68rem 0.9rem;
-  font-family: var(--mono);
+  padding: 0.78rem 0.9rem;
+  font-family: var(--sans);
   font-variant-numeric: tabular-nums;
-  font-size: 0.9rem;
+  font-size: 1.08rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--ink);
   text-align: right;
   position: sticky;
   bottom: 0;
 }
-tfoot.audit-foot td:first-child { text-align: left; font-family: var(--sans); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 500; }
+tfoot.audit-foot td:first-child { text-align: left; font-size: 0.78rem; font-weight: 500; text-transform: uppercase; letter-spacing: var(--label-spacing); color: var(--ink-faint); }
 tfoot.audit-foot td:nth-child(2) { text-align: left; }
 
 .verdict-chip {
   display: inline-flex;
   align-items: center;
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0.2rem 0.5rem 0.22rem;
+  padding: 0.22rem 0.55rem 0.24rem;
   border-radius: 999px;
   font-weight: 500;
-  margin-left: 0.45rem;
+  margin-left: 0.55rem;
   vertical-align: middle;
+  position: relative;
+  top: -1px;
 }
 .chip-good { background: var(--good-soft); color: var(--good); box-shadow: inset 0 0 0 1px rgba(47, 107, 63, 0.18); }
 [data-theme="dark"] .chip-good { box-shadow: inset 0 0 0 1px rgba(111, 191, 126, 0.22); }
@@ -724,6 +870,26 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
 }
 .prompt-card:hover { border-color: var(--accent); }
 .prompt-card strong { color: var(--ink); font-weight: 600; }
+.prompt-text { margin: 0 0 0.55rem; }
+.reflect-answer {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  min-height: 2.4rem;
+  transition: border-color var(--dur-out) var(--ease-out), background var(--dur-out) var(--ease-out);
+}
+.reflect-answer::placeholder { color: var(--ink-faint); font-style: italic; }
+.reflect-answer:hover { border-color: var(--ink-soft); }
+.reflect-answer:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
 
 .reference-section { margin-top: 2.4rem; }
 .reference-section-title {
@@ -763,69 +929,90 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
   text-wrap: pretty;
 }
 
-/* ------ Export bar ------ */
-.export-bar {
+/* ------ Export FAB ------ */
+.export-fab {
   position: fixed;
-  bottom: 1.2rem;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 1.3rem;
+  right: 1.3rem;
+  z-index: 60;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--paper-raised);
-  border-radius: 999px;
-  padding: 0.55rem 0.85rem;
-  box-shadow: inset 0 0 0 1px var(--rule), var(--shadow-modal);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 50;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0.55rem;
 }
-.export-label {
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--ink-faint);
-  padding-right: 0.35rem;
-}
-.export-btn {
-  padding: 0.35rem 0.82rem 0.37rem;
-  font-family: var(--mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
+.export-trigger {
+  appearance: none;
+  border: 0;
   cursor: pointer;
-  transition:
-    color var(--dur-out) var(--ease-out),
-    border-color var(--dur-out) var(--ease-out),
-    background-color var(--dur-out) var(--ease-out),
-    transform var(--dur-out) var(--ease-out);
-  white-space: nowrap;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  padding: 0.7rem 1.15rem 0.74rem 1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: 0 12px 28px rgba(45, 91, 255, 0.28), 0 1px 2px rgba(0,0,0,0.06);
+  transition: transform var(--dur-out) var(--ease-out), box-shadow var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out);
 }
-.export-btn:hover { color: var(--ink); border-color: var(--ink-soft); transform: translateY(-1px); transition-duration: var(--dur-in); transition-timing-function: var(--ease-in); }
-
-@media (min-width: 1024px) {
-  .export-bar {
-    left: auto;
-    right: 2rem;
-    bottom: 2rem;
-    transform: none;
-    flex-direction: column;
-    align-items: stretch;
-    border-radius: 10px;
-    padding: 0.85rem 1rem;
-    gap: 0.45rem;
-  }
-  .export-label { padding-right: 0; padding-bottom: 0.35rem; border-bottom: 1px solid var(--rule); margin-bottom: 0.1rem; }
-  .export-btn { text-align: center; }
+[data-theme="dark"] .export-trigger { color: var(--paper); box-shadow: 0 14px 30px rgba(122, 156, 255, 0.22), 0 1px 2px rgba(0,0,0,0.4); }
+.export-trigger:hover { transform: translateY(-2px); transition-duration: var(--dur-in); transition-timing-function: var(--ease-in); }
+.export-trigger-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  font-size: 0.95rem;
+  transform: translateY(-1px);
+}
+.export-menu {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.4rem;
+  align-items: flex-end;
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  transform-origin: bottom right;
+  pointer-events: none;
+  transition: opacity 160ms var(--ease-out), transform 200ms var(--ease-out);
+}
+.export-fab[data-open="true"] .export-menu {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.export-fab[data-open="true"] .export-trigger { background: var(--ink); color: var(--paper); box-shadow: 0 6px 16px rgba(15, 15, 14, 0.2); }
+[data-theme="dark"] .export-fab[data-open="true"] .export-trigger { background: var(--paper-raised); color: var(--ink); }
+.export-btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 0.84rem;
+  font-weight: 500;
+  padding: 0.5rem 0.95rem 0.52rem;
+  border-radius: 999px;
+  min-width: 7.2rem;
+  text-align: center;
+  box-shadow: inset 0 0 0 1px var(--rule), 0 4px 14px rgba(0,0,0,0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out), transform var(--dur-out) var(--ease-out);
+}
+.export-btn:hover { color: var(--accent); transform: translateX(-2px); transition-duration: var(--dur-in); transition-timing-function: var(--ease-in); }
+@media (max-width: 600px) {
+  .export-fab { right: 1rem; bottom: 1rem; }
+  .export-btn { min-width: 9rem; padding: 0.55rem 1.05rem; }
 }
 
-body[data-view="compare"] .export-bar,
-body[data-view="reflect"] .export-bar { display: none; }
+body[data-view="compare"] .export-fab,
+body[data-view="reflect"] .export-fab { display: none; }
 
 /* ------ Toast ------ */
 .toast {
@@ -873,7 +1060,7 @@ body[data-view="reflect"] .export-bar { display: none; }
 
 /* ------ Print ------ */
 @media print {
-  .grain, .theme-toggle, .viewbar, .export-bar, .toast, .colophon,
+  .grain, .theme-toggle, .viewbar, .export-fab, .toast, .colophon,
   .worksheet-toolbar, .del-btn, #view-compare, #view-reflect { display: none !important; }
   body { background: #fff; color: #000; }
   .masthead { padding: 1rem 0; }
@@ -937,10 +1124,6 @@ body[data-view="reflect"] .export-bar { display: none; }
   .bar-row { grid-template-columns: 6rem 1fr auto; }
 
   .reference-grid { grid-template-columns: 1fr; }
-
-  .export-bar { padding: 0.5rem 0.75rem; gap: 0.4rem; }
-  .export-label { display: none; }
-  .export-btn { font-size: 0.7rem; padding: 0.3rem 0.65rem; }
 }
 `;
 }
@@ -952,10 +1135,14 @@ function getJS() {
   const REFERENCE = window.__REFERENCE__;
   const REFLECTION = window.__REFLECTION__;
   const TARGET = window.__TARGET__;
-  const STORAGE_KEY = "168-audit:v1";
+  const STORAGE_KEY = "168-audit:v2";
+  const LEGACY_KEY = "168-audit:v1";
 
   // ------ State ------
-  let rows = [];
+  // state shape:
+  //   { activeProfile, profiles: { id: { id, name, rows, reflections } }, viewMode }
+  let state = null;
+  let rows = []; // alias for state.profiles[active].rows; updated on profile switch
   let undoStack = null; // {rows, index} for single-step undo
   let toastTimer = null;
   let inputMode = (function() {
@@ -964,22 +1151,99 @@ function getJS() {
   })();
   const SLIDER_MAX = 80; // hours per row; above this, switch to numbers mode
 
+  function freshRows() {
+    return SEED.map(r => Object.assign({}, r, { ideal: "", actual: "", notes: "" }));
+  }
+  function freshProfile(id, name) {
+    return { id: id, name: name || "My Schedule", rows: freshRows(), reflections: {} };
+  }
+  function uniqueProfileId() {
+    return "p-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+  }
+  function currentProfile() {
+    return state.profiles[state.activeProfile];
+  }
+  function syncRows() {
+    rows = currentProfile().rows;
+  }
+  function slugify(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "profile";
+  }
+  function profileFilename(ext) {
+    return "168-audit-" + slugify(currentProfile().name) + "." + ext;
+  }
+
   function loadState() {
+    // 1) Try v2 (current schema)
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.rows)) {
-          rows = parsed.rows;
+        if (parsed && parsed.profiles && typeof parsed.profiles === "object" && parsed.activeProfile) {
+          // Defensive: ensure active profile exists and has required shape.
+          if (!parsed.profiles[parsed.activeProfile]) {
+            parsed.activeProfile = Object.keys(parsed.profiles)[0] || "default";
+          }
+          Object.values(parsed.profiles).forEach(p => {
+            if (!Array.isArray(p.rows)) p.rows = freshRows();
+            if (!p.reflections || typeof p.reflections !== "object") p.reflections = {};
+            if (!p.id) p.id = uniqueProfileId();
+            if (!p.name) p.name = "My Schedule";
+          });
+          if (parsed.viewMode !== "app" && parsed.viewMode !== "dashboard") parsed.viewMode = "dashboard";
+          state = parsed;
+          syncRows();
           return;
         }
       }
     } catch(e) {}
-    rows = SEED.map(r => Object.assign({}, r, { ideal: "", actual: "", notes: "" }));
+
+    // 2) Migrate from v1 if present
+    try {
+      const legacy = localStorage.getItem(LEGACY_KEY);
+      if (legacy) {
+        const parsed = JSON.parse(legacy);
+        if (parsed && Array.isArray(parsed.rows)) {
+          const id = "default";
+          state = {
+            activeProfile: id,
+            profiles: { [id]: { id: id, name: "My Schedule", rows: parsed.rows, reflections: {} } },
+            viewMode: "dashboard"
+          };
+          syncRows();
+          saveState();
+          return;
+        }
+      }
+    } catch(e) {}
+
+    // 3) Fresh state
+    const id = "default";
+    state = {
+      activeProfile: id,
+      profiles: { [id]: freshProfile(id, "My Schedule") },
+      viewMode: "dashboard"
+    };
+    syncRows();
   }
 
   function saveState() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows })); } catch(e) {}
+    try {
+      currentProfile().rows = rows;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch(e) {}
+  }
+
+  function setReflection(promptText, value) {
+    const cp = currentProfile();
+    if (!cp.reflections) cp.reflections = {};
+    if (value && value.trim()) cp.reflections[promptText] = value;
+    else delete cp.reflections[promptText];
+    saveState();
+  }
+  function getReflection(promptText) {
+    const cp = currentProfile();
+    return (cp.reflections && cp.reflections[promptText]) || "";
   }
 
   function num(v) {
@@ -1226,8 +1490,8 @@ function getJS() {
   }
 
   function resetToDefaults() {
-    if (!confirm("Reset all rows to defaults? Your current data will be lost.")) return;
-    rows = SEED.map(r => Object.assign({}, r, { ideal: "", actual: "", notes: "" }));
+    if (!confirm("Reset this profile to default rows? Current data in '" + currentProfile().name + "' will be lost (reflection answers kept).")) return;
+    rows = freshRows();
     saveState();
     renderWorksheet();
     renderStats();
@@ -1328,16 +1592,24 @@ function getJS() {
       return escHtml(text).replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
     }
 
+    function promptBlock(promptText, key) {
+      const saved = escAttr(getReflection(promptText));
+      return '<div class="prompt-card">' +
+        '<p class="prompt-text">' + md(promptText) + '</p>' +
+        '<textarea class="reflect-answer" data-prompt="' + escAttr(promptText) + '" data-key="' + key + '" placeholder="Type your answer…" rows="2">' + saved + '</textarea>' +
+        '</div>';
+    }
+
     let html = '<div class="reflect-section"><p class="reflect-section-title">Ideal Week Analysis</p>';
-    REFLECTION.ideal.forEach(p => { html += '<div class="prompt-card">' + md(p) + '</div>'; });
+    REFLECTION.ideal.forEach((p, i) => { html += promptBlock(p, "ideal-" + i); });
     html += '</div>';
 
     html += '<div class="reflect-section"><p class="reflect-section-title">Actual Week Analysis</p>';
-    REFLECTION.actual.forEach(p => { html += '<div class="prompt-card">' + md(p) + '</div>'; });
+    REFLECTION.actual.forEach((p, i) => { html += promptBlock(p, "actual-" + i); });
     html += '</div>';
 
     html += '<div class="reflect-section"><p class="reflect-section-title">Vital Reflection</p>';
-    REFLECTION.vital.forEach(p => { html += '<div class="prompt-card">' + md(p) + '</div>'; });
+    REFLECTION.vital.forEach((p, i) => { html += promptBlock(p, "vital-" + i); });
     html += '</div>';
 
     html += '<div class="reference-section"><p class="reference-section-title">Reference: Recommended Categories</p><div class="reference-grid">';
@@ -1351,6 +1623,19 @@ function getJS() {
     html += '</div></div>';
 
     container.innerHTML = html;
+
+    container.querySelectorAll(".reflect-answer").forEach(ta => {
+      autoResize(ta);
+      ta.addEventListener("input", function() {
+        setReflection(this.dataset.prompt, this.value);
+        autoResize(this);
+      });
+    });
+  }
+
+  function autoResize(ta) {
+    ta.style.height = "auto";
+    ta.style.height = (ta.scrollHeight + 2) + "px";
   }
 
   // ------ Toast ------
@@ -1384,30 +1669,73 @@ function getJS() {
     return s;
   }
 
+  // ------ Export FAB open/close ------
+  (function initFab() {
+    const fab = document.getElementById("exportBar");
+    const trigger = document.getElementById("exportTrigger");
+    function setOpen(open) {
+      fab.dataset.open = open ? "true" : "false";
+      trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    trigger.addEventListener("click", function(e) {
+      e.stopPropagation();
+      setOpen(fab.dataset.open !== "true");
+    });
+    document.addEventListener("click", function(e) {
+      if (!fab.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") setOpen(false);
+    });
+    fab.querySelectorAll(".export-btn").forEach(btn => btn.addEventListener("click", function() { setTimeout(() => setOpen(false), 80); }));
+  })();
+
   document.getElementById("exportCsv").addEventListener("click", function() {
     const lines = ["Category,Sub-category,Ideal,Actual,Notes"];
     rows.forEach(r => lines.push([r.category, r.sub, r.ideal, r.actual, r.notes].map(csvEscape).join(",")));
-    download("168-audit.csv", "text/csv", lines.join("\\r\\n"));
+    download(profileFilename("csv"), "text/csv", lines.join("\\r\\n"));
   });
 
   document.getElementById("exportJson").addEventListener("click", function() {
-    download("168-audit.json", "application/json", JSON.stringify({ rows, generated: new Date().toISOString() }, null, 2));
+    const cp = currentProfile();
+    download(profileFilename("json"), "application/json", JSON.stringify({
+      profile: cp.name,
+      rows: cp.rows,
+      reflections: cp.reflections || {},
+      generated: new Date().toISOString()
+    }, null, 2));
   });
 
   document.getElementById("exportMd").addEventListener("click", function() {
+    const cp = currentProfile();
     const idealTotal = sumIdeal();
     const actualTotal = sumActual();
     const diff = actualTotal - idealTotal;
     const signed = (diff >= 0 ? "+" : "") + fmtH(diff);
-    // TODO: add reflection answer fields in v2 so they can be included here
-    let md = "# 168 — Audit Your Week\\n\\n";
+    let md = "# 168 — Audit Your Week\\n";
+    md += "**Profile:** " + cp.name + "\\n\\n";
     md += "| Category | Sub-category | Ideal (h) | Actual (h) | Notes |\\n";
     md += "|---|---|---:|---:|---|\\n";
     rows.forEach(r => {
       md += "| " + [r.category, r.sub, r.ideal || 0, r.actual || 0, r.notes || ""].join(" | ") + " |\\n";
     });
     md += "\\n**Ideal total:** " + fmtH(idealTotal) + "h · **Actual total:** " + fmtH(actualTotal) + "h · **Delta:** " + signed + "h\\n";
-    download("168-audit.md", "text/markdown", md);
+
+    function reflectSection(title, list, prefix) {
+      const answered = list.map((p, i) => ({ p, a: getReflection(p) })).filter(x => x.a && x.a.trim());
+      if (!answered.length) return "";
+      let s = "\\n## " + title + "\\n\\n";
+      answered.forEach(x => {
+        s += "**Q.** " + x.p + "\\n\\n";
+        s += x.a.split("\\n").map(line => "> " + line).join("\\n") + "\\n\\n";
+      });
+      return s;
+    }
+    md += reflectSection("Ideal Week Analysis", REFLECTION.ideal, "ideal");
+    md += reflectSection("Actual Week Analysis", REFLECTION.actual, "actual");
+    md += reflectSection("Vital Reflection", REFLECTION.vital, "vital");
+
+    download(profileFilename("md"), "text/markdown", md);
   });
 
   document.getElementById("exportPrint").addEventListener("click", function() {
@@ -1430,8 +1758,151 @@ function getJS() {
     return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;");
   }
 
+  // ------ Profile picker ------
+  function renderProfileChip() {
+    document.getElementById("profileChipName").textContent = currentProfile().name;
+  }
+  function buildProfileMenu() {
+    const menu = document.getElementById("profileMenu");
+    const ids = Object.keys(state.profiles);
+    let html = '<div class="profile-menu-section">';
+    ids.forEach(id => {
+      const p = state.profiles[id];
+      const active = id === state.activeProfile;
+      html += '<button class="profile-menu-item' + (active ? " active" : "") + '" data-profile-id="' + id + '" role="menuitemradio" aria-checked="' + active + '">' +
+        '<span class="pmi-check">' + (active ? "&#10003;" : "") + '</span>' +
+        '<span class="pmi-name">' + escHtml(p.name) + '</span>' +
+        '</button>';
+    });
+    html += '</div>';
+    html += '<div class="profile-menu-divider"></div>';
+    html += '<div class="profile-menu-section">';
+    html += '<button class="profile-menu-item profile-menu-action" data-action="new"><span class="pmi-check">+</span><span>New profile…</span></button>';
+    html += '<button class="profile-menu-item profile-menu-action" data-action="rename"><span class="pmi-check"></span><span>Rename current…</span></button>';
+    html += '<button class="profile-menu-item profile-menu-action" data-action="duplicate"><span class="pmi-check"></span><span>Duplicate current</span></button>';
+    if (ids.length > 1) {
+      html += '<button class="profile-menu-item profile-menu-action danger" data-action="delete"><span class="pmi-check"></span><span>Delete current</span></button>';
+    }
+    html += '</div>';
+    menu.innerHTML = html;
+
+    menu.querySelectorAll("[data-profile-id]").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const id = this.dataset.profileId;
+        if (id === state.activeProfile) { closeProfileMenu(); return; }
+        state.activeProfile = id;
+        syncRows();
+        saveState();
+        renderProfileChip();
+        buildProfileMenu();
+        renderWorksheet();
+        renderStats();
+        if (activeView === "compare") renderCompare();
+        if (activeView === "reflect") renderReflect();
+        closeProfileMenu();
+        showToast("Switched to '" + currentProfile().name + "'", false);
+      });
+    });
+    menu.querySelectorAll("[data-action]").forEach(btn => {
+      btn.addEventListener("click", function() {
+        const action = this.dataset.action;
+        if (action === "new") {
+          const name = prompt("Name for the new profile:", "New schedule");
+          if (!name || !name.trim()) return;
+          const id = uniqueProfileId();
+          state.profiles[id] = freshProfile(id, name.trim());
+          state.activeProfile = id;
+          syncRows();
+          saveState();
+          renderProfileChip();
+          buildProfileMenu();
+          renderWorksheet();
+          renderStats();
+          closeProfileMenu();
+        } else if (action === "rename") {
+          const cur = currentProfile();
+          const name = prompt("Rename profile:", cur.name);
+          if (!name || !name.trim()) return;
+          cur.name = name.trim();
+          saveState();
+          renderProfileChip();
+          buildProfileMenu();
+          closeProfileMenu();
+        } else if (action === "duplicate") {
+          const cur = currentProfile();
+          const id = uniqueProfileId();
+          state.profiles[id] = {
+            id: id,
+            name: cur.name + " (copy)",
+            rows: JSON.parse(JSON.stringify(cur.rows)),
+            reflections: JSON.parse(JSON.stringify(cur.reflections || {}))
+          };
+          state.activeProfile = id;
+          syncRows();
+          saveState();
+          renderProfileChip();
+          buildProfileMenu();
+          renderWorksheet();
+          renderStats();
+          closeProfileMenu();
+        } else if (action === "delete") {
+          const cur = currentProfile();
+          if (!confirm("Delete profile '" + cur.name + "'? This can't be undone.")) return;
+          delete state.profiles[state.activeProfile];
+          state.activeProfile = Object.keys(state.profiles)[0];
+          syncRows();
+          saveState();
+          renderProfileChip();
+          buildProfileMenu();
+          renderWorksheet();
+          renderStats();
+          if (activeView === "reflect") renderReflect();
+          closeProfileMenu();
+        }
+      });
+    });
+  }
+  function openProfileMenu() {
+    document.getElementById("profileWrap").dataset.open = "true";
+    document.getElementById("profileChip").setAttribute("aria-expanded", "true");
+  }
+  function closeProfileMenu() {
+    document.getElementById("profileWrap").dataset.open = "false";
+    document.getElementById("profileChip").setAttribute("aria-expanded", "false");
+  }
+  (function initProfileChip() {
+    const chip = document.getElementById("profileChip");
+    chip.addEventListener("click", function(e) {
+      e.stopPropagation();
+      const wrap = document.getElementById("profileWrap");
+      if (wrap.dataset.open === "true") closeProfileMenu();
+      else { buildProfileMenu(); openProfileMenu(); }
+    });
+    document.addEventListener("click", function(e) {
+      const wrap = document.getElementById("profileWrap");
+      if (!wrap.contains(e.target)) closeProfileMenu();
+    });
+    document.addEventListener("keydown", function(e) { if (e.key === "Escape") closeProfileMenu(); });
+  })();
+
+  // ------ View-mode (App / Dashboard) ------
+  function applyViewMode(mode) {
+    if (mode !== "app" && mode !== "dashboard") mode = "dashboard";
+    state.viewMode = mode;
+    document.body.dataset.mode = mode;
+    document.querySelectorAll(".viewmode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+    saveState();
+  }
+  (function initViewMode() {
+    document.querySelectorAll(".viewmode-btn").forEach(btn => {
+      btn.addEventListener("click", function() { applyViewMode(this.dataset.mode); });
+    });
+  })();
+
   // ------ Init ------
   loadState();
+  applyViewMode(state.viewMode);
+  renderProfileChip();
   renderWorksheet();
   renderStats();
 })();
