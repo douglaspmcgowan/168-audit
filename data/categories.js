@@ -36,7 +36,7 @@ const DEFAULT_ROWS = [
   { id: "play-hobby",      category: "Play",                 sub: "Personal Hobby",                         group: "🎮", hint: "Active leisure (music, sports, craft).",         sliderMax: 20 },
   { id: "rest-sabbath",    category: "Rest",                 sub: "Sabbath / Quiet Rest",                   group: "🕊️", hint: "Solitude with God. Not the same as play.",       sliderMax: 20 },
   { id: "other-exercise",  category: "Other",                sub: "Exercise",                               group: "🏃", hint: "Intentional workout time.",                     sliderMax: 15 },
-  { id: "other-travel",    category: "Other",                sub: "Non-Regular Travel",                     group: "🏃", hint: "Trips, long drives, weekend visits.",           sliderMax: 20 }
+  { id: "other-travel",    category: "Other",                sub: "Non-Regular Travel",                     group: "🏃", hint: "Trips, long drives, weekend visits.",           sliderMax: 40 }
 ];
 
 // Reference definitions — shown in the collapsible "Recommended categories" panel.

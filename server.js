@@ -41,7 +41,7 @@ function buildPage() {
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>${getCSS()}</style>
 </head>
 <body>
@@ -65,7 +65,6 @@ function buildPage() {
           </svg>
         </span>
         <div class="brand-titles">
-          <span class="brand-eyebrow">Week Planner</span>
           <h1 class="brand-title">168 &mdash; Audit Your Week</h1>
         </div>
       </div>
@@ -155,6 +154,7 @@ function buildPage() {
         </details>
       </div>
       <div class="modal-actions">
+        <a class="btn btn-quiet" href="mailto:douglaspmcgowan@gmail.com?subject=168-audit%20feedback&body=What%20worked%2Fdidn%27t%3A%0A%0AWhat%20I%27d%20change%3A%0A%0A" target="_blank" rel="noopener">Send feedback</a>
         <button type="button" class="btn btn-quiet" data-close="1">Close</button>
         <button type="button" class="btn" id="startTourBtn">Quick tour</button>
         <button type="button" class="btn btn-primary" id="startTutorialBtn">Full tutorial</button>
@@ -185,6 +185,8 @@ function buildPage() {
     <span class="colophon-bit">Adapted from <a class="colophon-link" href="https://dpm5970digitalgarden.vercel.app/168-audit-your-week/" target="_blank" rel="noopener">Douglas McGowan&rsquo;s digital garden</a></span>
     <span class="colophon-sep">/</span>
     <span class="colophon-bit"><a class="colophon-link" href="https://github.com/douglaspmcgowan/168-audit" target="_blank" rel="noopener">source</a></span>
+    <span class="colophon-sep">/</span>
+    <span class="colophon-bit"><a class="colophon-link" href="mailto:douglaspmcgowan@gmail.com?subject=168-audit%20feedback" target="_blank" rel="noopener">feedback</a></span>
   </footer>
 
 <script>
@@ -221,7 +223,7 @@ function getCSS() {
   --good: #2F6B3F;
   --good-soft: rgba(47, 107, 63, 0.12);
   --tag-ink: #FAFAF7;
-  --sans: "Inter Tight", system-ui, sans-serif;
+  --sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --mono: var(--sans);
   --label-spacing: 0.08em;
   --measure: 65ch;
@@ -334,6 +336,7 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 }
 .stat { display: inline-flex; align-items: baseline; gap: 0.48rem; min-height: 1.5rem; }
 .stat strong {
+  display: inline-block;
   font-family: var(--sans);
   font-weight: 600;
   color: var(--ink);
@@ -342,6 +345,8 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
   text-transform: none;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  min-width: 3.1rem;
+  text-align: left;
 }
 .stat .stat-accent { color: var(--accent); }
 .stat .stat-good { color: var(--good); }
@@ -568,18 +573,23 @@ table.audit tbody tr.selected td { color: var(--ink); }
 /* Guided tour overlay */
 .tour-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
 .tour-overlay:not([hidden]) { pointer-events: auto; }
-/* In interactive mode (tutorial) the backdrop dims but lets clicks through to the spotlighted UI */
+/* In interactive mode (tutorial) the backdrop still dims hard but lets clicks through to the spotlighted UI */
 .tour-overlay.interactive { pointer-events: none; }
 .tour-overlay.interactive .tour-tooltip { pointer-events: auto; }
 .tour-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background-color 220ms var(--ease-out); }
-.tour-overlay:not([hidden]) .tour-backdrop { background: rgba(0,0,0,0.55); }
-.tour-overlay.interactive:not([hidden]) .tour-backdrop { background: rgba(0,0,0,0.36); }
+.tour-overlay:not([hidden]) .tour-backdrop { background: rgba(0,0,0,0.62); }
+.tour-overlay.interactive:not([hidden]) .tour-backdrop { background: rgba(0,0,0,0.62); }
 .tour-spotlight {
   position: absolute;
   border-radius: 12px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.62), 0 0 0 4px var(--accent-soft), 0 0 0 6px var(--accent-line);
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.68),
+    0 0 0 3px var(--accent),
+    0 0 28px 6px rgba(122, 156, 255, 0.45),
+    inset 0 0 28px rgba(122, 156, 255, 0.16);
   pointer-events: none;
-  transition: top 240ms var(--ease-out), left 240ms var(--ease-out), width 240ms var(--ease-out), height 240ms var(--ease-out);
+  /* No position transitions — instant snap matches the tutorial's discrete-step
+     model and avoids tooltip-placement races during mid-transition measurements. */
 }
 .tour-tooltip {
   position: absolute;
@@ -934,7 +944,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 .cell-input.cell-cat-merged { color: transparent; }
 .cell-input.cell-cat-merged:hover, .cell-input.cell-cat-merged:focus-visible { color: var(--ink); }
 
-/* slider input mode — fixed widths so the column doesn't reflow as the value changes */
+/* slider input mode — fixed width in dashboard rows so the column doesn't reflow */
 .range-cell {
   display: grid;
   grid-template-columns: 1fr 3.8rem;
@@ -943,6 +953,10 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   width: 12rem;
   max-width: 100%;
 }
+/* app-mode (card stack): slider spans the full card */
+body[data-mode="app"] .range-cell { width: 100%; min-width: 0; }
+.range-cell.over-max .range-val { color: var(--warn); }
+.range-cell.over-max .range-val::after { content: " ⚠"; font-size: 0.78em; }
 .range-input {
   -webkit-appearance: none;
   appearance: none;
@@ -1505,7 +1519,7 @@ body[data-view="reflect"] .export-fab { display: none; }
   .input-mode-toggle { flex-wrap: wrap; }
   .input-mode-label { padding: 0 0.4rem 0 0.6rem; }
   .input-mode-btn { flex: 1; }
-  .range-cell { grid-template-columns: 1fr 4.4rem; }
+  .range-cell { grid-template-columns: 1fr 4.4rem; width: 100%; min-width: 0; }
   .export-fab { right: 0.85rem; bottom: 0.85rem; }
   .export-trigger { padding: 0.6rem 1rem 0.62rem 0.85rem; font-size: 0.84rem; }
 
@@ -1931,12 +1945,15 @@ function getJS() {
     const v = row[field];
     const numericValue = v === "" || v === null || v === undefined ? "" : v;
     const rowMax = sliderMaxFor(row);
-    if (inputMode === "sliders" && (numericValue === "" || +numericValue <= rowMax)) {
-      const sv = numericValue === "" ? 0 : +numericValue;
-      const fill = (Math.min(sv, rowMax) / rowMax * 100).toFixed(1);
-      return '<div class="range-cell" data-row-max="' + rowMax + '">' +
-        '<input type="range" class="range-input range-' + field + '" data-field="' + field + '" data-idx="' + i + '" data-row-max="' + rowMax + '" min="0" max="' + rowMax + '" step="0.25" value="' + sv + '" style="--fill:' + fill + '%" aria-label="' + field + ' hours">' +
-        '<span class="range-val" data-val-for="' + field + '-' + i + '" title="Max for this row: ' + rowMax + 'h">' + (numericValue === "" ? "0" : fmtH(+numericValue)) + 'h</span>' +
+    if (inputMode === "sliders") {
+      const raw = numericValue === "" ? 0 : +numericValue;
+      const sv = Math.min(raw, rowMax); // clamp visible slider position to max
+      const fill = (sv / rowMax * 100).toFixed(1);
+      const overMax = raw > rowMax;
+      const displayed = numericValue === "" ? "0" : fmtH(raw);
+      return '<div class="range-cell' + (overMax ? ' over-max' : '') + '" data-row-max="' + rowMax + '">' +
+        '<input type="range" class="range-input range-' + field + '" data-field="' + field + '" data-idx="' + i + '" data-row-max="' + rowMax + '" min="0" max="' + rowMax + '" step="0.25" value="' + sv + '" style="--fill:' + fill + '%" aria-label="' + field + ' hours' + (overMax ? ' (currently ' + raw + 'h, slider capped at ' + rowMax + 'h — switch to Numbers mode to set higher)' : '') + '">' +
+        '<span class="range-val" data-val-for="' + field + '-' + i + '" title="Max for this row: ' + rowMax + 'h' + (overMax ? '. Current value (' + raw + 'h) exceeds it — switch to Numbers mode to keep changing.' : '') + '">' + displayed + 'h</span>' +
         '</div>';
     }
     return '<input type="number" class="num-input" data-field="' + field + '" data-idx="' + i + '" value="' + numericValue + '" step="0.25" min="0" max="168" placeholder="0" inputmode="decimal" aria-label="' + field + ' hours">';
@@ -1959,6 +1976,8 @@ function getJS() {
     inp.style.setProperty("--fill", (v / max * 100).toFixed(1) + "%");
     const label = inp.parentElement.querySelector("[data-val-for='" + field + "-" + idx + "']");
     if (label) label.textContent = fmtH(v) + "h";
+    // User actively dragging clears the over-max state (they're setting a new value <= max).
+    inp.parentElement.classList.remove("over-max");
     rows[idx][field] = v === 0 ? "" : v;
     renderStats();
     updateTotals();
@@ -2857,7 +2876,7 @@ function getJS() {
     {
       cat: "Work", view: "worksheet",
       title: "1. Work",
-      body: "Mandatory work + anything voluntary (side projects, optional overtime). A standard US full-time job is around 40h. Type your ideal numbers in the highlighted rows."
+      body: "Mandatory work + anything voluntary (side projects, optional overtime). A standard US full-time job is around 40h. Fill in this category's rows below the highlight."
     },
     {
       cat: "Sleep", view: "worksheet",
@@ -2949,25 +2968,47 @@ function getJS() {
     }
     function positionSpot() {
       const step = TUTORIAL_STEPS[idx];
-      let rect = null;
-      if (step.cat) {
-        const trs = rowsForCategory(step.cat);
-        rect = unionRect(trs);
-        if (rect && trs.length) trs[0].scrollIntoView({ behavior: "smooth", block: "center" });
-      } else if (step.kind === "total") {
-        const foot = document.querySelector("tfoot.audit-foot");
-        if (foot) { foot.scrollIntoView({ behavior: "smooth", block: "center" }); rect = foot.getBoundingClientRect(); }
-      } else if (step.selector) {
-        const el = document.querySelector(step.selector);
-        if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); rect = el.getBoundingClientRect(); }
-      } else if (step.kind === "intro") {
-        const brand = document.querySelector(".brand-titles");
-        if (brand) rect = brand.getBoundingClientRect();
-      } else if (step.kind === "outro") {
-        const chip = document.getElementById("profileChip");
-        if (chip) rect = chip.getBoundingClientRect();
+      const collectTarget = () => {
+        if (step.cat) {
+          // Spotlight only the first row of the category to keep the highlight
+          // compact enough that the tooltip always has room. The user can still
+          // edit any row in that category — the overlay is non-blocking.
+          const trs = rowsForCategory(step.cat);
+          return { rect: trs[0] ? trs[0].getBoundingClientRect() : null, scroll: trs[0] || null };
+        }
+        if (step.kind === "total") {
+          const foot = document.querySelector("tfoot.audit-foot");
+          return { rect: foot ? foot.getBoundingClientRect() : null, scroll: foot };
+        }
+        if (step.selector) {
+          const el = document.querySelector(step.selector);
+          return { rect: el ? el.getBoundingClientRect() : null, scroll: el };
+        }
+        if (step.kind === "intro") {
+          const brand = document.querySelector(".brand-titles");
+          return { rect: brand ? brand.getBoundingClientRect() : null, scroll: brand };
+        }
+        if (step.kind === "outro") {
+          const chip = document.getElementById("profileChip");
+          return { rect: chip ? chip.getBoundingClientRect() : null, scroll: chip };
+        }
+        return { rect: null, scroll: null };
+      };
+      const t1 = collectTarget();
+      if (t1.scroll) {
+        // Instant scroll so subsequent measurements are accurate. The spotlight
+        // itself transitions smoothly via CSS, so visually it's still animated.
+        try {
+          t1.scroll.scrollIntoView({ behavior: "instant", block: "start" });
+        } catch (e) {
+          t1.scroll.scrollIntoView({ block: "start" });
+        }
+        // Leave room above for the masthead.
+        window.scrollBy({ top: -140 });
       }
-      requestAnimationFrame(() => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const t2 = collectTarget();
+        const rect = t2.rect;
         if (!rect) {
           spotlight.style.opacity = "0";
           tooltip.style.top = "50%";
@@ -2982,7 +3023,7 @@ function getJS() {
         spotlight.style.width = (rect.width + pad * 2) + "px";
         spotlight.style.height = (rect.height + pad * 2) + "px";
         positionTooltip(rect);
-      });
+      }));
     }
     function positionTooltip(r) {
       const vw = document.documentElement.clientWidth;
@@ -2991,11 +3032,45 @@ function getJS() {
       tooltip.style.top = "0px"; tooltip.style.left = "0px";
       const tr = tooltip.getBoundingClientRect();
       const tw = tr.width, th = tr.height, margin = 14;
+      // Spotlight has its own 10px pad in positionSpot; keep extra distance beyond it.
+      const spotPad = 26;
+      // Use the spotlight's actual rect (which includes the 10px pad) for collision checks.
+      const sr = {
+        top: r.top - 10, left: r.left - 10,
+        right: r.right + 10, bottom: r.bottom + 10,
+      };
+      const rightRoom = vw - sr.right - margin;
+      const leftRoom = sr.left - margin;
+      const belowRoom = vh - sr.bottom - margin;
+      const aboveRoom = sr.top - margin;
       let top, left;
-      if (r.bottom + th + margin < vh) top = r.bottom + margin;
-      else if (r.top - th - margin > 0) top = r.top - th - margin;
-      else top = Math.max(margin, Math.min(vh - th - margin, r.top));
-      left = Math.max(margin, Math.min(vw - tw - margin, r.left + r.width / 2 - tw / 2));
+
+      // Pick the placement that has the most room.
+      const candidates = [
+        { side: "right", room: rightRoom, fits: rightRoom >= tw },
+        { side: "left", room: leftRoom, fits: leftRoom >= tw },
+        { side: "below", room: belowRoom, fits: belowRoom >= th },
+        { side: "above", room: aboveRoom, fits: aboveRoom >= th },
+      ];
+      const fits = candidates.filter(c => c.fits).sort((a, b) => b.room - a.room);
+      const pick = fits[0] || candidates.sort((a, b) => b.room - a.room)[0];
+
+      if (pick.side === "right") {
+        left = sr.right + spotPad;
+        top = Math.max(margin, Math.min(vh - th - margin, sr.top));
+      } else if (pick.side === "left") {
+        left = sr.left - spotPad - tw;
+        top = Math.max(margin, Math.min(vh - th - margin, sr.top));
+      } else if (pick.side === "below") {
+        top = sr.bottom + spotPad;
+        left = Math.max(margin, Math.min(vw - tw - margin, sr.left + (sr.right - sr.left) / 2 - tw / 2));
+      } else { // above
+        top = sr.top - th - spotPad;
+        left = Math.max(margin, Math.min(vw - tw - margin, sr.left + (sr.right - sr.left) / 2 - tw / 2));
+      }
+      // Final clamp to viewport.
+      top = Math.max(margin, Math.min(vh - th - margin, top));
+      left = Math.max(margin, Math.min(vw - tw - margin, left));
       tooltip.style.top = top + "px";
       tooltip.style.left = left + "px";
     }
