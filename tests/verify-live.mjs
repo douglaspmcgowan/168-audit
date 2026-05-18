@@ -19,7 +19,7 @@ async function inspectDesktop(browser) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
   // Suppress tour for the rest of the suite once we've inspected it.
-  await ctx.addInitScript(() => { try { localStorage.setItem("168-audit:tour-seen", "1"); } catch(e) {} });
+  await ctx.addInitScript(() => { try { localStorage.setItem("168-audit:intro-seen-v2", "1"); } catch(e) {} });
   page.on("pageerror", (e) => fail(`pageerror: ${e.message}`));
   page.on("console", (m) => { if (m.type() === "error") fail(`console.error: ${m.text()}`); });
 
@@ -65,7 +65,7 @@ async function inspectDesktop(browser) {
   await firstCat.blur();
   await page.waitForTimeout(120);
   const catSaved = await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    const s = JSON.parse(localStorage.getItem("168-audit:v3") || "{}");
     return s.profiles?.[s.activeProfile]?.rows?.[0]?.category;
   });
   catSaved === "Career" ? ok(`category persisted: ${catSaved}`) : fail(`category not saved: ${catSaved}`);
@@ -97,7 +97,7 @@ async function inspectDesktop(browser) {
   await firstSlider.evaluate((el) => { el.value = "12"; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); });
   await page.waitForTimeout(150);
   const sliderSaved = await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    const s = JSON.parse(localStorage.getItem("168-audit:v3") || "{}");
     return s.profiles?.[s.activeProfile]?.rows?.[0]?.actual;
   });
   sliderSaved === 12 ? ok(`slider value persisted: ${sliderSaved}`) : fail(`slider not saved: ${sliderSaved}`);
@@ -215,10 +215,10 @@ async function inspectDesktop(browser) {
   fabClosed === "false" ? ok("FAB auto-closes after export click") : fail(`FAB after export: ${fabClosed}`);
 
   log("\nLocalStorage v2 + profile persistence");
-  const stored = await page.evaluate(() => localStorage.getItem("168-audit:v2"));
+  const stored = await page.evaluate(() => localStorage.getItem("168-audit:v3"));
   stored && stored.length > 10 ? ok(`localStorage v2 has ${stored.length} chars`) : fail(`localStorage v2: ${stored}`);
   const profileShape = await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    const s = JSON.parse(localStorage.getItem("168-audit:v3") || "{}");
     return { active: s.activeProfile, count: Object.keys(s.profiles || {}).length, name: s.profiles?.[s.activeProfile]?.name };
   });
   profileShape.active && profileShape.count >= 1 && profileShape.name ? ok(`profile: active="${profileShape.active}", ${profileShape.count} total, name="${profileShape.name}"`) : fail(`profile shape: ${JSON.stringify(profileShape)}`);
@@ -230,7 +230,7 @@ async function inspectDesktop(browser) {
   await page.click('[data-action="new"]');
   await page.waitForTimeout(180);
   const after2 = await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    const s = JSON.parse(localStorage.getItem("168-audit:v3") || "{}");
     return { count: Object.keys(s.profiles).length, activeName: s.profiles[s.activeProfile].name };
   });
   after2.count === 2 && after2.activeName === "Summer schedule" ? ok(`new profile created: active="${after2.activeName}", total=${after2.count}`) : fail(`profile create: ${JSON.stringify(after2)}`);
@@ -243,7 +243,7 @@ async function inspectDesktop(browser) {
   await firstAnswer.blur();
   await page.waitForTimeout(120);
   const reflSaved = await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("168-audit:v2") || "{}");
+    const s = JSON.parse(localStorage.getItem("168-audit:v3") || "{}");
     const refs = s.profiles?.[s.activeProfile]?.reflections || {};
     return Object.values(refs)[0] || null;
   });
@@ -262,6 +262,29 @@ async function inspectDesktop(browser) {
   ok("screenshot: 01b-worksheet-app-mode.png");
   await page.click('#vmDashboard');
   await page.waitForTimeout(120);
+
+  log("\nv9: first-run intro modal auto-opens (in a fresh-state ctx)");
+  {
+    const introCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const introPage = await introCtx.newPage();
+    await introPage.goto(URL, { waitUntil: "networkidle", timeout: 30000 });
+    await introPage.waitForTimeout(500);  // intro modal opens after 350ms setTimeout
+    const auto = await introPage.evaluate(() => ({
+      modalOpen: !document.getElementById("whatIs").hidden,
+      tourClosed: document.getElementById("tour").hidden,
+      keySet: localStorage.getItem("168-audit:intro-seen-v2") === "1",
+    }));
+    auto.modalOpen && auto.tourClosed && auto.keySet
+      ? ok("first-run: intro modal opens (not tour), key marked seen")
+      : fail(`first-run state: ${JSON.stringify(auto)}`);
+    await introPage.screenshot({ path: path.join(SHOTS, "00-first-run-intro.png"), fullPage: false });
+    // Verify second load skips the modal
+    await introPage.goto(URL, { waitUntil: "networkidle", timeout: 30000 });
+    await introPage.waitForTimeout(500);
+    const second = await introPage.evaluate(() => !document.getElementById("whatIs").hidden);
+    !second ? ok("second-run: intro modal does NOT auto-open") : fail("modal still auto-opens on revisit");
+    await introCtx.close();
+  }
 
   log("\n? button opens What-is-this modal (tour + tutorial + close)");
   await page.click("#tourReplay");
@@ -293,7 +316,7 @@ async function inspectDesktop(browser) {
   await page.screenshot({ path: path.join(SHOTS, "09b-tour-step-5.png"), fullPage: false });
   await page.click("#tourSkip");
   await page.waitForTimeout(150);
-  const tourClosed = await page.evaluate(() => document.getElementById("tour").hidden && localStorage.getItem("168-audit:tour-seen") === "1");
+  const tourClosed = await page.evaluate(() => document.getElementById("tour").hidden && localStorage.getItem("168-audit:intro-seen-v2") === "1");
   tourClosed ? ok("tour closes + marks seen") : fail("tour didn't close cleanly");
 
   log("\nLaunch full tutorial from modal + walk ALL 13 steps");
@@ -481,9 +504,9 @@ async function inspectDesktop(browser) {
 
   log("Empty profile: insights panel shows onboarding line, donuts render dotted empty state");
   await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("168-audit:v2"));
+    const s = JSON.parse(localStorage.getItem("168-audit:v3"));
     s.profiles[s.activeProfile].rows = s.profiles[s.activeProfile].rows.map(r => ({ ...r, ideal: "", actual: "" }));
-    localStorage.setItem("168-audit:v2", JSON.stringify(s));
+    localStorage.setItem("168-audit:v3", JSON.stringify(s));
   });
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(200);
@@ -509,9 +532,9 @@ async function inspectDesktop(browser) {
   const eyebrowGone = await page.evaluate(() => !document.querySelector(".brand-eyebrow"));
   eyebrowGone ? ok("no .brand-eyebrow in DOM") : fail("brand-eyebrow still present");
 
-  log("\nv8: font is Plus Jakarta Sans (rendered)");
+  log("\nv9: font is Apple system stack (rendered)");
   const fontFamily = await page.evaluate(() => getComputedStyle(document.querySelector(".brand-title")).fontFamily);
-  /Plus Jakarta Sans/.test(fontFamily) ? ok(`brand-title font-family: ${fontFamily.slice(0, 60)}`) : fail(`font-family: ${fontFamily}`);
+  /-apple-system|BlinkMacSystemFont|SF Pro/.test(fontFamily) ? ok(`brand-title font-family: ${fontFamily.slice(0, 60)}`) : fail(`font-family: ${fontFamily}`);
 
   log("\nv8: Feedback link in footer + modal");
   const fbCount = await page.evaluate(() => document.querySelectorAll('a[href^="mailto:"]').length);
@@ -524,11 +547,11 @@ async function inspectDesktop(browser) {
   await page.waitForTimeout(180);
   // Force a row's actual to exceed its sliderMax via state, then re-render
   await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("168-audit:v2"));
+    const s = JSON.parse(localStorage.getItem("168-audit:v3"));
     const p = s.profiles[s.activeProfile];
     // Find Non-Regular Travel
     const i = p.rows.findIndex(r => /Non-Regular Travel/i.test(r.sub));
-    if (i >= 0) { p.rows[i].actual = 60; localStorage.setItem("168-audit:v2", JSON.stringify(s)); }
+    if (i >= 0) { p.rows[i].actual = 60; localStorage.setItem("168-audit:v3", JSON.stringify(s)); }
   });
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(300);
@@ -598,7 +621,7 @@ async function inspectMobile(browser) {
   log("\n=== Mobile (375×812, iPhone 13) ===");
   const ctx = await browser.newContext({ ...devices["iPhone 13"] });
   const page = await ctx.newPage();
-  await ctx.addInitScript(() => { try { localStorage.setItem("168-audit:tour-seen", "1"); } catch(e) {} });
+  await ctx.addInitScript(() => { try { localStorage.setItem("168-audit:intro-seen-v2", "1"); } catch(e) {} });
   page.on("pageerror", (e) => fail(`pageerror: ${e.message}`));
 
   await page.goto(URL, { waitUntil: "networkidle", timeout: 30000 });
@@ -658,12 +681,106 @@ async function inspectMobile(browser) {
   await ctx.close();
 }
 
+// --- v9 history ---
+async function inspectHistory(browser) {
+  log("\n=== v9: History view ===");
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  await ctx.addInitScript(() => { try { localStorage.setItem("168-audit:intro-seen-v2", "1"); } catch(e) {} });
+  page.on("pageerror", (e) => fail(`pageerror: ${e.message}`));
+  page.on("console", (m) => { if (m.type() === "error") fail(`console.error: ${m.text()}`); });
+
+  await page.goto(URL, { waitUntil: "networkidle", timeout: 30000 });
+
+  // 1. Empty state appears
+  await page.click('.view-tab[data-view="history"]');
+  await page.waitForTimeout(150);
+  const empty = await page.evaluate(() => document.querySelector(".history-empty") !== null);
+  empty ? ok("history: empty state renders for fresh user") : fail("no empty state");
+
+  // 2. Save snapshot via prompt-mock
+  await page.evaluate(() => { window.prompt = () => "Snap A"; });
+  await page.click("#snapEmptyBtn");
+  await page.waitForTimeout(150);
+  const oneSnap = await page.evaluate(() => document.querySelectorAll(".snap-row").length);
+  oneSnap === 1 ? ok("history: 1 snapshot after save") : fail("snap count was " + oneSnap);
+
+  // 3. Go to worksheet, change a value, come back, save second snapshot
+  await page.click('.view-tab[data-view="worksheet"]');
+  await page.waitForTimeout(150);
+  const firstIdealInput = page.locator('input[data-field="ideal"]').first();
+  await firstIdealInput.fill("50");
+  await firstIdealInput.blur();
+  await page.waitForTimeout(120);
+
+  await page.click('.view-tab[data-view="history"]');
+  await page.waitForTimeout(150);
+  await page.evaluate(() => { window.prompt = () => "Snap B"; });
+  await page.click("#snapNewBtn");
+  await page.waitForTimeout(150);
+  const twoSnaps = await page.evaluate(() => document.querySelectorAll(".snap-row").length);
+  twoSnaps === 2 ? ok("history: 2 snapshots after second save") : fail("snap count was " + twoSnaps);
+
+  // 4. Compare A → B: select second option in one of the compare selects
+  const selHandle = await page.$(".snap-compare-select");
+  // Options: [0] "Compare with…", [1] "Current week", [2] other snapshot
+  await selHandle.selectOption({ index: 2 });
+  await page.waitForTimeout(200);
+  const diffShown = await page.evaluate(() => document.querySelector(".snap-diff-table") !== null);
+  diffShown ? ok("history: diff table renders") : fail("no diff table");
+
+  // Back button returns to list
+  await page.click("#snapDiffBack");
+  await page.waitForTimeout(150);
+  const backToList = await page.evaluate(() => document.querySelector(".snap-list") !== null);
+  backToList ? ok("history: back button returns to snap list") : fail("back button didn't return to list");
+
+  // 5. Reload persistence
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(200);
+  await page.click('.view-tab[data-view="history"]');
+  await page.waitForTimeout(150);
+  const persistedCount = await page.evaluate(() => document.querySelectorAll(".snap-row").length);
+  persistedCount === 2 ? ok("history: snapshots persist across reload") : fail("only " + persistedCount + " survived reload");
+
+  // 5b. Verify v3 key contains snapshots
+  const v3HasSnaps = await page.evaluate(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem("168-audit:v3") || "{}");
+      const pid = s.activeProfile;
+      return s.snapshots && s.snapshots[pid] && s.snapshots[pid].length === 2;
+    } catch(e) { return false; }
+  });
+  v3HasSnaps ? ok("history: v3 localStorage has 2 snapshots") : fail("v3 snapshots missing or wrong count");
+
+  // 6. Mobile viewport — no horizontal overflow at 320px
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.waitForTimeout(150);
+  const noOverflow320 = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
+  noOverflow320 ? ok("history: no horizontal overflow at 320px") : fail("overflow at 320px: " + (document.documentElement.scrollWidth - document.documentElement.clientWidth) + "px");
+  await page.screenshot({ path: path.join(SHOTS, "14-history-320.png"), fullPage: true });
+  ok("screenshot: 14-history-320.png");
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  // 7. Delete snapshot
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForTimeout(150);
+  page.once("dialog", async d => { await d.accept(); });
+  await page.click(".snap-del-btn");
+  await page.waitForTimeout(200);
+  const afterDelete = await page.evaluate(() => document.querySelectorAll(".snap-row").length);
+  afterDelete === 1 ? ok("history: delete snapshot reduces count to 1") : fail("after delete count was " + afterDelete);
+
+  await ctx.close();
+}
+
 (async () => {
   log(`\nVerifying: ${URL}`);
   const browser = await chromium.launch();
   try {
     await inspectDesktop(browser);
     await inspectMobile(browser);
+    await inspectHistory(browser);
   } catch (e) {
     fail("uncaught: " + e.message);
   } finally {

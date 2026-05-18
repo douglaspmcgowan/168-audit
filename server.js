@@ -39,16 +39,12 @@ function buildPage() {
 <title>168 — Audit Your Week</title>
 <meta name="description" content="168 hours in a week. Plan your ideal week, log your actual week, and find out where the gap lives.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>${getCSS()}</style>
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
   <div class="stats-sticky" id="statsSticky" aria-hidden="true">
     <div class="stats-sticky-inner">
-      <span class="stats-sticky-brand">168</span>
       <div class="stats-sticky-row" id="statsStickyRow"></div>
     </div>
   </div>
@@ -97,6 +93,7 @@ function buildPage() {
       <button class="view-tab active" data-view="worksheet" role="tab" aria-selected="true">Worksheet</button>
       <button class="view-tab" data-view="compare" role="tab" aria-selected="false">Compare</button>
       <button class="view-tab" data-view="reflect" role="tab" aria-selected="false">Reflect</button>
+      <button class="view-tab" data-view="history" role="tab" aria-selected="false">History</button>
     </div>
   </nav>
 
@@ -104,6 +101,7 @@ function buildPage() {
     <section id="view-worksheet" class="view"></section>
     <section id="view-compare" class="view hidden"></section>
     <section id="view-reflect" class="view hidden"></section>
+    <section id="view-history" class="view hidden"></section>
   </main>
 
   <div id="exportBar" class="export-fab" data-open="false">
@@ -186,7 +184,7 @@ function buildPage() {
     <span class="colophon-sep">/</span>
     <span class="colophon-bit"><a class="colophon-link" href="https://github.com/douglaspmcgowan/168-audit" target="_blank" rel="noopener">source</a></span>
     <span class="colophon-sep">/</span>
-    <span class="colophon-bit"><a class="colophon-link" href="mailto:douglaspmcgowan@gmail.com?subject=168-audit%20feedback" target="_blank" rel="noopener">feedback</a></span>
+    <span class="colophon-bit"><a class="colophon-link" href="mailto:douglaspmcgowan@gmail.com?subject=168-audit%20feedback&amp;body=What%20worked%2Fdidn%27t%3A%0A%0AWhat%20I%27d%20change%3A%0A%0A" target="_blank" rel="noopener">&#128172; Send feedback</a></span>
   </footer>
 
 <script>
@@ -222,8 +220,12 @@ function getCSS() {
   --warn-soft: rgba(140, 98, 57, 0.12);
   --good: #2F6B3F;
   --good-soft: rgba(47, 107, 63, 0.12);
+  --delta-positive: #2F6B3F;
+  --delta-positive-soft: rgba(47, 107, 63, 0.12);
+  --delta-negative: #C53838;
+  --delta-negative-soft: rgba(197, 56, 56, 0.12);
   --tag-ink: #FAFAF7;
-  --sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
   --mono: var(--sans);
   --label-spacing: 0.08em;
   --measure: 65ch;
@@ -253,6 +255,10 @@ function getCSS() {
   --warn-soft: rgba(210, 173, 121, 0.16);
   --good: #6FBF7E;
   --good-soft: rgba(111, 191, 126, 0.16);
+  --delta-positive: #6FBF7E;
+  --delta-positive-soft: rgba(111, 191, 126, 0.16);
+  --delta-negative: #FF7B75;
+  --delta-negative-soft: rgba(255, 123, 117, 0.16);
   --tag-ink: #FAFAF7;
   --shadow-card: 0 18px 32px rgba(0, 0, 0, 0.28);
   --shadow-modal: 0 30px 80px rgba(0, 0, 0, 0.52);
@@ -605,7 +611,8 @@ table.audit tbody tr.selected td { color: var(--ink); }
   pointer-events: auto;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 180ms var(--ease-out), transform 220ms var(--ease-out), top 240ms var(--ease-out), left 240ms var(--ease-out);
+  /* Snap top/left (like the spotlight) so step transitions don't briefly overlap. */
+  transition: opacity 180ms var(--ease-out), transform 220ms var(--ease-out);
 }
 .tour-overlay:not([hidden]) .tour-tooltip { opacity: 1; transform: translateY(0); }
 .tour-step-count {
@@ -764,7 +771,29 @@ body[data-mode="app"] table.audit td::before {
   color: var(--ink-faint);
   margin-bottom: 0.2rem;
 }
-body[data-mode="app"] table.audit td.col-cat.cat-merged { display: none; }
+/* In app mode, show the category name on EVERY card (including continuation cards)
+   so users always have context. Continuation cards render dimmer to signal grouping. */
+body[data-mode="app"] table.audit td.col-cat.cat-merged {
+  display: block;
+  padding: 0 0 0.3rem;
+  opacity: 0.55;
+}
+body[data-mode="app"] table.audit td.col-cat.cat-merged::before { display: none; }
+body[data-mode="app"] table.audit td.col-cat.cat-merged .cell-input.cell-cat-merged {
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+/* Hide redundant "Sub-category" eyebrow in app mode — the bold title beneath is self-evident. */
+body[data-mode="app"] table.audit td.col-sub::before { display: none; }
+body[data-mode="app"] table.audit td.col-sub { padding-top: 0; }
+/* Stronger selected-state in app mode: thicker outer ring + accent left bar that survives card layout. */
+body[data-mode="app"] table.audit tbody tr.selected {
+  box-shadow:
+    inset 4px 0 0 var(--accent),
+    inset 0 0 0 2px var(--accent),
+    0 4px 14px rgba(45, 91, 255, 0.18);
+}
 body[data-mode="app"] table.audit td.col-del { position: absolute; top: 0.7rem; right: 0.7rem; width: auto; padding: 0; }
 body[data-mode="app"] table.audit td.col-del::before { display: none; }
 body[data-mode="app"] table.audit td.col-num { text-align: left; }
@@ -849,6 +878,8 @@ main { max-width: 78rem; margin: 0 auto; padding: 1.6rem 2rem 8rem; }
 [data-theme="dark"] .btn-primary:hover { box-shadow: 0 6px 18px rgba(122, 156, 255, 0.22); }
 .btn-quiet { background: transparent; color: var(--ink-faint); box-shadow: none; }
 .btn-quiet:hover { color: var(--ink); background: var(--paper-soft); box-shadow: inset 0 0 0 1px var(--rule-soft); }
+.btn-secondary { box-shadow: inset 0 0 0 1px var(--rule); color: var(--ink-soft); }
+.btn-secondary:hover { box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); transform: translateY(-1px); }
 
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table.audit {
@@ -882,7 +913,7 @@ table.audit td {
   vertical-align: middle;
 }
 table.audit tbody tr:last-child td { border-bottom: 0; }
-table.audit tbody tr.cat-start td {
+table.audit tbody tr.cat-start:not(.cat-start-first) td {
   border-top: 2px solid var(--rule);
   padding-top: 0.85rem;
 }
@@ -1478,6 +1509,152 @@ body[data-view="reflect"] .export-fab { display: none; }
 .colophon-link { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--dur-out) var(--ease-out), border-color var(--dur-out) var(--ease-out); }
 .colophon-link:hover { color: var(--ink); border-color: var(--ink-soft); transition-duration: var(--dur-in); }
 
+/* ------ History view ------ */
+.history-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  margin-bottom: 0.95rem;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.history-empty {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background: var(--paper-raised);
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+  margin-top: 1.2rem;
+}
+.history-empty-icon { font-size: 2.2rem; line-height: 1; margin-bottom: 0.8rem; }
+.history-empty-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem; color: var(--ink); letter-spacing: -0.015em; }
+.history-empty-body { font-size: 0.9rem; color: var(--ink-soft); margin: 0 0 1.2rem; line-height: 1.6; }
+.snap-list { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.5rem; }
+.snap-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--paper-raised);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+}
+.snap-row-info { min-width: 0; }
+.snap-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 22rem;
+}
+.snap-meta {
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  margin-top: 0.18rem;
+}
+.snap-compare-wrap { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+.snap-compare-label { font-size: 0.76rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+.snap-compare-select {
+  appearance: none;
+  background: var(--paper-soft);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.3rem 1.8rem 0.3rem 0.55rem;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--ink);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%238A847A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  background-size: 1rem;
+  transition: border-color var(--dur-out) var(--ease-out);
+  max-width: 11rem;
+}
+.snap-compare-select:hover { border-color: var(--ink-soft); }
+.snap-compare-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.snap-del-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink-faint);
+  font-size: 0.95rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out);
+}
+.snap-del-btn:hover { color: var(--urgent); background: var(--urgent-soft); transition-duration: var(--dur-in); }
+@media (max-width: 600px) {
+  .snap-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 0.5rem 0.6rem; }
+  .snap-row-info { grid-column: 1; grid-row: 1; }
+  .snap-del-btn { grid-column: 2; grid-row: 1; }
+  .snap-compare-wrap { grid-column: 1 / -1; grid-row: 2; }
+  .snap-label { max-width: none; }
+}
+
+/* History diff table */
+.history-diff-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+.history-diff-title { font-size: 1rem; font-weight: 600; color: var(--ink); letter-spacing: -0.015em; margin: 0; }
+.history-diff-sub { font-size: 0.8rem; color: var(--ink-faint); }
+.snap-diff-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.88rem;
+  border-top: 1px solid var(--rule);
+}
+.snap-diff-table th {
+  background: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  font-weight: 500;
+  padding: 0.62rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  white-space: nowrap;
+}
+.snap-diff-table th.col-num { text-align: right; }
+.snap-diff-table td { padding: 0.42rem 0.8rem; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+.snap-diff-table tbody tr:last-child td { border-bottom: 0; }
+.snap-diff-table td.col-num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.snap-diff-table td.col-removed { color: var(--ink-faint); font-style: italic; }
+.snap-diff-delta { font-weight: 500; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.snap-diff-delta.pos { color: var(--delta-positive); }
+.snap-diff-delta.neg { color: var(--delta-negative); }
+.snap-diff-delta.zero { color: var(--ink-faint); }
+.snap-diff-summary {
+  background: var(--paper-soft);
+  font-weight: 600;
+  border-top: 2px solid var(--rule);
+}
+.snap-diff-summary td { padding: 0.62rem 0.8rem; }
+.snap-diff-back { margin-bottom: 1rem; }
+.snap-diff-cat { font-size: 0.72rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.25rem; }
+@media (max-width: 720px) {
+  .snap-diff-table th, .snap-diff-table td { padding: 0.38rem 0.55rem; }
+}
+
 /* ------ Print ------ */
 @media print {
   .grain, .theme-toggle, .viewbar, .export-fab, .toast, .colophon,
@@ -1591,6 +1768,7 @@ function getJS() {
   const REFLECTION = window.__REFLECTION__;
   const TARGET = window.__TARGET__;
   const STORAGE_KEY = "168-audit:v2";
+  const STORAGE_KEY_V3 = "168-audit:v3";
   const LEGACY_KEY = "168-audit:v1";
 
   // ------ State ------
@@ -1635,6 +1813,30 @@ function getJS() {
   }
 
   function loadState() {
+    // 0) Try v3 (has snapshots)
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_V3);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.profiles && typeof parsed.profiles === "object" && parsed.activeProfile) {
+          if (!parsed.profiles[parsed.activeProfile]) {
+            parsed.activeProfile = Object.keys(parsed.profiles)[0] || "default";
+          }
+          Object.values(parsed.profiles).forEach(p => {
+            if (!Array.isArray(p.rows)) p.rows = freshRows();
+            if (!p.reflections || typeof p.reflections !== "object") p.reflections = {};
+            if (!p.id) p.id = uniqueProfileId();
+            if (!p.name) p.name = "My Schedule";
+          });
+          if (parsed.viewMode !== "app" && parsed.viewMode !== "dashboard") parsed.viewMode = "dashboard";
+          if (!parsed.snapshots || typeof parsed.snapshots !== "object") parsed.snapshots = {};
+          state = parsed;
+          syncRows();
+          return;
+        }
+      }
+    } catch(e) {}
+
     // 1) Try v2 (current schema)
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -1652,8 +1854,10 @@ function getJS() {
             if (!p.name) p.name = "My Schedule";
           });
           if (parsed.viewMode !== "app" && parsed.viewMode !== "dashboard") parsed.viewMode = "dashboard";
+          parsed.snapshots = {};
           state = parsed;
           syncRows();
+          saveState();
           return;
         }
       }
@@ -1669,7 +1873,8 @@ function getJS() {
           state = {
             activeProfile: id,
             profiles: { [id]: { id: id, name: "My Schedule", rows: parsed.rows, reflections: {} } },
-            viewMode: "dashboard"
+            viewMode: "dashboard",
+            snapshots: {}
           };
           syncRows();
           saveState();
@@ -1683,7 +1888,8 @@ function getJS() {
     state = {
       activeProfile: id,
       profiles: { [id]: freshProfile(id, "My Schedule") },
-      viewMode: "dashboard"
+      viewMode: "dashboard",
+      snapshots: {}
     };
     syncRows();
   }
@@ -1691,8 +1897,42 @@ function getJS() {
   function saveState() {
     try {
       currentProfile().rows = rows;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY_V3, JSON.stringify(state));
     } catch(e) {}
+  }
+
+  // ------ Snapshot helpers ------
+  function getSnapshotsForProfile(pid) {
+    return (state.snapshots && state.snapshots[pid]) || [];
+  }
+
+  function takeSnapshot(label) {
+    if (!state.snapshots) state.snapshots = {};
+    const pid = state.activeProfile;
+    if (!state.snapshots[pid]) state.snapshots[pid] = [];
+    const snap = {
+      id: "snap-" + Date.now(),
+      takenAt: new Date().toISOString(),
+      label: label,
+      rows: JSON.parse(JSON.stringify(rows.map(r => ({ id: r.id, hours: r.hours !== undefined ? r.hours : (r.actual !== undefined ? r.actual : r.ideal), sub: r.sub, category: r.category, ideal: r.ideal, actual: r.actual }))))
+    };
+    state.snapshots[pid].push(snap);
+    try {
+      saveState();
+    } catch(e) {
+      if (e.name === "QuotaExceededError") showToast("Storage full — couldn't save snapshot.");
+    }
+  }
+
+  function deleteSnapshot(snapId) {
+    const pid = state.activeProfile;
+    if (!state.snapshots || !state.snapshots[pid]) return;
+    state.snapshots[pid] = state.snapshots[pid].filter(s => s.id !== snapId);
+    saveState();
+  }
+
+  function defaultSnapshotLabel() {
+    return "Week of " + new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
   }
 
   function setReflection(promptText, value) {
@@ -1738,6 +1978,7 @@ function getJS() {
     worksheet: document.getElementById("view-worksheet"),
     compare: document.getElementById("view-compare"),
     reflect: document.getElementById("view-reflect"),
+    history: document.getElementById("view-history"),
   };
   let activeView = "worksheet";
   document.body.dataset.view = activeView;
@@ -1752,6 +1993,7 @@ function getJS() {
       Object.entries(views).forEach(([k, el]) => el.classList.toggle("hidden", k !== v));
       if (v === "compare") renderCompare();
       if (v === "reflect") renderReflect();
+      if (v === "history") renderHistory();
     });
   });
 
@@ -1807,8 +2049,8 @@ function getJS() {
       '<button class="btn btn-primary" id="addSubBtn" title="Add a row under the last category (N)">+ Subcategory</button>' +
       '<button class="btn" id="addCatBtn" title="Start a new top-level category (Shift+N)">+ Category</button>' +
       '<button class="btn btn-quiet" id="resetBtn">Reset</button>' +
+      '<button class="btn btn-secondary" id="snapshotBtn" type="button">&#128248; Save snapshot</button>' +
       '<div class="input-mode-toggle" style="margin-left:auto" role="group" aria-label="Input mode">' +
-        '<span class="input-mode-label">Input</span>' +
         '<button class="input-mode-btn' + (inputMode === "numbers" ? " active" : "") + '" data-mode="numbers" type="button">Numbers</button>' +
         '<button class="input-mode-btn' + (inputMode === "sliders" ? " active" : "") + '" data-mode="sliders" type="button">Sliders</button>' +
       '</div>' +
@@ -1834,9 +2076,13 @@ function getJS() {
     let prevCat = null;
     rows.forEach((row, i) => {
       const merged = row.category === prevCat;
-      const catStart = !merged && i > 0;
+      const catStart = !merged;
+      const isFirstCat = catStart && i === 0;
       prevCat = row.category;
-      html += '<tr data-idx="' + i + '"' + (catStart ? ' class="cat-start"' : '') + '>' +
+      const classes = [];
+      if (catStart) classes.push("cat-start");
+      if (isFirstCat) classes.push("cat-start-first");
+      html += '<tr data-idx="' + i + '"' + (classes.length ? ' class="' + classes.join(" ") + '"' : '') + '>' +
         '<td class="col-cat' + (merged ? ' cat-merged' : '') + '" data-label="Category">' +
           '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category">' +
         '</td>' +
@@ -1867,6 +2113,7 @@ function getJS() {
     document.getElementById("addSubBtn").addEventListener("click", () => addRow("sub"));
     document.getElementById("addCatBtn").addEventListener("click", () => addRow("cat"));
     document.getElementById("resetBtn").addEventListener("click", resetToDefaults);
+    document.getElementById("snapshotBtn").addEventListener("click", saveSnapshotFromButton);
 
     container.querySelectorAll(".input-mode-btn").forEach(btn => btn.addEventListener("click", onModeChange));
     container.querySelectorAll(".num-input").forEach(inp => inp.addEventListener("change", onNumChange));
@@ -2316,6 +2563,200 @@ function getJS() {
     ta.style.height = (ta.scrollHeight + 2) + "px";
   }
 
+  // ------ History ------
+  function renderHistory(diffState) {
+    const v = document.getElementById("view-history");
+    const snaps = getSnapshotsForProfile(state.activeProfile);
+
+    if (diffState) {
+      v.innerHTML = renderDiffHTML(diffState.a, diffState.b);
+      const backBtn = document.getElementById("snapDiffBack");
+      if (backBtn) backBtn.addEventListener("click", () => renderHistory(null));
+      return;
+    }
+
+    if (!snaps.length) {
+      v.innerHTML =
+        '<div class="history-empty">' +
+          '<div class="history-empty-icon">&#128248;</div>' +
+          '<h2 class="history-empty-title">No snapshots yet</h2>' +
+          '<p class="history-empty-body">Save a snapshot of your current week to start tracking changes over time.</p>' +
+          '<button class="btn btn-primary" id="snapEmptyBtn" type="button">Save current as snapshot</button>' +
+        '</div>';
+      document.getElementById("snapEmptyBtn").addEventListener("click", saveSnapshotFromButton);
+      return;
+    }
+
+    let html =
+      '<div class="history-toolbar">' +
+        '<button class="btn btn-secondary" id="snapNewBtn" type="button">&#128248; Save new snapshot</button>' +
+        '<span class="history-diff-sub">' + snaps.length + ' snapshot' + (snaps.length === 1 ? "" : "s") + '</span>' +
+      '</div>' +
+      '<div class="snap-list">';
+
+    snaps.slice().reverse().forEach(function(s) {
+      const total = s.rows.reduce(function(sum, r) {
+        const h = r.actual !== undefined ? r.actual : (r.hours !== undefined ? r.hours : 0);
+        return sum + (parseFloat(h) || 0);
+      }, 0);
+      const date = new Date(s.takenAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+      const options =
+        '<option value="">Compare with…</option>' +
+        '<option value="__current__">Current week</option>' +
+        snaps.filter(function(o) { return o.id !== s.id; }).map(function(o) {
+          return '<option value="' + escAttr(o.id) + '">' + escHtml(o.label) + '</option>';
+        }).join("");
+      html +=
+        '<div class="snap-row" data-snap-id="' + escAttr(s.id) + '">' +
+          '<div class="snap-row-info">' +
+            '<div class="snap-label">' + escHtml(s.label) + '</div>' +
+            '<div class="snap-meta">' + date + ' \xb7 ' + total.toFixed(1) + 'h total</div>' +
+          '</div>' +
+          '<div class="snap-compare-wrap">' +
+            '<select class="snap-compare-select" data-from="' + escAttr(s.id) + '">' + options + '</select>' +
+          '</div>' +
+          '<button class="snap-del-btn" type="button" data-del="' + escAttr(s.id) + '" aria-label="Delete snapshot">✕</button>' +
+        '</div>';
+    });
+    html += '</div>';
+    v.innerHTML = html;
+
+    document.getElementById("snapNewBtn").addEventListener("click", saveSnapshotFromButton);
+    v.querySelectorAll(".snap-compare-select").forEach(function(sel) {
+      sel.addEventListener("change", function() {
+        if (!sel.value) return;
+        const fromId = sel.dataset.from;
+        const toId = sel.value;
+        const a = snaps.find(function(s) { return s.id === fromId; });
+        const b = toId === "__current__"
+          ? { id: "__current__", label: "Current week", rows: rows.map(function(r) { return { id: r.id, ideal: r.ideal, actual: r.actual, sub: r.sub, category: r.category }; }) }
+          : snaps.find(function(s) { return s.id === toId; });
+        renderHistory({ a: a, b: b });
+      });
+    });
+    v.querySelectorAll("[data-del]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        if (!confirm("Delete this snapshot?")) return;
+        deleteSnapshot(btn.dataset.del);
+        renderHistory(null);
+      });
+    });
+  }
+
+  function snapRowHours(row) {
+    // Snapshots may store ideal+actual or just hours. Use actual if available, else ideal, else hours.
+    if (row.actual !== undefined && row.actual !== "") return parseFloat(row.actual) || 0;
+    if (row.ideal !== undefined && row.ideal !== "") return parseFloat(row.ideal) || 0;
+    if (row.hours !== undefined) return parseFloat(row.hours) || 0;
+    return 0;
+  }
+
+  function renderDiffHTML(a, b) {
+    // Build union of row ids
+    const aMap = {};
+    a.rows.forEach(function(r) { aMap[r.id] = r; });
+    const bMap = {};
+    b.rows.forEach(function(r) { bMap[r.id] = r; });
+    const allIds = [];
+    const seen = {};
+    a.rows.forEach(function(r) { if (!seen[r.id]) { seen[r.id] = true; allIds.push(r.id); } });
+    b.rows.forEach(function(r) { if (!seen[r.id]) { seen[r.id] = true; allIds.push(r.id); } });
+
+    // Also build a label lookup from current rows for fallback
+    const currentMap = {};
+    rows.forEach(function(r) { currentMap[r.id] = r; });
+
+    function getLabel(row) {
+      if (!row) return "";
+      var sub = row.sub || (currentMap[row.id] && currentMap[row.id].sub) || row.id;
+      var cat = row.category || (currentMap[row.id] && currentMap[row.id].category) || "";
+      return { sub: sub, cat: cat };
+    }
+
+    let totalA = 0, totalB = 0;
+    let tableRows = "";
+
+    allIds.forEach(function(id) {
+      const ra = aMap[id];
+      const rb = bMap[id];
+      const lbl = getLabel(ra || rb);
+      const ha = ra ? snapRowHours(ra) : null;
+      const hb = rb ? snapRowHours(rb) : null;
+
+      const aCell = ha !== null ? ha.toFixed(1) : "—";
+      const bCell = hb !== null ? hb.toFixed(1) : "—";
+
+      let deltaCell = "";
+      let deltaClass = "snap-diff-delta zero";
+      if (ha !== null && hb !== null) {
+        const d = hb - ha;
+        totalA += ha;
+        totalB += hb;
+        if (d > 0) { deltaClass = "snap-diff-delta pos"; deltaCell = "▲+" + d.toFixed(1); }
+        else if (d < 0) { deltaClass = "snap-diff-delta neg"; deltaCell = "▼" + d.toFixed(1); }
+        else { deltaCell = "0.0"; }
+      } else if (ha !== null) {
+        totalA += ha;
+        deltaClass = "snap-diff-delta neg";
+        deltaCell = "(removed)";
+      } else if (hb !== null) {
+        totalB += hb;
+        deltaClass = "snap-diff-delta pos";
+        deltaCell = "(added)";
+      }
+
+      const subLabel = !ra ? escHtml(lbl.sub) + ' <em>(added)</em>' : (!rb ? escHtml(lbl.sub) + ' <em>(removed)</em>' : escHtml(lbl.sub));
+      const labelDisplay = '<span class="snap-diff-cat">' + escHtml(lbl.cat) + '</span> ' + subLabel;
+
+      tableRows +=
+        '<tr>' +
+          '<td>' + labelDisplay + '</td>' +
+          '<td class="col-num">' + aCell + '</td>' +
+          '<td class="col-num">' + bCell + '</td>' +
+          '<td class="' + deltaClass + '">' + deltaCell + '</td>' +
+        '</tr>';
+    });
+
+    const totalDelta = totalB - totalA;
+    let totalDeltaClass = "snap-diff-delta zero";
+    let totalDeltaCell = "0.0";
+    if (totalDelta > 0) { totalDeltaClass = "snap-diff-delta pos"; totalDeltaCell = "▲+" + totalDelta.toFixed(1); }
+    else if (totalDelta < 0) { totalDeltaClass = "snap-diff-delta neg"; totalDeltaCell = "▼" + totalDelta.toFixed(1); }
+
+    const summaryRow =
+      '<tr class="snap-diff-summary">' +
+        '<td><strong>Total</strong></td>' +
+        '<td class="col-num"><strong>' + totalA.toFixed(1) + '</strong></td>' +
+        '<td class="col-num"><strong>' + totalB.toFixed(1) + '</strong></td>' +
+        '<td class="' + totalDeltaClass + '"><strong>' + totalDeltaCell + '</strong></td>' +
+      '</tr>';
+
+    return (
+      '<button class="btn btn-secondary snap-diff-back" id="snapDiffBack" type="button">← Back to snapshots</button>' +
+      '<div class="history-diff-header">' +
+        '<h2 class="history-diff-title">' + escHtml(a.label) + ' → ' + escHtml(b.label) + '</h2>' +
+        '<span class="history-diff-sub">Δ shown as hours</span>' +
+      '</div>' +
+      '<table class="snap-diff-table">' +
+        '<thead><tr>' +
+          '<th>Sub-category</th>' +
+          '<th class="col-num">' + escHtml(a.label) + '</th>' +
+          '<th class="col-num">' + escHtml(b.label) + '</th>' +
+          '<th>Δ</th>' +
+        '</tr></thead>' +
+        '<tbody>' + tableRows + summaryRow + '</tbody>' +
+      '</table>'
+    );
+  }
+
+  function saveSnapshotFromButton() {
+    const label = (prompt("Snapshot label:", defaultSnapshotLabel()) || "").trim();
+    if (!label) return;
+    takeSnapshot(label);
+    showToast("Snapshot saved.");
+    if (activeView === "history") renderHistory(null);
+  }
+
   // ------ Toast ------
   function showToast(msg, withUndo) {
     if (toastTimer) clearTimeout(toastTimer);
@@ -2560,6 +3001,7 @@ function getJS() {
         renderStats();
         if (activeView === "compare") renderCompare();
         if (activeView === "reflect") renderReflect();
+        if (activeView === "history") renderHistory();
         closeProfileMenu();
         showToast("Switched to '" + currentProfile().name + "'", false);
       });
@@ -2661,7 +3103,8 @@ function getJS() {
   })();
 
   // ------ Guided tour ------
-  const TOUR_KEY = "168-audit:tour-seen";
+  // Bumped for v9: triggers the new first-run intro modal once for existing users.
+  const TOUR_KEY = "168-audit:intro-seen-v2";
   const TOUR_STEPS = [
     {
       selector: ".brand-titles",
@@ -2954,17 +3397,19 @@ function getJS() {
 
     function paint() {
       const step = TUTORIAL_STEPS[idx];
+      // Set text BEFORE positioning so positionTooltip measures the new content's
+      // width/height (tooltip is width:max-content, so dimensions depend on text).
+      countEl.textContent = "Tutorial · Step " + (idx + 1) + " of " + TUTORIAL_STEPS.length;
+      titleEl.textContent = step.title;
+      bodyEl.textContent = step.body;
+      backBtn.disabled = idx === 0;
+      nextBtn.textContent = (idx === TUTORIAL_STEPS.length - 1) ? "Done" : "Next →";
       if (step.view && activeView !== step.view) {
         document.querySelector('.view-tab[data-view="' + step.view + '"]').click();
         setTimeout(positionSpot, 80);
       } else {
         positionSpot();
       }
-      countEl.textContent = "Tutorial · Step " + (idx + 1) + " of " + TUTORIAL_STEPS.length;
-      titleEl.textContent = step.title;
-      bodyEl.textContent = step.body;
-      backBtn.disabled = idx === 0;
-      nextBtn.textContent = (idx === TUTORIAL_STEPS.length - 1) ? "Done" : "Next →";
     }
     function positionSpot() {
       const step = TUTORIAL_STEPS[idx];
@@ -3151,8 +3596,20 @@ function getJS() {
   renderProfileChip();
   renderWorksheet();
   renderStats();
-  // First-run tour, deferred so layout settles.
-  setTimeout(() => startTour(false), 350);
+  // First-run: open the "What is this?" modal so users get context before being
+  // dropped into a tour. The modal offers Quick tour / Full tutorial / Close.
+  // Closing it (any path) marks TOUR_KEY so this doesn't show again.
+  setTimeout(() => {
+    try {
+      if (localStorage.getItem(TOUR_KEY)) return;
+      const modal = document.getElementById("whatIs");
+      if (!modal) return;
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+      // Mark seen as soon as we open — any close path counts as seen.
+      try { localStorage.setItem(TOUR_KEY, "1"); } catch(e) {}
+    } catch(e) {}
+  }, 350);
 })();
 `;
 }

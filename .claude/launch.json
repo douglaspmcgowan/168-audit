@@ -5,8 +5,7 @@
       "name": "168-audit",
       "runtimeExecutable": "node",
       "runtimeArgs": ["server.js"],
-      "port": 3168,
-      "cwd": "${workspaceFolder}"
+      "port": 3168
     }
   ]
 }
