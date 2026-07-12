@@ -776,7 +776,10 @@ async function inspectHistory(browser) {
 
 (async () => {
   log(`\nVerifying: ${URL}`);
-  const browser = await chromium.launch();
+  const pinnedChromium = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+  const browser = await chromium.launch(
+    fs.existsSync(pinnedChromium) ? { executablePath: pinnedChromium } : {},
+  );
   try {
     await inspectDesktop(browser);
     await inspectMobile(browser);
