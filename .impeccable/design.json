@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-12T00:00:00Z",
+  "title": "Design System: 168 — Audit Your Week",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#FAFAF7",
+        "darkCanonical": "#15120E",
+        "tonalRamp": ["#2F2F1D", "#585837", "#7E7E4E", "#A1A168", "#B8B88E", "#CCCCAD", "#E2E2D0", "#F5F5EF"]
+      },
+      "paper-soft": {
+        "role": "neutral",
+        "displayName": "Paper Soft",
+        "canonical": "#F2EEE5",
+        "darkCanonical": "#1D1914"
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Paper Deep",
+        "canonical": "#E7E1D5",
+        "darkCanonical": "#272118",
+        "note": "Declared but not referenced by any component rule as of this scan. Reserved, not dead — confirm intent before wiring in."
+      },
+      "paper-raised": {
+        "role": "neutral",
+        "displayName": "Paper Raised",
+        "canonical": "rgba(255, 255, 255, 0.62)",
+        "darkCanonical": "rgba(39, 33, 24, 0.86)",
+        "note": "Always used with backdrop-filter: blur(). Surface for floating chrome (cards, modals, menus, tooltips) — functional legibility blur, not decorative glassmorphism."
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0F0F0E",
+        "darkCanonical": "#E9E2D2",
+        "tonalRamp": ["#282825", "#4A4A45", "#6A6A62", "#898980", "#A6A6A0", "#BFBFBA", "#DADAD7", "#F3F3F2"]
+      },
+      "ink-soft": {
+        "role": "secondary",
+        "displayName": "Graphite Ink",
+        "canonical": "#5B564E",
+        "darkCanonical": "#B9B09F",
+        "note": "Fixed color of the 'Actual' data series, paired against accent's 'Plan' role. See The Pen-and-Pencil Rule."
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "#8A847A",
+        "darkCanonical": "#877C6B"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule Line",
+        "canonical": "rgba(15, 15, 14, 0.09)",
+        "darkCanonical": "rgba(233, 226, 210, 0.12)"
+      },
+      "rule-soft": {
+        "role": "neutral",
+        "displayName": "Rule Line Soft",
+        "canonical": "rgba(15, 15, 14, 0.05)",
+        "darkCanonical": "rgba(233, 226, 210, 0.07)"
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Signal Blue",
+        "canonical": "#2D5BFF",
+        "darkCanonical": "#7A9CFF",
+        "tonalRamp": ["#00114D", "#001F8F", "#002DCC", "#0A40FF", "#4770FF", "#7A97FF", "#B3C3FF", "#E5EBFF"]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Signal Blue Soft",
+        "canonical": "rgba(45, 91, 255, 0.10)",
+        "darkCanonical": "rgba(122, 156, 255, 0.14)"
+      },
+      "accent-line": {
+        "role": "primary",
+        "displayName": "Signal Blue Line",
+        "canonical": "rgba(45, 91, 255, 0.18)",
+        "darkCanonical": "rgba(122, 156, 255, 0.24)"
+      },
+      "good": {
+        "role": "tertiary",
+        "displayName": "Ledger Green",
+        "canonical": "#2F6B3F",
+        "darkCanonical": "#6FBF7E",
+        "tonalRamp": ["#17351F", "#2C633A", "#3E8E53", "#55B46E", "#7FC793", "#A3D7B1", "#CAE8D2", "#EDF7F0"],
+        "note": "Duplicated by --delta-positive (identical values in both themes). Keep both wired to the same hue if either changes."
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "Warm Umber",
+        "canonical": "#8C6239",
+        "darkCanonical": "#D2AD79",
+        "tonalRamp": ["#362616", "#654729", "#91653B", "#B88451", "#CAA37D", "#D9BCA1", "#E9D9C9", "#F8F2ED"]
+      },
+      "urgent": {
+        "role": "tertiary",
+        "displayName": "Ledger Red",
+        "canonical": "#C53838",
+        "darkCanonical": "#FF7B75",
+        "tonalRamp": ["#3C1111", "#6F2020", "#9F2D2D", "#C94040", "#D67070", "#E29898", "#EEC3C3", "#F9EBEB"],
+        "note": "Duplicated by --delta-negative (identical values in both themes). Keep both wired to the same hue if either changes."
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Masthead brand title only — the single largest text on the page." },
+      "headline": { "displayName": "Headline", "purpose": "Modal and tutorial titles." },
+      "title": { "displayName": "Title", "purpose": "Category names, snapshot labels, history diff titles — the names of audited things." },
+      "body": { "displayName": "Body", "purpose": "Prose: lede, insight callouts, modal copy, reflection answers. Capped at 65ch measure." },
+      "label": { "displayName": "Label", "purpose": "Uppercase micro-labels: table headers, eyebrows, colophon. Substitutes for a second typeface via case + tracking instead of font-family." }
+    },
+    "shadows": [
+      { "name": "shadow-modal", "value": "0 28px 72px rgba(15, 15, 14, 0.18)", "purpose": "The only shadow for content that leaves the page plane: modal panel, tour tooltip, profile menu. Dark theme: 0 30px 80px rgba(0, 0, 0, 0.52)." },
+      { "name": "hover-lift-accent", "value": "0 4px 14px rgba(45, 91, 255, 0.28)", "purpose": "Primary button hover glow, always paired with translateY(-1px). FAB hover uses a larger 0 12px 28px variant of the same tint." },
+      { "name": "shadow-card (reserved, unused)", "value": "0 18px 30px rgba(15, 15, 14, 0.035)", "purpose": "Declared for both themes but not referenced by any component rule as of this scan. Do not repurpose casually." }
+    ],
+    "motion": [
+      { "name": "dur-in / ease-in", "value": "120ms cubic-bezier(0.3, 0, 0.7, 1)", "purpose": "Snappy response duration for hover/active state entry — used the instant a pointer interacts with something." },
+      { "name": "dur-out / ease-out", "value": "240ms cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Slower, gentler duration for state exit / return to rest and for entrance animations (modal rise, tour fade). Default for anything not actively being interacted with." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "600px" },
+      { "name": "md", "value": "720px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action pill (e.g. 'Full tutorial', 'Save current as snapshot').",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Save snapshot</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.95rem 0.52rem; font-size: 0.82rem; font-weight: 500; border: none; border-radius: 999px; cursor: pointer; letter-spacing: -0.005em; transition: color 240ms cubic-bezier(0.22,1,0.36,1), background-color 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms cubic-bezier(0.22,1,0.36,1), transform 240ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-primary { background: #2D5BFF; color: #fff; box-shadow: none; } .ds-btn-primary:hover { box-shadow: 0 4px 14px rgba(45,91,255,0.28); transform: translateY(-1px); transition-duration: 120ms; transition-timing-function: cubic-bezier(0.3,0,0.7,1); } .ds-btn-primary:focus-visible { outline: 2px solid #2D5BFF; outline-offset: 3px; }"
+    },
+    {
+      "name": "Secondary / Ghost Buttons",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined secondary button and fully transparent quiet button, sharing the primary button's pill shape.",
+      "html": "<button class=\"ds-btn ds-btn-secondary\">Reset</button> <button class=\"ds-btn ds-btn-quiet\">Close</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.95rem 0.52rem; font-size: 0.82rem; font-weight: 500; border: none; border-radius: 999px; cursor: pointer; background: rgba(255,255,255,0.62); color: #5B564E; box-shadow: inset 0 0 0 1px rgba(15,15,14,0.05); transition: color 240ms cubic-bezier(0.22,1,0.36,1), background-color 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-secondary { box-shadow: inset 0 0 0 1px rgba(15,15,14,0.09); } .ds-btn-secondary:hover { box-shadow: inset 0 0 0 1px #2D5BFF; color: #2D5BFF; } .ds-btn-quiet { background: transparent; color: #8A847A; box-shadow: none; } .ds-btn-quiet:hover { color: #0F0F0E; background: #F2EEE5; }"
+    },
+    {
+      "name": "Verdict Chips",
+      "kind": "chip",
+      "refersTo": "chip-good",
+      "description": "Fixed three-way semantic status chip for ceiling verdicts: under / near / over 168h.",
+      "html": "<span class=\"ds-chip ds-chip-good\">On track</span> <span class=\"ds-chip ds-chip-warn\">Near limit</span> <span class=\"ds-chip ds-chip-urgent\">Over 168h</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.22rem 0.55rem 0.24rem; border-radius: 999px; font-weight: 500; } .ds-chip-good { background: rgba(47,107,63,0.12); color: #2F6B3F; box-shadow: inset 0 0 0 1px rgba(47,107,63,0.18); } .ds-chip-warn { background: rgba(140,98,57,0.12); color: #8C6239; box-shadow: inset 0 0 0 1px rgba(140,98,57,0.18); } .ds-chip-urgent { background: rgba(197,56,56,0.12); color: #C53838; box-shadow: inset 0 0 0 1px rgba(197,56,56,0.18); }"
+    },
+    {
+      "name": "Number Input",
+      "kind": "input",
+      "refersTo": "input-number",
+      "description": "Editable hours-value cell in the worksheet table (Numbers input mode).",
+      "html": "<input class=\"ds-input-number\" type=\"number\" value=\"6.5\" step=\"0.25\">",
+      "css": ".ds-input-number { width: 5.5rem; text-align: right; background: #F2EEE5; border: 1px solid rgba(15,15,14,0.09); border-radius: 4px; padding: 0.3rem 0.55rem; font-size: 0.92rem; color: #0F0F0E; font-variant-numeric: tabular-nums; transition: border-color 240ms cubic-bezier(0.22,1,0.36,1), background 240ms cubic-bezier(0.22,1,0.36,1); } .ds-input-number:hover { border-color: #5B564E; } .ds-input-number:focus-visible { outline: 2px solid #2D5BFF; outline-offset: 0; border-color: transparent; background: #FAFAF7; }"
+    },
+    {
+      "name": "Inline-Editable Cell",
+      "kind": "input",
+      "description": "Borderless-until-touched text cell used for category and sub-category names — reveals structure only on hover/focus.",
+      "html": "<input class=\"ds-cell-input\" value=\"Deep work\">",
+      "css": ".ds-cell-input { width: 100%; background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 0.32rem 0.5rem; color: #0F0F0E; font-weight: 600; transition: border-color 240ms cubic-bezier(0.22,1,0.36,1), background 240ms cubic-bezier(0.22,1,0.36,1); } .ds-cell-input:hover { border-color: rgba(15,15,14,0.09); background: #F2EEE5; } .ds-cell-input:focus-visible { outline: 2px solid #2D5BFF; outline-offset: 0; border-color: transparent; background: #FAFAF7; }"
+    },
+    {
+      "name": "Snapshot / Reference Card",
+      "kind": "card",
+      "refersTo": "card-raised",
+      "description": "Compact raised card used for history rows and reference cards — the system's only 'card' surface, always paper-raised + blur, never a drop shadow.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Week of Jun 30</div><div class=\"ds-card-meta\">Saved Jul 6 · 42.5h logged</div></div>",
+      "css": ".ds-card { background: rgba(255,255,255,0.62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 8px; padding: 0.75rem 1rem; box-shadow: inset 0 0 0 1px rgba(15,15,14,0.05); } .ds-card-title { font-size: 0.92rem; font-weight: 600; color: #0F0F0E; letter-spacing: -0.01em; } .ds-card-meta { font-size: 0.76rem; color: #8A847A; margin-top: 0.18rem; }"
+    },
+    {
+      "name": "View Tabs",
+      "kind": "nav",
+      "description": "Flat text-tab navigation between Worksheet / Compare / Reflect / History. No background, no icons — active state is an accent underline plus full-opacity ink.",
+      "html": "<div class=\"ds-viewbar\"><button class=\"ds-view-tab active\">Worksheet</button><button class=\"ds-view-tab\">Compare</button><button class=\"ds-view-tab\">Reflect</button><button class=\"ds-view-tab\">History</button></div>",
+      "css": ".ds-viewbar { display: flex; gap: 1.4rem; border-bottom: 1px solid rgba(15,15,14,0.09); } .ds-view-tab { background: transparent; border: 0; padding: 0.92rem 0 0.78rem; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: #8A847A; opacity: 0.72; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 240ms cubic-bezier(0.22,1,0.36,1), border-color 240ms cubic-bezier(0.22,1,0.36,1), opacity 240ms cubic-bezier(0.22,1,0.36,1); } .ds-view-tab:hover { color: #5B564E; opacity: 1; } .ds-view-tab.active { color: #0F0F0E; opacity: 1; border-bottom-color: #2D5BFF; }"
+    },
+    {
+      "name": "Mode Toggle Pair",
+      "kind": "custom",
+      "description": "Signature binary-switch pattern shared by Numbers/Sliders and App/Dashboard toggles: a pill track with an ink-on-paper (not accent) fill marking the active option.",
+      "html": "<div class=\"ds-toggle\"><button class=\"ds-toggle-btn active\">Numbers</button><button class=\"ds-toggle-btn\">Sliders</button></div>",
+      "css": ".ds-toggle { display: inline-flex; align-items: center; height: 2.4rem; background: rgba(255,255,255,0.62); border-radius: 999px; padding: 0.22rem; box-shadow: inset 0 0 0 1px rgba(15,15,14,0.09); } .ds-toggle-btn { appearance: none; border: 0; background: transparent; cursor: pointer; color: #5B564E; font-size: 0.82rem; font-weight: 500; height: 100%; padding: 0 0.85rem; border-radius: 999px; transition: background-color 240ms cubic-bezier(0.22,1,0.36,1), color 240ms cubic-bezier(0.22,1,0.36,1); } .ds-toggle-btn:hover { color: #0F0F0E; } .ds-toggle-btn.active { background: #0F0F0E; color: #FAFAF7; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Kept Ledger",
+    "overview": "PRODUCT.md says it plainly: this should feel \"like a well-kept ledger, not a dashboard trying to sell you something.\" That line is the whole system. 168 is not a productivity SaaS with a hero-metric tile and a gradient CTA, and it is not a gamified habit tracker handing out streaks and confetti — it's a single sheet of paper you are trusted to write on directly. Every cell is editable in place. Every number reconciles against one fixed, unforgiving constant: 168 hours in a week. The visual language exists to keep that ledger legible, not to decorate it.\n\nThe system runs on one typeface, one accent color used sparingly, and a near-white \"paper\" surface with ink-colored text and hairline rules standing in for gridlines. Structure comes from borders and spacing, not drop shadows — this is a flat sheet, not a stack of floating cards pretending to have physical depth. Where elevation does appear (modals, tooltips, the profile menu), it is reserved for things that genuinely leave the page plane, which keeps it meaningful instead of decorative.\n\nA deliberate call on --paper (#FAFAF7): a warm near-white body background is impeccable's own flagged \"saturated AI default\" pattern, and it would deserve a Don't in most audits. Here it is judged as earned, not accidental: the product's entire metaphor is a paper worksheet, --paper is not a lone accent wash but the anchor of a full four-step paper ramp that does real structural work, and it is paired with a true near-black ink (#0F0F0E) rather than the low-contrast pairing that usually signals the lazy AI-cream pattern. Downstream agents should not re-litigate this token — it stays, but it should stay exactly this restrained.",
+    "keyCharacteristics": [
+      "One typeface for the entire interface — hierarchy comes from weight, size, tracking, and case, never from switching fonts.",
+      "Flat by default: hairline --rule borders substitute for shadows everywhere except true floating overlays.",
+      "A single accent (--accent, Signal Blue) rationed to interactive/active moments — links, focus, the primary action, the active tab.",
+      "Plan and Actual are peers everywhere: rendered in two distinct, permanent colors (blue ink vs. graphite pencil), never as one buried under the other.",
+      "Every corner radius, color, and spacing value comes from a small closed set — nothing bespoke per screen."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Signal Blue is the only saturated color permitted for non-semantic UI. If a new element wants a splash of color to feel \"alive,\" the answer is almost always no — reach for weight, spacing, or an existing neutral first.", "section": "colors" },
+      { "name": "The Pen-and-Pencil Rule", "body": "Plan is always Signal Blue; Actual is always Graphite Ink (--ink-soft). This pairing is fixed across every view (worksheet, compare, sliders, exports) and must never be reassigned, recolored per-chart, or left to a default categorical palette — it is how the product's central metaphor (plan vs. reality) stays readable without a legend.", "section": "colors" },
+      { "name": "The One Typeface Rule", "body": "The entire interface — display titles down to table headers — runs on a single system sans stack. --mono is not a second font; it is var(--sans) styled with uppercase and letter-spacing. Never introduce a second font-family; build the distinction with weight, size, tracking, and case instead.", "section": "typography" },
+      { "name": "The Tighter-When-Bigger Rule", "body": "Letter-spacing tightens as size increases: -0.028em at Display, -0.02em at Headline, -0.015em at Title, roughly normal at Body, and +0.08em (loosened, uppercase) at Label. A new size added to the scale must sit on this same curve.", "section": "typography" },
+      { "name": "The Flat-Plane Rule", "body": "Nothing sits at rest with a drop shadow. If a surface needs separation from its neighbor, reach for a 1px --rule border or an inset ring before reaching for box-shadow. Shadows are earned only by leaving the page plane (modals, tooltips, menus) or by direct hover feedback.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the interface to one typeface (the system sans stack) and build all hierarchy from weight/size/tracking/case, per the One Typeface Rule.",
+      "Do ration Signal Blue (#2D5BFF / dark #7A9CFF) to interactive and \"Plan\" moments only — focus rings, the primary button, links, the active tab, and the Plan data series.",
+      "Do keep Plan rendered in --accent and Actual rendered in --ink-soft everywhere the two are compared, per the Pen-and-Pencil Rule — never substitute a categorical/rainbow palette for this pairing.",
+      "Do separate surfaces with a 1px --rule/--rule-soft hairline or inset ring before reaching for box-shadow.",
+      "Do reserve --shadow-modal for content that leaves the page plane (modals, tooltips, dropdown menus) — nothing else.",
+      "Do keep every value editable inline with no settings screen required, per PRODUCT.md's \"every value is user-editable inline\" principle — new controls belong in the cell/row itself, not behind a gear icon.",
+      "Do keep the 168-hour ceiling legible in every view (stat bar, chip verdicts, totals row), per PRODUCT.md: \"the 168-hour ceiling is the one number that always has to be legible and correct.\""
+    ],
+    "donts": [
+      "Don't build a productivity-SaaS landing page: no hero-metric tiles, no gradient CTAs, no marketing chrome — PRODUCT.md's anti-references, verbatim.",
+      "Don't gamify the tool with streaks, badges, or confetti — \"the tone is reflective, not motivational,\" per PRODUCT.md.",
+      "Don't introduce a second accent hue or a rainbow categorical palette for chart series; the only sanctioned second \"color\" for data is --ink-soft, used specifically as the Actual counterpart to Plan.",
+      "Don't add drop shadows to elements that sit flush on the page (table rows, worksheet cells, in-page cards) — that is what --rule/--rule-soft borders are for.",
+      "Don't silently repurpose --shadow-card — it is currently unused by any component; wire it in deliberately or leave it declared-but-dormant, don't reach for it as free elevation.",
+      "Don't let --paper drift toward peach, tan, or a gradient wash. It is earned here specifically because it stays a restrained near-white anchoring a real neutral ramp with true near-black ink — the moment it saturates further, it becomes the generic AI-cream default this system deliberately avoids.",
+      "Don't mix in a second typeface (a serif for \"editorial\" headers, a real monospace for \"technical\" numbers) — the Label role already substitutes uppercase + tracking for that job.",
+      "Don't relabel or re-skin the semantic trio (--good / --warn / --urgent) for anything other than ceiling-status verdicts and deltas; they are not general-purpose success/warning/error colors for arbitrary UI chrome."
+    ]
+  }
+}
