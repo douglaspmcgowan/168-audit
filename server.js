@@ -516,7 +516,7 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 }
 .modal-close {
   position: absolute; top: 0.85rem; right: 0.95rem;
-  width: 2rem; height: 2rem; border-radius: 999px;
+  width: 2.75rem; height: 2.75rem; border-radius: 999px;
   appearance: none; border: 0; cursor: pointer;
   background: transparent; color: var(--ink-faint);
   font-size: 1.35rem; line-height: 1;
@@ -1712,7 +1712,7 @@ body[data-view="reflect"] .export-fab { display: none; }
   .profile-chip { height: 2.75rem; padding: 0 0.7rem 0 0.85rem; font-size: 0.8rem; max-width: none; flex: 1 1 auto; min-width: 0; }
   .profile-chip-name { max-width: none; }
   .viewmode-toggle { height: 2.75rem; padding: 0.18rem; }
-  .viewmode-btn { padding: 0 0.6rem; font-size: 0.76rem; min-height: 2.4rem; }
+  .viewmode-btn { padding: 0 0.6rem; font-size: 0.76rem; min-height: 2.75rem; }
   .theme-toggle { width: 2.75rem; height: 2.75rem; flex-shrink: 0; }
   .tour-replay { width: 2.75rem; height: 2.75rem; flex-shrink: 0; font-size: 0.9rem; }
   .profile-menu { right: 0; left: 0; min-width: 0; }
@@ -2369,8 +2369,10 @@ function getJS() {
     cats.forEach(cat => {
       const v = byCat[cat];
       if (v <= 0) return;
+      const remaining = circ - offset;
+      if (remaining <= 0) return; // ring is already full (total over the 168h target) — no room left to draw
       const frac = v / TARGET;
-      const len = Math.max(0, Math.min(circ, frac * circ));
+      const len = Math.max(0, Math.min(remaining, frac * circ));
       segments += '<circle cx="' + c + '" cy="' + c + '" r="' + r +
         '" fill="none" style="stroke:' + colorFor(cat, cats) + '" stroke-width="' + stroke +
         '" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) +
@@ -3204,10 +3206,16 @@ function getJS() {
     const backBtn = document.getElementById("tourBack");
     const nextBtn = document.getElementById("tourNext");
     const skipBtn = document.getElementById("tourSkip");
+    let lastFocused = null;
+    function trapTab(e) { trapTabWithin(tooltip, e); }
 
     function show() {
+      lastFocused = document.activeElement;
+      tooltip.setAttribute("aria-modal", "true");
       overlay.hidden = false;
       paint();
+      nextBtn.focus();
+      tooltip.addEventListener("keydown", trapTab);
     }
     function paint() {
       const step = TOUR_STEPS[idx];
@@ -3283,6 +3291,8 @@ function getJS() {
     function done() {
       try { localStorage.setItem(TOUR_KEY, "1"); } catch(e) {}
       overlay.hidden = true;
+      tooltip.removeEventListener("keydown", trapTab);
+      if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
       detach();
     }
     function onKey(e) {
@@ -3308,18 +3318,23 @@ function getJS() {
   }
 
   // ------ "What is 168?" modal ------
+  // Shared keyboard-trap helper for any blocking dialog/overlay: wraps Tab within
+  // the given container's focusable elements so keyboard/screen-reader users
+  // can't tab out to page content hidden behind it.
+  const FOCUSABLE_SEL = 'a[href], button:not([disabled]), input:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+  function trapTabWithin(container, e) {
+    if (e.key !== "Tab") return;
+    const items = Array.from(container.querySelectorAll(FOCUSABLE_SEL)).filter(el => el.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   (function initWhatIs() {
     const modal = document.getElementById("whatIs");
-    const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
     let lastFocused = null;
-    function trapTab(e) {
-      if (e.key !== "Tab") return;
-      const items = Array.from(modal.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
-      if (!items.length) return;
-      const first = items[0], last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    }
+    function trapTab(e) { trapTabWithin(modal, e); }
     function open() {
       lastFocused = document.activeElement;
       modal.hidden = false;
@@ -3438,6 +3453,10 @@ function getJS() {
     const tourOverlay = document.getElementById("tour");
     tourOverlay.hidden = false;
     tourOverlay.classList.add("interactive");
+    // Unlike the Quick tour, the tutorial is non-blocking by design (rows stay
+    // editable underneath), so it isn't a true modal dialog — say so, and don't
+    // trap Tab (that would prevent tabbing into the spotlighted, editable row).
+    document.getElementById("tourTooltip").setAttribute("aria-modal", "false");
 
     let idx = 0;
     const spotlight = document.getElementById("tourSpotlight");
