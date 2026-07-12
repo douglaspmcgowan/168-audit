@@ -187,7 +187,7 @@ async function inspectDesktop(browser) {
   await page.waitForTimeout(120);
 
   log("\nSticky stats bar appears on scroll");
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: "instant" }));
   await page.waitForTimeout(350);
   const beforeScroll = await page.evaluate(() => document.getElementById("statsSticky").classList.contains("visible"));
   beforeScroll === false ? ok("sticky bar hidden at top") : fail(`sticky bar visible at top: ${beforeScroll}`);

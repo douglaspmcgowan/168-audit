@@ -208,7 +208,7 @@ function getCSS() {
   --paper-raised: rgba(255, 255, 255, 0.62);
   --ink: #0F0F0E;
   --ink-soft: #5B564E;
-  --ink-faint: #8A847A;
+  --ink-faint: #68635C;
   --rule: rgba(15, 15, 14, 0.09);
   --rule-soft: rgba(15, 15, 14, 0.05);
   --accent: #2D5BFF;
@@ -235,6 +235,19 @@ function getCSS() {
   --dur-out: 240ms;
   --ease-in: cubic-bezier(0.3, 0, 0.7, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Category-slice palette (donut + legend) — darkened/saturated so every
+     slice clears 3:1 non-text contrast against --paper; dark-theme values
+     below are the original hues at their natural brightness. */
+  --slice-0: #5B85FF;
+  --slice-1: #B88032;
+  --slice-2: #3D9F50;
+  --slice-3: #FA5100;
+  --slice-4: #B86BE1;
+  --slice-5: #369B81;
+  --slice-6: #E45C83;
+  --slice-7: #7B9250;
+  --slice-8: #BB7E03;
+  --slice-9: #2694C6;
 }
 [data-theme="dark"] {
   --paper: #15120E;
@@ -243,7 +256,7 @@ function getCSS() {
   --paper-raised: rgba(39, 33, 24, 0.86);
   --ink: #E9E2D2;
   --ink-soft: #B9B09F;
-  --ink-faint: #877C6B;
+  --ink-faint: #999081;
   --rule: rgba(233, 226, 210, 0.12);
   --rule-soft: rgba(233, 226, 210, 0.07);
   --accent: #7A9CFF;
@@ -262,6 +275,16 @@ function getCSS() {
   --tag-ink: #FAFAF7;
   --shadow-card: 0 18px 32px rgba(0, 0, 0, 0.28);
   --shadow-modal: 0 30px 80px rgba(0, 0, 0, 0.52);
+  --slice-0: #7A9CFF;
+  --slice-1: #D2AD79;
+  --slice-2: #6FBF7E;
+  --slice-3: #FF9B6B;
+  --slice-4: #C28BE0;
+  --slice-5: #5FBEA6;
+  --slice-6: #E07A97;
+  --slice-7: #9DB07A;
+  --slice-8: #F2C56B;
+  --slice-9: #86C4E0;
 }
 * { box-sizing: border-box; }
 html {
@@ -358,6 +381,9 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 .stat .stat-good { color: var(--good); }
 .stat .stat-warn { color: var(--warn); }
 .stat .stat-urgent { color: var(--urgent); }
+/* Target is the one fixed constant among the three masthead stats — underlined
+   to read as the anchor, not a peer to the two numbers still being filled in. */
+.stat .stat-target { border-bottom: 2px solid var(--ink); padding-bottom: 0.1rem; }
 
 .theme-toggle {
   width: 2.4rem;
@@ -966,6 +992,9 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   padding: 0.32rem 0.5rem;
   font: inherit;
   color: inherit;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   transition: border-color var(--dur-out) var(--ease-out), background var(--dur-out) var(--ease-out);
 }
 .cell-input:hover { border-color: var(--rule); background: var(--paper-soft); }
@@ -1213,8 +1242,8 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
   gap: 0.6rem;
   padding: 0.9rem 1.15rem;
   background: var(--accent-soft);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 6px 6px 0;
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+  border-radius: 6px;
   font-size: 0.9rem;
   margin-bottom: 1.6rem;
   color: var(--ink-soft);
@@ -1258,10 +1287,12 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
   box-shadow: inset 0 0 0 1px var(--rule-soft);
 }
 .bar-fill {
+  width: 100%;
   height: 100%;
+  transform-origin: left;
   border-radius: 999px;
   background: var(--accent);
-  transition: width 0.4s var(--ease-out);
+  transition: transform 0.4s var(--ease-out);
 }
 .bar-fill.bar-actual { background: var(--ink-soft); }
 .bar-val {
@@ -1306,17 +1337,17 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
   font-weight: 500;
 }
 .prompt-card {
-  padding: 0.9rem 1.1rem 0.9rem 1.35rem;
-  border-left: 3px solid var(--accent-line);
+  padding: 0.9rem 1.1rem;
   background: var(--paper-soft);
-  border-radius: 0 6px 6px 0;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  border-radius: 6px;
   margin-bottom: 0.65rem;
   font-size: 0.92rem;
   color: var(--ink-soft);
   line-height: 1.68;
-  transition: border-color var(--dur-out) var(--ease-out);
+  transition: box-shadow var(--dur-out) var(--ease-out);
 }
-.prompt-card:hover { border-color: var(--accent); }
+.prompt-card:hover { box-shadow: inset 0 0 0 1px var(--accent-line); }
 .prompt-card strong { color: var(--ink); font-weight: 600; }
 .prompt-text { margin: 0 0 0.55rem; }
 .reflect-answer {
@@ -1351,13 +1382,12 @@ tfoot.audit-foot td:nth-child(2) { text-align: left; }
   padding-top: 1.8rem;
   border-top: 1px solid var(--rule);
 }
-.reference-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 1rem; }
+.reference-grid { display: flex; flex-direction: column; }
 .reference-card {
-  background: var(--paper-raised);
-  border-radius: 8px;
-  padding: 1.05rem 1.2rem 1.1rem;
-  box-shadow: inset 0 0 0 1px var(--rule-soft), 0 1px 0 var(--rule-soft);
+  padding: 0.95rem 0;
+  border-top: 1px solid var(--rule);
 }
+.reference-card:first-child { border-top: 0; padding-top: 0; }
 .reference-card-head {
   display: flex;
   align-items: center;
@@ -1679,12 +1709,12 @@ body[data-view="reflect"] .export-fab { display: none; }
     gap: 0.4rem;
     flex-wrap: wrap;
   }
-  .profile-chip { height: 2.1rem; padding: 0 0.7rem 0 0.85rem; font-size: 0.8rem; max-width: none; flex: 1 1 auto; min-width: 0; }
+  .profile-chip { height: 2.75rem; padding: 0 0.7rem 0 0.85rem; font-size: 0.8rem; max-width: none; flex: 1 1 auto; min-width: 0; }
   .profile-chip-name { max-width: none; }
-  .viewmode-toggle { height: 2.1rem; padding: 0.18rem; }
-  .viewmode-btn { padding: 0 0.6rem; font-size: 0.76rem; }
-  .theme-toggle { width: 2.1rem; height: 2.1rem; flex-shrink: 0; }
-  .tour-replay { width: 2.1rem; height: 2.1rem; flex-shrink: 0; font-size: 0.9rem; }
+  .viewmode-toggle { height: 2.75rem; padding: 0.18rem; }
+  .viewmode-btn { padding: 0 0.6rem; font-size: 0.76rem; min-height: 2.4rem; }
+  .theme-toggle { width: 2.75rem; height: 2.75rem; flex-shrink: 0; }
+  .tour-replay { width: 2.75rem; height: 2.75rem; flex-shrink: 0; font-size: 0.9rem; }
   .profile-menu { right: 0; left: 0; min-width: 0; }
   .viewbar, main, .colophon { padding-left: 1.1rem; padding-right: 1.1rem; }
   .masthead-lede { font-size: 0.94rem; margin-bottom: 0.9rem; }
@@ -1695,10 +1725,12 @@ body[data-view="reflect"] .export-fab { display: none; }
   .worksheet-toolbar .input-mode-toggle { margin-left: 0; width: 100%; justify-content: stretch; }
   .input-mode-toggle { flex-wrap: wrap; }
   .input-mode-label { padding: 0 0.4rem 0 0.6rem; }
-  .input-mode-btn { flex: 1; }
+  .input-mode-btn { flex: 1; min-height: 2.75rem; }
   .range-cell { grid-template-columns: 1fr 4.4rem; width: 100%; min-width: 0; }
   .export-fab { right: 0.85rem; bottom: 0.85rem; }
-  .export-trigger { padding: 0.6rem 1rem 0.62rem 0.85rem; font-size: 0.84rem; }
+  .export-trigger { padding: 0.6rem 1rem 0.62rem 0.85rem; font-size: 0.84rem; min-height: 2.75rem; }
+  .del-btn { min-width: 2.75rem; min-height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  #addSubBtn, #addCatBtn { min-height: 2.75rem; }
 
   /* table → card stack on mobile */
   table.audit thead { display: none; }
@@ -1754,8 +1786,6 @@ body[data-view="reflect"] .export-fab { display: none; }
 
   .compare-grid { grid-template-columns: 1fr; gap: 1.2rem; }
   .bar-row { grid-template-columns: 6rem 1fr auto; }
-
-  .reference-grid { grid-template-columns: 1fr; }
 }
 `;
 }
@@ -2016,7 +2046,7 @@ function getJS() {
     const inner =
       '<span class="stat"><strong class="' + idealClass + '">' + fmtH(ideal) + 'h</strong> ideal</span>' +
       '<span class="stat"><strong class="' + actualClass + '">' + fmtH(actual) + 'h</strong> actual</span>' +
-      '<span class="stat"><strong>' + TARGET + 'h</strong> target</span>';
+      '<span class="stat"><strong class="stat-target">' + TARGET + 'h</strong> target</span>';
     statsEl.innerHTML = inner;
     const sticky = document.getElementById("statsStickyRow");
     if (sticky) sticky.innerHTML = inner;
@@ -2084,10 +2114,10 @@ function getJS() {
       if (isFirstCat) classes.push("cat-start-first");
       html += '<tr data-idx="' + i + '"' + (classes.length ? ' class="' + classes.join(" ") + '"' : '') + '>' +
         '<td class="col-cat' + (merged ? ' cat-merged' : '') + '" data-label="Category">' +
-          '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category">' +
+          '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" title="' + escAttr(row.category) + '" aria-label="Category">' +
         '</td>' +
         '<td class="col-sub" data-label="Sub-category">' +
-          '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" aria-label="Sub-category">' +
+          '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" title="' + escAttr(row.sub) + '" aria-label="Sub-category">' +
         '</td>' +
         '<td class="col-num" data-label="Ideal (h)">' + valueCell(row, i, "ideal") + '</td>' +
         '<td class="col-num" data-label="Actual (h)">' + valueCell(row, i, "actual") + '</td>' +
@@ -2238,6 +2268,7 @@ function getJS() {
     const idx = +e.target.dataset.idx;
     const field = e.target.dataset.field;
     rows[idx][field] = e.target.value;
+    e.target.title = e.target.value;
     if (field === "category") {
       // Reveal merged-cat sibling labels above this row if user typed in a hidden cell.
       e.target.classList.remove("cell-cat-merged");
@@ -2322,11 +2353,12 @@ function getJS() {
   }
 
   // ------ Compare ------
-  // Pleasant palette for category slices, dark-mode tuned.
-  const SLICE_COLORS = ["#7A9CFF", "#D2AD79", "#6FBF7E", "#FF9B6B", "#C28BE0", "#5FBEA6", "#E07A97", "#9DB07A", "#F2C56B", "#86C4E0"];
+  // Category-slice palette lives in --slice-0..9 custom properties (theme-scoped,
+  // see getCSS()) so it stays in sync with the current theme without a re-render.
+  const SLICE_COUNT = 10;
   function colorFor(cat, cats) {
     const i = cats.indexOf(cat);
-    return SLICE_COLORS[i % SLICE_COLORS.length];
+    return "var(--slice-" + (i % SLICE_COUNT) + ")";
   }
   function buildDonut(byCat, cats, label, totalH) {
     const r = 64, c = 80, stroke = 18;
@@ -2340,7 +2372,7 @@ function getJS() {
       const frac = v / TARGET;
       const len = Math.max(0, Math.min(circ, frac * circ));
       segments += '<circle cx="' + c + '" cy="' + c + '" r="' + r +
-        '" fill="none" stroke="' + colorFor(cat, cats) + '" stroke-width="' + stroke +
+        '" fill="none" style="stroke:' + colorFor(cat, cats) + '" stroke-width="' + stroke +
         '" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) +
         '" stroke-dashoffset="' + (-offset).toFixed(2) + '" transform="rotate(-90 ' + c + ' ' + c + ')">' +
         '<title>' + escHtml(cat) + ': ' + fmtH(v) + 'h</title></circle>';
@@ -2468,7 +2500,7 @@ function getJS() {
       const pct = maxVal > 0 ? (byIdeal[c] / maxVal * 100).toFixed(1) : 0;
       html += '<div class="bar-row">' +
         '<span class="bar-label" title="' + escAttr(c) + '">' + escHtml(c) + '</span>' +
-        '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="bar-track"><div class="bar-fill" style="transform:scaleX(' + (pct / 100) + ')"></div></div>' +
         '<span class="bar-val">' + fmtH(byIdeal[c]) + 'h</span>' +
         '</div>';
     });
@@ -2480,7 +2512,7 @@ function getJS() {
       const pct = maxVal > 0 ? (byActual[c] / maxVal * 100).toFixed(1) : 0;
       html += '<div class="bar-row">' +
         '<span class="bar-label" title="' + escAttr(c) + '">' + escHtml(c) + '</span>' +
-        '<div class="bar-track"><div class="bar-fill bar-actual" style="width:' + pct + '%"></div></div>' +
+        '<div class="bar-track"><div class="bar-fill bar-actual" style="transform:scaleX(' + (pct / 100) + ')"></div></div>' +
         '<span class="bar-val">' + fmtH(byActual[c]) + 'h</span>' +
         '</div>';
     });
@@ -3278,13 +3310,35 @@ function getJS() {
   // ------ "What is 168?" modal ------
   (function initWhatIs() {
     const modal = document.getElementById("whatIs");
-    function open() { modal.hidden = false; document.body.style.overflow = "hidden"; }
-    function close() { modal.hidden = true; document.body.style.overflow = ""; }
+    const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+    let lastFocused = null;
+    function trapTab(e) {
+      if (e.key !== "Tab") return;
+      const items = Array.from(modal.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    function open() {
+      lastFocused = document.activeElement;
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+      modal.querySelector(".modal-close").focus();
+      modal.addEventListener("keydown", trapTab);
+    }
+    function close() {
+      modal.hidden = true;
+      document.body.style.overflow = "";
+      modal.removeEventListener("keydown", trapTab);
+      if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+    }
     document.getElementById("tourReplay").addEventListener("click", open);
     modal.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", close));
     document.addEventListener("keydown", function(e) { if (!modal.hidden && e.key === "Escape") close(); });
     document.getElementById("startTourBtn").addEventListener("click", function() { close(); startTour(true); });
     document.getElementById("startTutorialBtn").addEventListener("click", function() { close(); startTutorial(); });
+    window.__openWhatIs = open;
   })();
 
   // ------ Full tutorial (interactive, category-by-category) ------
@@ -3602,10 +3656,8 @@ function getJS() {
   setTimeout(() => {
     try {
       if (localStorage.getItem(TOUR_KEY)) return;
-      const modal = document.getElementById("whatIs");
-      if (!modal) return;
-      modal.hidden = false;
-      document.body.style.overflow = "hidden";
+      if (typeof window.__openWhatIs !== "function") return;
+      window.__openWhatIs();
       // Mark seen as soon as we open — any close path counts as seen.
       try { localStorage.setItem(TOUR_KEY, "1"); } catch(e) {}
     } catch(e) {}
