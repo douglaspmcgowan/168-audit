@@ -52,10 +52,11 @@
 - [x] Strengthen the same-group shared-week journey with populated ideal/actual rows and notes.
 - [x] Run the live RLS verifier with six synthetic identities, invitation concurrency, cross-group isolation, two-client conflicts, database cascades, and zero-residue cleanup.
 - [x] Run the configured live Center in separate desktop and mobile browser contexts through sign-in, create/join, sync, share, unshare, removal, offline operations, accessibility, responsive containment, and cleanup.
-- [~] Research and specify the multi-category weekly-allocation overview interaction.
-- [ ] Add Focus/Overview category modes with compact rows and larger slider controls.
-- [ ] Add stable category colors, a linked worksheet donut, and an accessible expanded chart dialog.
-- [ ] Shorten category-name editing and normalize the Download control with adjacent header controls.
-- [ ] Verify full Ideal/Actual completion in both category and input modes across mobile, tablet, and desktop.
-- [ ] Re-verify login, group sharing, and multi-user access after the worksheet changes.
-- [ ] Deploy the verified build to Vercel with Supabase runtime/auth configuration and test production.
+- [x] Research and specify the multi-category weekly-allocation overview interaction.
+- [x] Add Focus/Overview category modes with compact rows and larger slider controls.
+- [x] Add stable category colors, a linked worksheet donut, and an accessible expanded chart dialog.
+- [x] Shorten category-name editing and normalize the Download control with adjacent header controls.
+- [x] Verify full Ideal/Actual completion in both category and input modes across mobile, tablet, and desktop.
+- [!] Re-verify live login, group sharing, and multi-user access after the worksheet changes — deterministic suite passed; host Supabase token is absent.
+- [x] Deploy the verified interface build to Vercel and test production.
+- [!] Configure production Supabase runtime/auth settings — Vercel has no project variables and the Supabase dashboard session requires sign-in.

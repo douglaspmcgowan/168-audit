@@ -9,12 +9,11 @@ Build and deploy a production-ready all-category weekly allocation mode with com
 
 ## Remaining
 
-1. Complete interface research and source/code/deployment audits.
-2. Write regression assertions for the new interaction and responsive requirements.
-3. Implement the worksheet modes, compact controls, color system, donut, and modal.
-4. Run local, cloud, accessibility, responsive, and multi-user verification.
-5. Configure and deploy Vercel, update Supabase auth redirects, and verify production.
+1. Restore an authenticated Supabase dashboard session or host access token.
+2. Add `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` to the Vercel project.
+3. Add `https://168-audit.vercel.app` to Supabase Auth site/redirect settings.
+4. Redeploy and run the live production login/group/shared-week verification.
 
 ## Next verifier
 
-`npm.cmd run test:local`
+`npm.cmd run test:supabase-ui-live`

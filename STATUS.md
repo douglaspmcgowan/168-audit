@@ -1,5 +1,12 @@
 # Status
 
+## 2026-07-26 all-category release
+
+- Production interface deployed from commit `38907a5` to `https://168-audit.vercel.app`.
+- Focus and All-category worksheet modes, larger sliders, compact grouped mobile rows, linked category colors, expandable donut, and password-recovery completion are implemented.
+- Full local, Overview, schema, deterministic cloud, accessibility, responsive, and 168-hour Ideal/Actual journeys pass.
+- Production cloud login awaits Vercel public Supabase variables and Supabase Auth redirect configuration; the dashboard session available to this run is signed out.
+
 The professional guided-audit redesign is implemented on branch `codex/168-audit-redesign` in its isolated worktree.
 
 Working capabilities:
