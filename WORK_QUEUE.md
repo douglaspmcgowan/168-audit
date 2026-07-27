@@ -57,7 +57,7 @@
 - [x] Add stable category colors, a linked worksheet donut, and an accessible expanded chart dialog.
 - [x] Shorten category-name editing and normalize the Download control with adjacent header controls.
 - [x] Verify full Ideal/Actual completion in both category and input modes across mobile, tablet, and desktop.
-- [!] Re-verify live login, group sharing, and multi-user access after the worksheet changes — deterministic suite passed; host Supabase token is absent.
+- [x] Re-verify live login, group sharing, and multi-user access after the worksheet changes.
 - [x] Deploy the verified interface build to Vercel and test production.
 - [x] Recompose the Plan toolbar: move Focus/All beside row actions and place the donut inside the weekly summary.
 - [x] Differentiate category groups from subcategory rows; constrain title hover/selection affordances to the title.
@@ -65,6 +65,8 @@
 - [x] Stabilize decimal-hour widths and compact the category/subcategory number editor.
 - [x] Research multi-category allocation editors, row selection, and reordering patterns; apply source-supported findings.
 - [x] Verify outside-click behavior, responsive selectors, hover/focus states, drag ordering, chart expansion, and full audit regression.
-- [ ] Deploy the revised production build and re-check Vercel.
-- [!] Production Supabase correction: Vercel has `SUPABASE_URL`; the publishable key and Auth redirects still require an authenticated Supabase session.
-- [!] Configure production Supabase runtime/auth settings — Vercel has no project variables and the Supabase dashboard session requires sign-in.
+- [x] Deploy the revised production build and re-check Vercel.
+- [x] Configure Vercel with the Supabase project URL and browser-safe publishable key.
+- [x] Configure the Supabase production site URL and production/local redirect allowlist.
+- [x] Run the full two-user Center workflow against the deployed production app and verify zero-residue cleanup.
+- [x] Refresh `PRODUCT.md` to the current Impeccable product schema.

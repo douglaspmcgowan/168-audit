@@ -1,5 +1,15 @@
 # Status
 
+## 2026-07-27 row-editor refinement
+
+- Production interface deployed from commit `17a1f67` to `https://168-audit.vercel.app`.
+- Focus/All now shares the row-action toolbar; the allocation donut is integrated into the Ideal/Actual/Weekly total summary.
+- Category and subcategory rows have explicit selection, group-aware drag/reorder, keyboard and touch alternatives, bounded title hover states, stable colors, and fixed-width numeric rails.
+- Production verification confirmed the deployed structure and the expandable chart dialog.
+- Vercel has the Supabase project URL and publishable key; Supabase Auth has the production site URL plus production and local redirect URLs.
+- The deployed production app passed a two-user Center journey covering account sign-in, group creation/join, offline failures, sync, explicit sharing, shared ideal/actual/note data, revocation, member removal, accessibility, responsive containment, and zero-residue cleanup.
+- `PRODUCT.md` follows Impeccable product schema 1 and records the product's current operating context, capabilities, constraints, evidence, and principles.
+
 ## 2026-07-26 all-category release
 
 - Production interface deployed from commit `38907a5` to `https://168-audit.vercel.app`.

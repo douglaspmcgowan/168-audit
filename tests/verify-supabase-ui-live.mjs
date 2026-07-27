@@ -1,24 +1,49 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
+import net from "node:net";
 import { spawn } from "node:child_process";
 import AxeBuilder from "@axe-core/playwright";
 import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
 
-const required = ["SUPABASE_ACCESS_TOKEN", "LIVE_SUPABASE_PROJECT_REF"];
-const missing = required.filter(name => !process.env[name]);
-if (missing.length) {
-  console.log(`SKIP live Center UI verification: ${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} unset.`);
+const explicitStdinConfig = process.argv.includes("--credentials-stdin");
+const stdinConfig = explicitStdinConfig
+  ? JSON.parse(fs.readFileSync(0, "utf8"))
+  : {};
+const directValues = {
+  url: explicitStdinConfig ? stdinConfig.url : process.env.LIVE_SUPABASE_URL,
+  publishableKey: explicitStdinConfig ? stdinConfig.publishableKey : process.env.LIVE_SUPABASE_PUBLISHABLE_KEY,
+  privilegedKey: explicitStdinConfig ? stdinConfig.privilegedKey : process.env.LIVE_SUPABASE_PRIVILEGED_KEY,
+};
+const directValueCount = Object.values(directValues).filter(Boolean).length;
+if (explicitStdinConfig && directValueCount !== 3) {
+  throw new Error("Direct live verification requires a complete URL, publishable key, and privileged key.");
+}
+const managementValueCount = [
+  process.env.SUPABASE_ACCESS_TOKEN,
+  process.env.LIVE_SUPABASE_PROJECT_REF,
+].filter(Boolean).length;
+if (!explicitStdinConfig && managementValueCount === 1) {
+  throw new Error("Management API verification requires both the access token and project reference.");
+}
+const managementConfig = !explicitStdinConfig && managementValueCount === 2;
+if (!explicitStdinConfig && !managementConfig && directValueCount && directValueCount !== 3) {
+  throw new Error("Direct live verification requires a complete URL, publishable key, and privileged key.");
+}
+const directConfig = explicitStdinConfig || (!managementConfig && directValueCount === 3);
+if (!managementConfig && !directConfig) {
+  console.log("SKIP live Center UI verification: provide the Management API pair or the direct runtime verification trio.");
   process.exit(0);
 }
 
 const projectRef = process.env.LIVE_SUPABASE_PROJECT_REF;
-const projectUrl = `https://${projectRef}.supabase.co`;
-const managementBase = `https://api.supabase.com/v1/projects/${projectRef}`;
+const projectUrl = directConfig ? directValues.url : `https://${projectRef}.supabase.co`;
+const managementBase = projectRef ? `https://api.supabase.com/v1/projects/${projectRef}` : "";
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
 const runId = crypto.randomUUID().replaceAll("-", "");
 const password = `Audit-${crypto.randomUUID()}-9a!`;
-const PORT = 3171;
-const appUrl = `http://localhost:${PORT}`;
+const externalAppUrl = stdinConfig.appUrl || process.env.LIVE_APP_URL || "";
+let appUrl = externalAppUrl;
 const users = [];
 let service;
 let groupId;
@@ -51,6 +76,13 @@ async function managementRequest(path) {
 }
 
 async function configure() {
+  if (directConfig) {
+    service = createClient(projectUrl, directValues.privilegedKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: timedFetch },
+    });
+    return directValues.publishableKey;
+  }
   const response = await managementRequest("/api-keys?reveal=true");
   const keys = Array.isArray(response) ? response : response?.api_keys;
   const publishable = keys?.find(key => key.type === "publishable")
@@ -80,6 +112,9 @@ async function createUser(role) {
 
 async function waitForServer() {
   for (let attempt = 0; attempt < 50; attempt += 1) {
+    if (server && server.exitCode !== null) {
+      throw new Error(`Configured application server exited before becoming healthy (${server.exitCode}).`);
+    }
     try {
       const response = await timedFetch(`${appUrl}/health`);
       if (response.ok) return;
@@ -87,6 +122,39 @@ async function waitForServer() {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   throw new Error("Configured application server did not become healthy.");
+}
+
+async function reservePort() {
+  return new Promise((resolve, reject) => {
+    const probe = net.createServer();
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", () => {
+      const address = probe.address();
+      probe.close(error => error ? reject(error) : resolve(address.port));
+    });
+  });
+}
+
+async function stopServer() {
+  if (!server || server.exitCode !== null || server.signalCode !== null) return;
+  let stopped = false;
+  const exited = new Promise(resolve => server.once("exit", () => {
+    stopped = true;
+    resolve();
+  }));
+  server.kill();
+  await Promise.race([
+    exited,
+    new Promise(resolve => setTimeout(resolve, 5_000)),
+  ]);
+  if (!stopped && server.exitCode === null && server.signalCode === null) {
+    server.kill("SIGKILL");
+    await Promise.race([
+      exited,
+      new Promise(resolve => setTimeout(resolve, 5_000)),
+    ]);
+  }
+  assert(stopped || server.exitCode !== null || server.signalCode !== null, "Configured application server did not stop.");
 }
 
 async function openApp(context) {
@@ -151,19 +219,51 @@ async function assertResponsive(page, label) {
 
 async function cleanup() {
   if (!service) return;
-  if (groupId) await service.from("groups").delete().eq("id", groupId);
-  if (weekId) await service.from("audit_weeks").delete().eq("id", weekId);
-  for (const user of users) await service.auth.admin.deleteUser(user.id);
+  const errors = [];
+  if (groupId) {
+    const result = await service.from("groups").delete().eq("id", groupId);
+    if (result.error) errors.push(result.error);
+  }
+  if (weekId) {
+    const result = await service.from("audit_weeks").delete().eq("id", weekId);
+    if (result.error) errors.push(result.error);
+  }
+  for (const user of users) {
+    const result = await service.auth.admin.deleteUser(user.id);
+    if (result.error) errors.push(result.error);
+  }
+  if (errors.length) {
+    throw new Error(`Cleanup operations failed: ${errors.map(error => safeMessage(error.message)).join("; ")}`);
+  }
 }
 
 async function verifyCleanup() {
   if (!service) return;
-  const listed = await service.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  if (listed.error) throw listed.error;
-  assert(
-    !listed.data.users.some(user => user.email?.includes(`-${runId}@example.test`)),
-    "live UI test identities remained after cleanup",
-  );
+  for (let page = 1; ; page += 1) {
+    const listed = await service.auth.admin.listUsers({ page, perPage: 1000 });
+    if (listed.error) throw listed.error;
+    assert(
+      !listed.data.users.some(user => user.email?.includes(`-${runId}@example.test`)),
+      "live UI test identities remained after cleanup",
+    );
+    if (listed.data.users.length < 1000) break;
+  }
+
+  const userIds = users.map(user => user.id);
+  const checks = userIds.length ? [
+    ["profiles", "user_id", userIds, "user_id"],
+    ["audit_weeks", "owner_id", userIds, "id"],
+    ["groups", "owner_id", userIds, "id"],
+    ["group_memberships", "user_id", userIds, "group_id"],
+    ["group_invites", "created_by", userIds, "id"],
+  ] : [];
+  if (groupId) checks.push(["group_week_shares", "group_id", [groupId], "group_id"]);
+  if (weekId) checks.push(["group_week_shares", "week_id", [weekId], "week_id"]);
+  for (const [table, column, values, selectColumn] of checks) {
+    const result = await service.from(table).select(selectColumn).in(column, values);
+    if (result.error) throw result.error;
+    assert(!result.data.length, `${table} retained generated live UI rows after cleanup`);
+  }
 }
 
 try {
@@ -173,16 +273,23 @@ try {
   const memberEmail = await createUser("member");
 
   setStage("configured application");
-  server = spawn(process.execPath, ["server.js"], {
-    cwd: process.cwd(),
-    env: {
-      ...process.env,
-      PORT: String(PORT),
-      SUPABASE_URL: projectUrl,
-      SUPABASE_PUBLISHABLE_KEY: publishableKey,
-    },
-    stdio: "ignore",
-  });
+  if (!externalAppUrl) {
+    const port = await reservePort();
+    appUrl = `http://127.0.0.1:${port}`;
+    server = spawn(process.execPath, ["server.js"], {
+      cwd: process.cwd(),
+      env: {
+        NODE_ENV: "test",
+        PORT: String(port),
+        SUPABASE_URL: projectUrl,
+        SUPABASE_PUBLISHABLE_KEY: publishableKey,
+        SystemRoot: process.env.SystemRoot,
+        TEMP: process.env.TEMP,
+        TMP: process.env.TMP,
+      },
+      stdio: "ignore",
+    });
+  }
   await waitForServer();
 
   browser = await chromium.launch();
@@ -312,14 +419,31 @@ try {
   console.error(`Live Center UI verification failed during ${stage}: ${safeMessage(error?.message)}.`);
   process.exitCode = 1;
 } finally {
-  if (browser) await browser.close();
-  if (server) server.kill();
+  const cleanupFailures = [];
+  try {
+    if (browser) await browser.close();
+  } catch (error) {
+    cleanupFailures.push(`browser close: ${safeMessage(error?.message)}`);
+  }
+  try {
+    await stopServer();
+  } catch (error) {
+    cleanupFailures.push(`server shutdown: ${safeMessage(error?.message)}`);
+  }
   try {
     await cleanup();
-    await verifyCleanup();
-    console.log("Live Center UI cleanup passed: generated rows and Auth identities were removed.");
   } catch (error) {
-    console.error(`Live Center UI cleanup failed: ${safeMessage(error?.message)}.`);
+    cleanupFailures.push(`deletion: ${safeMessage(error?.message)}`);
+  }
+  try {
+    await verifyCleanup();
+  } catch (error) {
+    cleanupFailures.push(`residue check: ${safeMessage(error?.message)}`);
+  }
+  if (cleanupFailures.length) {
+    console.error(`Live Center UI cleanup failed: ${cleanupFailures.join(" | ")}.`);
     process.exitCode = 1;
+  } else {
+    console.log("Live Center UI cleanup passed: generated rows and Auth identities were removed.");
   }
 }
