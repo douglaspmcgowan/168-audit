@@ -7,10 +7,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$token = [Environment]::GetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', 'User')
+$token = [Environment]::GetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', 'Process')
+if ([string]::IsNullOrWhiteSpace($token)) {
+  $token = [Environment]::GetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', 'User')
+}
+if ([string]::IsNullOrWhiteSpace($token)) {
+  $token = [Environment]::GetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', 'Machine')
+}
 
 if ([string]::IsNullOrWhiteSpace($token)) {
-  throw 'SUPABASE_ACCESS_TOKEN is unavailable in Windows User scope.'
+  throw 'SUPABASE_ACCESS_TOKEN is unavailable in Windows Process, User, and Machine scopes.'
 }
 
 try {
