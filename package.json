@@ -7,13 +7,20 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "test:schema": "node tests/verify-schema.mjs",
+    "test:cloud-ui": "node tests/verify-cloud-ui.mjs",
+    "test:overview": "node tests/verify-overview.mjs",
+    "test:supabase-live": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-supabase-live.ps1",
+    "test:supabase-ui-live": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-supabase-ui-live.ps1",
     "test:live": "node tests/verify-live.mjs",
     "test:local": "node tests/verify-live.mjs http://localhost:3168"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
     "express": "^4.21.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "playwright": "^1.59.1"
   }
 }

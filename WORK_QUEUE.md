@@ -1,0 +1,61 @@
+# 168 Audit App — Work Queue
+
+- [x] Locate the authoritative repository and establish an isolated worktree.
+- [x] Install locked dependencies and run the existing baseline verifier.
+- [x] Map the current workflow and research comparable audit products.
+- [x] Implement the professional, minimalist guided-audit redesign.
+- [x] Harden accessibility, responsive behavior, validation, storage, recovery, security, and operational reliability.
+- [x] Expand and run multi-user, multi-interface end-to-end tests.
+- [x] Run adversarial review, repair findings, and repeat verification.
+- [x] Update durable status/worklog and deliver the final handoff.
+- [x] Reproduce the scrollbar, tour-boundary, motion, spacing, and mode-toggle issues.
+- [x] Coordinate native scrollbar colors and rounded geometry with both themes.
+- [x] Tighten desktop and mobile space use and remove the Dashboard/App toggle.
+- [x] Smooth tour state transitions with a reduced-motion path.
+- [x] Expand responsive tour and mobile-layout verification, then run the full suite.
+- [x] Audit every current screen and write the approved interface-distillation specification and backlog.
+- [x] Distill the Plan toolbar, mobile category rows, progressive notes, and Compare actions.
+- [x] Write the Supabase multi-user product specification and implementation plan.
+- [x] Add optional authentication and personal cloud audit synchronization while preserving the local path.
+- [x] Add group creation, hashed invitation creation/joining, membership controls, and permissioned member-week visibility contracts.
+- [x] Build the responsive multi-user Center for personal audits and groups.
+- [x] Add database migrations, row-level security policies, SQL assertions, and environment documentation.
+- [x] Add configured signed-out/signed-in owner/member cloud UI contract coverage with a deterministic adapter.
+- [x] Run security, accessibility, visual, resilience, dependency, schema, and adversarial completion audits available locally.
+- [x] Apply both migrations and run direct multi-account RLS tests against the isolated `claude-personal` Supabase project.
+- [x] Complete the remaining P1/P2 distillation backlog: guided Reflect, compact History, Schedule dialogs, grouped Data, and consolidated Help.
+- [x] Add member rosters, manager removal, single-use invitation creation, full shared-week details, offline protection, and optimistic sync conflict handling.
+- [x] Re-run the schema, configured-cloud persona, accessibility, responsive, recovery, tour, and full local browser gates.
+- [x] Run an independent visual-design critique and deterministic/browser evidence pass.
+- [x] Replace mixed emoji/Unicode primary icons with one outline-SVG system; normalize nested radii and stable hover states.
+- [x] Remove repeated mobile category/storage/help information and align desktop/mobile spacing rails.
+- [x] Complete group rename, role changes, ownership transfer, leave/delete, active-invite status/revocation, and one-session join links.
+- [x] Expand configured-cloud browser coverage across owner, admin, member, and outsider personas.
+- [x] Add a disposable-project live verifier for migration, SQL contract, four auth personas, RLS, revocation, conflicts, and cleanup.
+- [x] Update durable design/status/worklog documentation and hand off the verified local system.
+- [x] Establish a concrete app-wide typography, spacing, layout, radius, icon, and motion system.
+- [x] Remove visible workflow numbering, decorative noise, and redundant instructional copy.
+- [x] Apply the shared system across Plan, Compare, Reflect, History, Center, dialogs, menus, and responsive layouts.
+- [x] Re-run design detectors, responsive browser checks, accessibility checks, and the full regression suite.
+- [x] Audit Claude-to-Codex skill parity, port Tactician and every missing command, copy missing skill packages, and validate the shared catalog.
+- [x] Apply the six marked release UI changes: remove the worksheet heading, consolidate totals, simplify Data/input controls, revise the footer, and add working feedback.
+- [x] Verify feedback delivery, responsive layouts, accessibility, tours, and all core browser journeys.
+- [x] Discover the host-scoped Supabase PAT through the metadata-only probe, identify the isolated project, and use the Management API without exposing credential values.
+- [x] Produce a source-grounded release decision with remaining external blockers clearly separated.
+- [x] Remove redundant mobile masthead status copy and tighten the Data control.
+- [x] Clarify the add-category action and remove the unnecessary mobile category header.
+- [x] Normalize mobile row alignment, control sizing, and brand alignment.
+- [x] Run an independent source-blind `/user` discovery and claimed-functionality pass.
+- [x] Re-run the full local regression, adversarial confirmation, and durable handoff.
+- [x] Tighten the mobile Data control into a compact square and rebuild the masthead totals as a clearly aligned three-part summary.
+- [x] Add and run one complete ideal/actual audit journey with notes and both number/slider modes.
+- [x] Strengthen the same-group shared-week journey with populated ideal/actual rows and notes.
+- [x] Run the live RLS verifier with six synthetic identities, invitation concurrency, cross-group isolation, two-client conflicts, database cascades, and zero-residue cleanup.
+- [x] Run the configured live Center in separate desktop and mobile browser contexts through sign-in, create/join, sync, share, unshare, removal, offline operations, accessibility, responsive containment, and cleanup.
+- [~] Research and specify the multi-category weekly-allocation overview interaction.
+- [ ] Add Focus/Overview category modes with compact rows and larger slider controls.
+- [ ] Add stable category colors, a linked worksheet donut, and an accessible expanded chart dialog.
+- [ ] Shorten category-name editing and normalize the Download control with adjacent header controls.
+- [ ] Verify full Ideal/Actual completion in both category and input modes across mobile, tablet, and desktop.
+- [ ] Re-verify login, group sharing, and multi-user access after the worksheet changes.
+- [ ] Deploy the verified build to Vercel with Supabase runtime/auth configuration and test production.
