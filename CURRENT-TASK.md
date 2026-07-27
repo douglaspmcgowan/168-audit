@@ -1,18 +1,21 @@
 # Current Task
 
-Build and deploy a production-ready all-category weekly allocation mode with compact editing, linked category colors, and an expandable donut summary.
+Refine and deploy the all-category weekly allocation editor with clearer hierarchy, stable numeric layout, direct row selection/reordering, and a summary-integrated donut.
 
 ## Done
 
 - Confirmed the existing data model and multi-user implementation can support the new presentation without schema changes.
 - Scoped Focus and Overview as complementary worksheet modes.
+- Moved Focus/All into the row-action toolbar and the allocation donut into the weekly summary.
+- Added explicit row selection, outside-click/Escape clearing, category-group and within-category reordering, keyboard grab/move/drop/cancel, touch-safe move controls, and live announcements.
+- Stabilized numeric rails and category colors, bounded title hover areas, and clarified category/subcategory hierarchy.
+- Passed focused overview, full browser, schema, cloud-persona, accessibility, responsive, security, and dependency gates.
 
 ## Remaining
 
-1. Restore an authenticated Supabase dashboard session or host access token.
-2. Add `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` to the Vercel project.
-3. Add `https://168-audit.vercel.app` to Supabase Auth site/redirect settings.
-4. Redeploy and run the live production login/group/shared-week verification.
+1. Deploy the verified build and verify production.
+2. Restore an authenticated Supabase dashboard session or host access token.
+3. Add the remaining production key/redirect settings and run live multi-user verification.
 
 ## Next verifier
 

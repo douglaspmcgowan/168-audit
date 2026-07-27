@@ -30,16 +30,165 @@ try {
       download: [download.width, download.height],
       help: [help.width, help.height],
       chartLabel: document.querySelector("#worksheetDonutBtn")?.getAttribute("aria-label"),
+      toggleParent: document.querySelector("#categoryViewAll")?.closest(".worksheet-toolbar")?.className,
+      chartParent: document.querySelector("#worksheetDonutBtn")?.closest(".masthead-stats")?.id,
     };
   });
   check(overview.mode === "all", `expected all mode, got ${overview.mode}`);
   check(overview.visibleRows === overview.totalRows, "all mode hides worksheet rows");
   check(overview.coloredStarts === overview.categoryStarts, "category groups lack stable colors");
   check(overview.chartLabel?.includes("Expand"), "worksheet donut has no accessible expand action");
+  check(overview.toggleParent?.includes("worksheet-toolbar"), "category view toggle is outside the row-action toolbar");
+  check(overview.chartParent === "stats", "allocation donut is outside the weekly summary");
   check(
     overview.download[0] === overview.help[0] && overview.download[1] === overview.help[1],
     `download control ${overview.download} does not match help ${overview.help}`,
   );
+
+  const firstRow = page.locator("#auditBody tr").first();
+  const firstCategoryInput = firstRow.locator(".cell-cat");
+  await firstCategoryInput.click();
+  check(await page.locator("#auditBody tr.selected").count() === 0, "editing a category title selects its row");
+  const originalCategory = await firstCategoryInput.inputValue();
+  await firstCategoryInput.fill("");
+  await firstCategoryInput.pressSequentially("Career");
+  check(await firstCategoryInput.inputValue() === "Career", "category title loses characters during ordinary typing");
+  check(await firstCategoryInput.evaluate((element) => document.activeElement === element), "category typing loses focus");
+  await firstCategoryInput.fill(originalCategory);
+  await firstCategoryInput.press("Tab");
+  const hoverBounds = await firstRow.evaluate((row) => {
+    const title = row.querySelector(".cell-cat").getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    return { title: title.width, row: rowRect.width };
+  });
+  check(hoverBounds.title < hoverBounds.row * 0.75, `category title hover width ${hoverBounds.title}px spans the ${hoverBounds.row}px row`);
+
+  await firstRow.locator("[data-select-row]:visible").click();
+  check(await page.locator("#auditBody tr.selected").count() === 1, "explicit row selector did not select");
+  await page.locator("#auditBody tr").nth(1).locator(".cell-sub").click();
+  check(await page.locator("#auditBody tr.selected").count() === 0, "editing another row leaves stale selection active");
+  await firstRow.locator("[data-select-row]:visible").click();
+  await page.locator(".brand-title").click();
+  check(await page.locator("#auditBody tr.selected").count() === 0, "page-level outside click leaves stale selection active");
+  await firstRow.locator("[data-select-row]:visible").click();
+  await page.locator(".worksheet-commandbar").click({ position: { x: 2, y: 2 } });
+  check(await page.locator("#auditBody tr.selected").count() === 0, "worksheet background did not clear row selection");
+  await firstRow.locator("[data-select-row]:visible").click();
+  await page.keyboard.press("Escape");
+  check(await page.locator("#auditBody tr.selected").count() === 0, "Escape did not clear row selection");
+
+  const numericGeometry = await page.locator(".num-input").evaluateAll((elements) =>
+    elements.filter((element) => element.getClientRects().length).slice(0, 6).map((element) => {
+      const style = getComputedStyle(element);
+      return {
+        width: element.getBoundingClientRect().width,
+        numeric: style.fontVariantNumeric,
+        align: style.textAlign,
+      };
+    }),
+  );
+  check(new Set(numericGeometry.map((item) => item.width)).size === 1, "numeric inputs change width with their values");
+  check(numericGeometry.every((item) => item.numeric.includes("tabular-nums")), "numeric inputs lack tabular figures");
+  check(numericGeometry.every((item) => item.align === "right"), "numeric inputs are not right aligned");
+
+  const rowControlSizes = await page.locator(".row-select-btn:visible, .row-reorder-btn:visible").evaluateAll((elements) =>
+    elements.slice(0, 8).map((element) => {
+      const rect = element.getBoundingClientRect();
+      return [rect.width, rect.height];
+    }),
+  );
+  check(rowControlSizes.every(([width, height]) => width >= 44 && height >= 44), `row controls miss 44px: ${JSON.stringify(rowControlSizes)}`);
+
+  const firstSubcategoryBefore = await page.locator("#auditBody tr").first().locator(".cell-sub").inputValue();
+  const firstSubHandle = page.locator("#auditBody tr").first().locator('[data-reorder-kind="subcategory"]:visible');
+  await firstSubHandle.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowDown");
+  await page.waitForFunction(() => document.activeElement?.dataset.reorderKind === "subcategory");
+  await page.keyboard.press("Enter");
+  check(
+    (await page.locator("#auditBody tr").nth(1).locator(".cell-sub").inputValue()) === firstSubcategoryBefore,
+    "first subcategory did not reorder independently",
+  );
+  check(
+    (await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category")) === originalCategory,
+    "moving the first subcategory moved its whole category",
+  );
+
+  const reorderBefore = await page.evaluate(() => {
+    const row = document.querySelector("#auditBody tr");
+    return { category: row.dataset.category, color: row.style.getPropertyValue("--category-color") };
+  });
+  const firstHandle = page.locator("[data-reorder-row]:visible").first();
+  await firstHandle.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowDown");
+  await page.waitForFunction(() => document.activeElement?.classList.contains("row-reorder-btn"));
+  await page.keyboard.press("Enter");
+  const reorderAfter = await page.evaluate((category) => {
+    const categories = [...document.querySelectorAll("#auditBody tr.cat-start")];
+    const moved = categories.find((row) => row.dataset.category === category);
+    return {
+      first: categories[0]?.dataset.category,
+      color: moved?.style.getPropertyValue("--category-color"),
+      focused: document.activeElement?.classList.contains("row-reorder-btn"),
+    };
+  }, reorderBefore.category);
+  check(reorderAfter.first !== reorderBefore.category, "keyboard reorder did not move the first category");
+  check(reorderAfter.color === reorderBefore.color, "category color changed after reordering");
+  check(reorderAfter.focused, "keyboard reorder did not preserve handle focus");
+  check((await page.locator("#reorderLive").textContent())?.includes(reorderBefore.category), "category reorder announcement names the wrong object");
+  await page.reload({ waitUntil: "networkidle" });
+  check(
+    (await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category")) === reorderAfter.first,
+    "reordered category did not persist after reload",
+  );
+  const dragFirstCategory = await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category");
+  await page.locator("#auditBody tr.cat-start").first().locator('[data-reorder-kind="category"]:visible').dragTo(
+    page.locator("#auditBody tr.cat-start").nth(1).locator('[data-reorder-kind="category"]:visible'),
+  );
+  check(
+    (await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category")) !== dragFirstCategory,
+    "pointer drag did not reorder a category group",
+  );
+
+  const touchSource = page.locator("#auditBody tr.cat-start").first().locator('[data-reorder-kind="category"]:visible');
+  const touchTarget = page.locator("#auditBody tr.cat-start").nth(1).locator('[data-reorder-kind="category"]:visible');
+  const touchSourceCategory = await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category");
+  const touchTargetBox = await touchTarget.boundingBox();
+  await touchSource.dispatchEvent("pointerdown", { pointerId: 7, pointerType: "touch", clientX: 10, clientY: 10 });
+  await touchSource.dispatchEvent("pointermove", {
+    pointerId: 7,
+    pointerType: "touch",
+    clientX: touchTargetBox.x + touchTargetBox.width / 2,
+    clientY: touchTargetBox.y + touchTargetBox.height / 2,
+  });
+  await touchSource.dispatchEvent("pointerup", {
+    pointerId: 7,
+    pointerType: "touch",
+    clientX: touchTargetBox.x + touchTargetBox.width / 2,
+    clientY: touchTargetBox.y + touchTargetBox.height / 2,
+  });
+  check(
+    (await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category")) !== touchSourceCategory,
+    "touch-pointer drag did not reorder a category group",
+  );
+  const movableIndex = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("#auditBody tr")];
+    return rows.findIndex((row, index) => rows[index + 1]?.dataset.category === row.dataset.category && !row.classList.contains("cat-start"));
+  });
+  if (movableIndex >= 0) {
+    const movableRow = page.locator("#auditBody tr").nth(movableIndex);
+    await movableRow.locator("[data-select-row]:visible").click();
+    await page.locator("#bulkMoveDown").click();
+    await page.waitForFunction(() => document.activeElement?.classList.contains("row-reorder-btn"));
+    check(
+      await page.evaluate(() => document.activeElement?.classList.contains("row-reorder-btn")),
+      "bulk move did not restore focus to the moved row",
+    );
+  } else {
+    check(false, "fixture has no movable subcategory for bulk-focus verification");
+  }
 
   await page.locator("#inputModeBtn").click();
   const slider = await page.locator(".range-input").first().evaluate((element) => {
@@ -52,6 +201,8 @@ try {
   await page.locator("#worksheetDonutBtn").click();
   check(await page.locator("#distributionDialog").isVisible(), "distribution dialog did not open");
   check(await page.locator("#distributionDialog .legend li").count() > 0, "distribution legend is empty");
+  await page.locator("#distributionDialog .modal-close").waitFor({ state: "visible" });
+  await page.locator("#distributionDialog .modal-close").focus();
   await page.keyboard.press("Escape");
   check(await page.locator("#distributionDialog").isHidden(), "distribution dialog did not close");
   check(await page.locator("#worksheetDonutBtn").evaluate((el) => document.activeElement === el), "chart focus was not restored");

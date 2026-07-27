@@ -557,6 +557,21 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 .stat .stat-warn { color: var(--warn); }
 .stat .stat-urgent { color: var(--urgent); }
 .stat-detail { color: var(--ink-faint); font-size: var(--text-meta); white-space: nowrap; }
+.stat-total { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-3); }
+.stat-total > span { display:grid; grid-template-rows:auto auto; gap:var(--space-1); }
+.stats-donut-btn {
+  width:2.75rem; height:2.75rem; padding:.25rem; flex:0 0 2.75rem;
+  display:grid; place-items:center; border:0; border-radius:var(--radius-control);
+  background:transparent; color:var(--ink); cursor:pointer;
+  transition:background-color var(--dur-out) var(--ease-out);
+}
+.stats-donut-btn:hover { background:var(--paper-soft); transition-duration:var(--dur-in); }
+.stats-donut-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.stats-donut-btn .donut { width:2.25rem; height:2.25rem; }
+.stats-donut-btn .donut-label,
+.stats-donut-btn .donut-unit { display:none; }
+.stats-donut-btn .donut-num { font-size:2rem; }
+.stats-sticky-row .stats-donut-btn { display:none; }
 
 .theme-toggle {
   width: 2.75rem;
@@ -753,7 +768,7 @@ kbd {
 }
 
 /* Row selection (bulk actions) */
-table.audit tbody tr.selected { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); }
+table.audit tbody tr.selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent), inset 0 0 0 1px var(--accent-line); }
 table.audit tbody tr.selected td { color: var(--ink); }
 .bulk-bar {
   display: none;
@@ -779,6 +794,27 @@ table.audit tbody tr.selected td { color: var(--ink); }
 }
 .bulk-bar-actions button.danger:hover { color: var(--urgent); }
 .bulk-bar-actions button:hover { color: var(--ink); background: var(--paper-soft); }
+.bulk-bar-actions button:disabled { opacity:.42; cursor:not-allowed; background:transparent; }
+.row-title-line { display:flex; align-items:center; gap:var(--space-1); min-width:0; }
+.row-controls-sub { display:contents; }
+.cat-start .row-controls-sub .row-select-btn { display:none; }
+.row-select-btn,
+.row-reorder-btn {
+  width:2.75rem; height:2.75rem; flex:0 0 2.75rem; display:grid; place-items:center;
+  border:0; border-radius:var(--radius-control); background:transparent; color:var(--ink-faint); cursor:pointer;
+  transition:color var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out);
+}
+.row-select-btn:hover,
+.row-reorder-btn:hover { color:var(--ink); background:var(--paper-soft); transition-duration:var(--dur-in); }
+.row-select-btn:focus-visible,
+.row-reorder-btn:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.row-select-btn[aria-pressed="true"] { color:var(--accent); background:var(--accent-soft); }
+.row-select-btn .select-check { opacity:0; }
+.row-select-btn[aria-pressed="true"] .select-check { opacity:1; }
+.row-reorder-btn[aria-grabbed="true"] { color:var(--accent); background:var(--accent-soft); cursor:grabbing; }
+.row-reorder-btn[draggable="true"] { cursor:grab; touch-action:none; }
+.row-reorder-btn[draggable="true"]:active { cursor:grabbing; }
+.reorder-live { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 @keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-rise { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
 @media (max-width: 600px) {
@@ -993,10 +1029,6 @@ main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-5) va
 .audit.plan-stage-actual thead .stage-ideal,
 .audit.plan-stage-actual tbody .stage-ideal { display: none; }
 .mobile-category-nav { display: none; }
-.worksheet-overviewbar {
-  display:flex; align-items:center; justify-content:space-between; gap:var(--space-4);
-  margin-bottom:var(--space-3);
-}
 .category-view-toggle {
   display:inline-flex; padding:.2rem; border-radius:var(--radius-surface); background:var(--paper-soft);
 }
@@ -1005,19 +1037,6 @@ main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-5) va
   background:transparent; color:var(--ink-soft); cursor:pointer; font:500 .82rem var(--sans);
 }
 .category-view-toggle button.active { background:var(--paper-raised); color:var(--ink); box-shadow:inset 0 0 0 1px var(--rule); }
-.worksheet-donut-btn {
-  display:flex; align-items:center; gap:var(--space-2); min-height:2.75rem; padding:.25rem .55rem .25rem .35rem;
-  border:1px solid var(--rule); border-radius:var(--radius-control); background:var(--paper-raised); color:var(--ink); cursor:pointer;
-}
-.worksheet-donut-btn:hover { background:var(--paper-soft); }
-.worksheet-donut-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.worksheet-donut-btn .donut-wrap { display:block; }
-.worksheet-donut-btn .donut { width:2.15rem; height:2.15rem; }
-.worksheet-donut-btn .donut-label, .worksheet-donut-btn .donut-unit { display:none; }
-.worksheet-donut-btn .donut-num { font-size:2rem; }
-.worksheet-donut-copy { display:grid; gap:1px; text-align:left; line-height:1.15; }
-.worksheet-donut-copy strong { font-size:.8rem; font-variant-numeric:tabular-nums; }
-.worksheet-donut-copy span { font-size:var(--text-meta); color:var(--ink-faint); }
 .distribution-panel { max-width:44rem; }
 .distribution-layout { display:grid; grid-template-columns:minmax(13rem,.8fr) minmax(14rem,1.2fr); gap:var(--space-6); align-items:center; }
 .distribution-layout .donut { width:min(18rem, 100%); height:auto; margin:auto; }
@@ -1065,6 +1084,8 @@ main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-5) va
   border:1px solid var(--rule); border-radius:var(--radius-control); background:var(--paper-raised); color:var(--ink-soft);
   cursor:pointer; font:600 .8rem var(--sans);
 }
+.worksheet-toolbar .category-view-toggle { margin-left:auto; }
+.worksheet-icon-actions { margin-left:0; }
 .toolbar-icon-btn:hover { background:var(--paper-soft); color:var(--ink); }
 .toolbar-icon-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .mode-123 { font-variant-numeric:tabular-nums; letter-spacing:-.05em; }
@@ -1114,13 +1135,13 @@ table.audit td.col-cat {
   font-size: 1.02rem;
   letter-spacing: -0.015em;
   white-space: nowrap;
-  width: 9rem;
-  min-width: 9rem;
-  max-width: 9rem;
+  width: 15.5rem;
+  min-width: 15.5rem;
+  max-width: 15.5rem;
 }
-table.audit tbody tr.cat-start td.col-cat { position:relative; padding-left:1.45rem; }
+table.audit tbody tr.cat-start td.col-cat { position:relative; padding-left:.65rem; }
 table.audit tbody tr.cat-start td.col-cat::before {
-  content:""; position:absolute; left:.65rem; top:50%; width:.48rem; height:.48rem;
+  content:""; position:absolute; left:.15rem; top:50%; width:.42rem; height:.42rem;
   border-radius:50%; background:var(--category-color, var(--accent)); transform:translateY(-50%);
 }
 table.audit td.col-cat.cat-merged { color: transparent; user-select: none; }
@@ -1136,7 +1157,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 
 /* number inputs */
 .num-input {
-  width: 5.5rem;
+  width: 6rem;
   text-align: right;
   background: var(--paper-soft);
   border: 1px solid var(--rule);
@@ -1146,6 +1167,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   font-size: 0.92rem;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+  font-feature-settings:"tnum" 1;
   transition: border-color var(--dur-out) var(--ease-out), background var(--dur-out) var(--ease-out);
   -moz-appearance: textfield;
 }
@@ -1156,17 +1178,18 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 
 /* inline-editable text cell (category + sub-category) */
 .cell-input {
-  width: 100%;
+  width: min(100%, var(--field-width, 100%));
   background: transparent;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 4px;
   padding: 0.32rem 0.5rem;
   font: inherit;
   color: inherit;
-  transition: border-color var(--dur-out) var(--ease-out), background var(--dur-out) var(--ease-out);
+  box-shadow:inset 0 -1px 0 transparent;
+  transition: box-shadow var(--dur-out) var(--ease-out), background-color var(--dur-out) var(--ease-out);
 }
-.cell-input:hover { border-color: var(--rule); background: var(--paper-soft); }
-.cell-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; background: var(--paper); }
+.cell-input:hover { box-shadow:inset 0 -1px 0 var(--rule); background:var(--paper-soft); }
+.cell-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; box-shadow:none; background: var(--paper); }
 .cell-input.cell-cat { color: var(--ink); }
 .cell-input.cell-sub { color: var(--ink-soft); }
 .cell-input.cell-cat-merged { color: transparent; }
@@ -1175,7 +1198,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 /* slider input mode — fixed width in dashboard rows so the column doesn't reflow */
 .range-cell {
   display: grid;
-  grid-template-columns: 1fr 3.8rem;
+  grid-template-columns: 1fr 4.75rem;
   align-items: center;
   gap: 0.55rem;
   width: 12rem;
@@ -1232,12 +1255,13 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 .range-input.range-actual::-moz-range-thumb { box-shadow: 0 0 0 1.5px var(--ink-soft), 0 2px 6px rgba(0,0,0,0.18); }
 .range-val {
   font-variant-numeric: tabular-nums;
+  font-feature-settings:"tnum" 1;
   font-size: 0.88rem;
   color: var(--ink);
   text-align: right;
   font-weight: 500;
-  width: 3.8rem;
-  min-width: 3.8rem;
+  width: 4.75rem;
+  min-width: 4.75rem;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -1932,10 +1956,10 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   .viewbar-inner { gap: 0.9rem; }
   main { padding-bottom: max(4rem, env(safe-area-inset-bottom)); }
   .worksheet-commandbar { display: flex; flex-direction: column; align-items: stretch; }
-  .worksheet-overviewbar { align-items:center; }
   .category-view-toggle { flex:1; }
   .category-view-toggle button { flex:1; }
   .worksheet-toolbar { gap: 0.5rem; order: 3; }
+  .worksheet-toolbar .category-view-toggle { order:4; flex:1 1 100%; margin-left:0; }
   .plan-guide { align-items: stretch; order: 1; }
   .plan-stage-toggle { width: 100%; }
   .plan-stage-toggle button { flex: 1; min-height: 2.75rem; padding: 0 0.45rem; }
@@ -2011,6 +2035,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   }
   table.audit td.col-cat.cat-merged { display: none; }
   table.audit tbody tr { display:grid; grid-template-columns:minmax(0,1fr) 6.5rem 2.75rem; column-gap:.5rem; align-items:center; }
+  table.audit tbody tr.selected { box-shadow:inset 3px 0 0 var(--accent); }
   table.audit td.col-cat { display:none; }
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start { margin-top:var(--space-4); }
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start-first { margin-top:0; }
@@ -2024,10 +2049,10 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-notes { grid-row:3; }
   table.audit td.col-sub { grid-column:1; grid-row:1; min-width:0; padding-right:0; }
   table.audit td.col-sub .cell-input { padding: 0.22rem 0.25rem; font-size: 1rem; color: var(--ink); }
-  table.audit td.col-cat .cell-input,
-  table.audit td.col-sub .cell-input { border-bottom-color:transparent; }
-  table.audit td.col-cat .cell-input:focus,
-  table.audit td.col-sub .cell-input:focus { border-bottom-color:var(--accent); }
+  table.audit .row-title-line { gap:0; }
+  #view-worksheet[data-category-view="focus"] table.audit tr.cat-start .row-controls-sub .row-select-btn { display:grid; }
+  table.audit .row-select-btn,
+  table.audit .row-reorder-btn { width:2.75rem; height:2.75rem; flex-basis:2.75rem; }
   table.audit td.col-num { grid-column:2; grid-row:1; width:auto; min-width:6.5rem; }
   table.audit td.col-notes { grid-column:1 / -1; grid-row:2; min-width:0; display:flex; align-items:center; gap:.5rem; }
   table.audit td.col-notes.notes-empty .notes-input { display:none; }
@@ -2275,6 +2300,10 @@ function getJS() {
   })();
   let selectedRows = new Set(); // row indices currently selected (for bulk actions)
   let lastClickedRowIdx = null; // for Shift+click range
+  let grabbedRow = null;
+  let grabbedKind = null;
+  let grabOriginalRows = null;
+  let dragSourceRow = null;
   const SLIDER_MAX_DEFAULT = window.__SLIDER_MAX_DEFAULT__ || 15;
   function sliderMaxFor(row) {
     if (row && typeof row.sliderMax === "number") return row.sliderMax;
@@ -2576,13 +2605,23 @@ function getJS() {
       if (Math.abs(diff) <= 0.25) return "balanced";
       return diff > 0 ? "+" + fmtH(diff) + "h over" : fmtH(-diff) + "h left";
     }
-    const inner =
+    const distribution = worksheetDistribution();
+    const chartLabel = distribution.field === "actual" ? "Actual week" : "Ideal week";
+    const summaryInner =
       '<span class="stat"><span class="stat-label">Ideal week</span><span class="stat-value"><strong class="' + idealClass + '">' + fmtH(ideal) + 'h</strong><span class="stat-detail">' + statDetail(ideal) + '</span></span></span>' +
       '<span class="stat"><span class="stat-label">Actual week</span><span class="stat-value"><strong class="' + actualClass + '">' + fmtH(actual) + 'h</strong><span class="stat-detail">' + statDetail(actual) + '</span></span></span>' +
       '<span class="stat"><span class="stat-label">Weekly total</span><span class="stat-value"><strong>' + TARGET + 'h</strong></span></span>';
-    statsEl.innerHTML = inner;
+    statsEl.innerHTML =
+      '<span class="stat"><span class="stat-label">Ideal week</span><span class="stat-value"><strong class="' + idealClass + '">' + fmtH(ideal) + 'h</strong><span class="stat-detail">' + statDetail(ideal) + '</span></span></span>' +
+      '<span class="stat"><span class="stat-label">Actual week</span><span class="stat-value"><strong class="' + actualClass + '">' + fmtH(actual) + 'h</strong><span class="stat-detail">' + statDetail(actual) + '</span></span></span>' +
+      '<span class="stat stat-total"><span><span class="stat-label">Weekly total</span><span class="stat-value"><strong>' + TARGET + 'h</strong></span></span>' +
+        '<button type="button" class="stats-donut-btn" id="worksheetDonutBtn" aria-label="Expand ' + chartLabel.toLowerCase() + ' allocation chart" title="View ' + chartLabel.toLowerCase() + ' allocation">' +
+          '<span class="worksheet-donut-content" aria-hidden="true">' + worksheetDonutMarkup(distribution) + '</span>' +
+        '</button></span>';
+    const chartButton = document.getElementById("worksheetDonutBtn");
+    if (chartButton) chartButton.addEventListener("click", openDistributionDialog);
     const sticky = document.getElementById("statsStickyRow");
-    if (sticky) sticky.innerHTML = inner;
+    if (sticky) sticky.innerHTML = summaryInner;
   }
 
   // Sticky stats bar: show when masthead-stats scrolls out of view.
@@ -2650,6 +2689,10 @@ function getJS() {
       '<button class="btn btn-primary" id="addSubBtn" title="Add a row under the last category (N)">Add row</button>' +
       '<button class="btn worksheet-compact-action" id="addCatBtn" title="Add a new top-level category (Shift+N)" aria-label="Add a new category"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="M3.5 5.5h5l1.5 2h6.5v8h-13zM13.5 10v4m-2-2h4"/></svg><span>New category</span></button>' +
       '<button class="btn btn-quiet worksheet-compact-action" id="resetBtn" aria-label="Reset schedule"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="M5.4 6.1A6 6 0 1 1 4 10m0-4v4h4"/></svg><span>Reset</span></button>' +
+      '<div class="category-view-toggle" role="group" aria-label="Category view">' +
+        '<button type="button" id="categoryViewFocus"' + (categoryView === "focus" ? ' class="active" aria-pressed="true"' : ' aria-pressed="false"') + '>Focus</button>' +
+        '<button type="button" id="categoryViewAll"' + (categoryView === "all" ? ' class="active" aria-pressed="true"' : ' aria-pressed="false"') + '>All</button>' +
+      '</div>' +
       '<div class="worksheet-icon-actions">' +
         '<button class="toolbar-icon-btn" id="snapshotBtn" type="button" title="Save snapshot" aria-label="Save snapshot"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="M4 5.5h12v10H4zM6.5 3.5h7v2M7 9h6m-6 3h4"/></svg></button>' +
         '<button class="toolbar-icon-btn input-mode-btn active" id="inputModeBtn" data-mode="' + (inputMode === "numbers" ? "sliders" : "numbers") + '" type="button" title="Switch to ' + (inputMode === "numbers" ? "sliders" : "numbers") + '" aria-label="Input mode: ' + inputMode + '. Switch to ' + (inputMode === "numbers" ? "sliders" : "numbers") + '">' +
@@ -2660,16 +2703,10 @@ function getJS() {
       '</div>' +
       '</div></div>';
 
-    html += '<div class="worksheet-overviewbar"><div class="category-view-toggle" role="group" aria-label="Category view">' +
-      '<button type="button" id="categoryViewFocus"' + (categoryView === "focus" ? ' class="active" aria-pressed="true"' : ' aria-pressed="false"') + '>Focus</button>' +
-      '<button type="button" id="categoryViewAll"' + (categoryView === "all" ? ' class="active" aria-pressed="true"' : ' aria-pressed="false"') + '>All categories</button></div>' +
-      '<button type="button" class="worksheet-donut-btn" id="worksheetDonutBtn" aria-label="Expand ' + distribution.field + ' week allocation chart">' +
-        '<span class="worksheet-donut-content" aria-hidden="true">' + worksheetDonutMarkup(distribution) + '</span>' +
-        '<span class="worksheet-donut-copy"><strong>' + fmtH(distribution.total) + 'h allocated</strong><span>View distribution</span></span>' +
-      '</button></div>';
-
     html += '<div class="bulk-bar" id="bulkBar" role="status"><span class="bulk-bar-count" id="bulkBarCount"></span>' +
       '<div class="bulk-bar-actions">' +
+        '<button type="button" id="bulkMoveUp">Move up</button>' +
+        '<button type="button" id="bulkMoveDown">Move down</button>' +
         '<button type="button" id="bulkDeselect">Deselect</button>' +
         '<button type="button" id="bulkDelete" class="danger">Remove rows</button>' +
       '</div></div>';
@@ -2694,12 +2731,32 @@ function getJS() {
       const classes = [];
       if (catStart) classes.push("cat-start");
       if (isFirstCat) classes.push("cat-start-first");
+      if (selectedRows.has(i)) classes.push("selected");
+      const rowName = catStart ? row.category : row.sub;
+      const titleWidth = Math.min(24, Math.max(5, String(rowName || "").length + 2));
+      const selectControl =
+        '<button type="button" class="row-select-btn" data-select-row="' + i + '" aria-pressed="' + (selectedRows.has(i) ? "true" : "false") + '" aria-label="Select ' + escAttr(rowName || "row") + '">' +
+          '<svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5"/><path class="select-check" d="m6.8 10 2 2.1 4.5-4.5"/></svg></button>';
+      const reorderControl = function(kind, label) {
+        const position = kind === "category"
+          ? categories.indexOf(row.category) + 1
+          : rows.slice(0, i + 1).filter(function(item) { return item.category === row.category; }).length;
+        const count = kind === "category"
+          ? categories.length
+          : rows.filter(function(item) { return item.category === row.category; }).length;
+        return '<button type="button" class="row-reorder-btn" data-reorder-row="' + i + '" data-reorder-kind="' + kind + '" draggable="true" aria-grabbed="false" aria-label="Reorder ' + escAttr(label || "row") + ', position ' + position + ' of ' + count + '" title="Drag to reorder. Keyboard: Enter, then arrow keys.">' +
+          '<svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="M7 5h6M7 10h6M7 15h6"/></svg></button>';
+      };
       html += '<tr data-idx="' + i + '" data-category="' + escAttr(row.category) + '" style="--category-color:' + colorFor(row.category, categories) + '"' + (classes.length ? ' class="' + classes.join(" ") + '"' : '') + '>' +
         '<td class="col-cat' + (merged ? ' cat-merged' : '') + '" data-label="Category">' +
-          '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category">' +
+          (catStart ? '<div class="row-title-line">' + selectControl + reorderControl("category", row.category) : '') +
+          '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category" style="--field-width:' + titleWidth + 'ch">' +
+          (catStart ? '</div>' : '') +
         '</td>' +
         '<td class="col-sub" data-label="Sub-category">' +
-          '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" aria-label="Sub-category">' +
+          '<div class="row-title-line"><span class="row-controls-sub">' + selectControl + reorderControl("subcategory", row.sub) + '</span>' +
+            '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" aria-label="Sub-category" style="--field-width:' + Math.min(30, Math.max(8, String(row.sub || "").length + 2)) + 'ch">' +
+          '</div>' +
         '</td>' +
         '<td class="col-num stage-ideal" data-label="Ideal (h)">' + valueCell(row, i, "ideal") + '</td>' +
         '<td class="col-num stage-actual" data-label="Actual (h)">' + valueCell(row, i, "actual") + '</td>' +
@@ -2712,7 +2769,7 @@ function getJS() {
     });
     html += '</tbody>';
 
-    html += '</table></div>';
+    html += '</table></div><div class="reorder-live" id="reorderLive" role="status" aria-live="polite"></div>';
     container.innerHTML = html;
 
     document.getElementById("addSubBtn").addEventListener("click", () => addRow("sub"));
@@ -2731,12 +2788,12 @@ function getJS() {
       try { localStorage.setItem("168-audit:category-view", categoryView); } catch(e) {}
       renderWorksheet();
     });
-    document.getElementById("worksheetDonutBtn").addEventListener("click", openDistributionDialog);
     container.querySelectorAll("[data-plan-stage]").forEach(function(btn) {
       btn.addEventListener("click", function() {
         planStage = this.dataset.planStage;
         try { localStorage.setItem("168-audit:plan-stage", planStage); } catch(e) {}
         renderWorksheet();
+        renderStats();
       });
     });
     const categorySelect = document.getElementById("mobileCategory");
@@ -2770,15 +2827,15 @@ function getJS() {
       });
     });
     container.querySelectorAll(".cell-input.cell-cat, .cell-input.cell-sub").forEach(inp => inp.addEventListener("input", onCellTextChange));
+    container.querySelectorAll(".cell-input.cell-cat").forEach(inp => inp.addEventListener("change", function() {
+      renderWorksheet();
+      renderStats();
+    }));
     container.querySelectorAll(".del-btn").forEach(btn => btn.addEventListener("click", onDelete));
 
-    // Row-selection: click on the row's left gutter (the category cell empty space) toggles selection.
-    container.querySelectorAll("#auditBody tr").forEach(tr => {
-      tr.addEventListener("click", function(e) {
-        // Only treat as selection-click if the user actually clicked the row chrome,
-        // not an input/button inside it.
-        if (e.target.closest("input, button, textarea, select, a")) return;
-        const idx = +this.dataset.idx;
+    container.querySelectorAll("[data-select-row]").forEach(function(button) {
+      button.addEventListener("click", function(e) {
+        const idx = +this.dataset.selectRow;
         if (e.shiftKey && lastClickedRowIdx !== null) {
           const lo = Math.min(lastClickedRowIdx, idx);
           const hi = Math.max(lastClickedRowIdx, idx);
@@ -2795,12 +2852,17 @@ function getJS() {
         renderSelection();
       });
     });
+    initRowReordering(container);
 
     // Bulk-bar handlers
     const bdel = document.getElementById("bulkDelete");
     const bdes = document.getElementById("bulkDeselect");
+    const bup = document.getElementById("bulkMoveUp");
+    const bdown = document.getElementById("bulkMoveDown");
     if (bdel) bdel.addEventListener("click", bulkDeleteSelected);
     if (bdes) bdes.addEventListener("click", function() { selectedRows.clear(); renderSelection(); });
+    if (bup) bup.addEventListener("click", function() { moveSelectedRows(-1); });
+    if (bdown) bdown.addEventListener("click", function() { moveSelectedRows(1); });
 
     renderSelection();
     applyMobileCategoryFilter();
@@ -2813,10 +2875,257 @@ function getJS() {
     });
   }
 
+  function announceReorder(message) {
+    const live = document.getElementById("reorderLive");
+    if (live) live.textContent = message;
+  }
+
+  function visibleReorderHandle(index, kind) {
+    return Array.from(document.querySelectorAll('[data-reorder-row="' + index + '"][data-reorder-kind="' + kind + '"]'))
+      .find(function(handle) { return handle.getClientRects().length; }) || null;
+  }
+
+  function reorderLabel(row, kind) {
+    return kind === "category" ? row.category : (row.sub || "subcategory");
+  }
+
+  function reorderPosition(row, kind) {
+    if (kind === "category") {
+      const categories = Array.from(new Set(rows.map(function(item) { return item.category; })));
+      return { position: categories.indexOf(row.category) + 1, count: categories.length };
+    }
+    const siblings = rows.filter(function(item) { return item.category === row.category; });
+    return { position: siblings.indexOf(row) + 1, count: siblings.length };
+  }
+
+  function categoryRange(index) {
+    const category = rows[index] && rows[index].category;
+    let start = index;
+    let end = index;
+    while (start > 0 && rows[start - 1].category === category) start--;
+    while (end + 1 < rows.length && rows[end + 1].category === category) end++;
+    return { start: start, end: end, category: category };
+  }
+
+  function moveRowByDelta(index, delta, kind) {
+    if (!rows[index] || !delta) return index;
+    const range = categoryRange(index);
+    if (kind === "category") {
+      const groups = [];
+      for (let i = 0; i < rows.length;) {
+        const current = categoryRange(i);
+        groups.push(rows.slice(current.start, current.end + 1));
+        i = current.end + 1;
+      }
+      const groupIndex = groups.findIndex(function(group) { return group.includes(rows[index]); });
+      const nextGroupIndex = Math.max(0, Math.min(groups.length - 1, groupIndex + delta));
+      if (nextGroupIndex === groupIndex) return index;
+      const movedGroup = groups.splice(groupIndex, 1)[0];
+      groups.splice(nextGroupIndex, 0, movedGroup);
+      rows = groups.flat();
+      currentProfile().rows = rows;
+      return rows.indexOf(movedGroup[0]);
+    }
+    const target = index + delta;
+    if (target < range.start || target > range.end) return index;
+    const moved = rows[index];
+    rows.splice(index, 1);
+    rows.splice(target, 0, moved);
+    return rows.indexOf(moved);
+  }
+
+  function moveRowTo(sourceIndex, targetIndex, kind) {
+    if (!rows[sourceIndex] || !rows[targetIndex] || sourceIndex === targetIndex) return sourceIndex;
+    const sourceRange = categoryRange(sourceIndex);
+    const targetRange = categoryRange(targetIndex);
+    if (kind === "category") {
+      const groups = [];
+      for (let i = 0; i < rows.length;) {
+        const current = categoryRange(i);
+        groups.push(rows.slice(current.start, current.end + 1));
+        i = current.end + 1;
+      }
+      const movedGroupIndex = groups.findIndex(function(group) { return group.includes(rows[sourceIndex]); });
+      const targetGroupIndex = groups.findIndex(function(group) { return group.includes(rows[targetIndex]); });
+      const movedGroup = groups.splice(movedGroupIndex, 1)[0];
+      groups.splice(targetGroupIndex, 0, movedGroup);
+      rows = groups.flat();
+      currentProfile().rows = rows;
+      return rows.indexOf(movedGroup[0]);
+    }
+    if (sourceRange.category !== targetRange.category) return sourceIndex;
+    const moved = rows[sourceIndex];
+    rows.splice(sourceIndex, 1);
+    rows.splice(targetIndex, 0, moved);
+    return rows.indexOf(moved);
+  }
+
+  function finishReorder(row, kind, message) {
+    selectedRows.clear();
+    lastClickedRowIdx = null;
+    saveState();
+    renderWorksheet();
+    renderStats();
+    const nextIndex = rows.indexOf(row);
+    requestAnimationFrame(function() {
+      const handle = visibleReorderHandle(nextIndex, kind);
+      if (handle) handle.focus();
+      const position = reorderPosition(row, kind);
+      announceReorder(message || ("Moved " + reorderLabel(row, kind) + " to position " + position.position + " of " + position.count + "."));
+    });
+  }
+
+  function moveSelectedRows(delta) {
+    if (selectedRows.size !== 1) return;
+    const index = Array.from(selectedRows)[0];
+    const row = rows[index];
+    const kind = index === categoryRange(index).start ? "category" : "subcategory";
+    const nextIndex = moveRowByDelta(index, delta, kind);
+    if (nextIndex === index) {
+      announceReorder("This row is already at the edge of its group.");
+      return;
+    }
+    selectedRows = new Set([nextIndex]);
+    saveState();
+    renderWorksheet();
+    renderStats();
+    requestAnimationFrame(function() {
+      const handle = visibleReorderHandle(nextIndex, kind);
+      if (handle) handle.focus();
+      const position = reorderPosition(row, kind);
+      announceReorder("Moved " + reorderLabel(row, kind) + " to position " + position.position + " of " + position.count + ".");
+    });
+  }
+
+  function initRowReordering(container) {
+    container.querySelectorAll("[data-reorder-row]").forEach(function(handle) {
+      let pointerDrag = null;
+      handle.addEventListener("pointerdown", function(event) {
+        if (event.pointerType === "mouse") return;
+        pointerDrag = {
+          pointerId: event.pointerId,
+          row: rows[+this.dataset.reorderRow],
+          kind: this.dataset.reorderKind,
+          startX: event.clientX,
+          startY: event.clientY,
+          target: this
+        };
+        this.setPointerCapture(event.pointerId);
+      });
+      handle.addEventListener("pointermove", function(event) {
+        if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+        const distance = Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY);
+        if (distance < 8) return;
+        event.preventDefault();
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-reorder-kind="' + pointerDrag.kind + '"]');
+        if (target) pointerDrag.target = target;
+      });
+      handle.addEventListener("pointerup", function(event) {
+        if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+        const state = pointerDrag;
+        pointerDrag = null;
+        const sourceIndex = rows.indexOf(state.row);
+        const targetIndex = +(state.target?.dataset.reorderRow ?? sourceIndex);
+        const nextIndex = moveRowTo(sourceIndex, targetIndex, state.kind);
+        if (nextIndex !== sourceIndex) {
+          finishReorder(state.row, state.kind);
+        }
+      });
+      handle.addEventListener("pointercancel", function() { pointerDrag = null; });
+      handle.addEventListener("dragstart", function(event) {
+        const index = +this.dataset.reorderRow;
+        dragSourceRow = { row: rows[index], kind: this.dataset.reorderKind };
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", String(index));
+      });
+      handle.addEventListener("dragover", function(event) {
+        if (!dragSourceRow) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      });
+      handle.addEventListener("drop", function(event) {
+        event.preventDefault();
+        const sourceIndex = rows.indexOf(dragSourceRow.row);
+        const targetIndex = +this.dataset.reorderRow;
+        const row = dragSourceRow.row;
+        const kind = dragSourceRow.kind;
+        const targetKind = this.dataset.reorderKind;
+        if (kind !== targetKind) {
+          dragSourceRow = null;
+          announceReorder("Choose another " + kind + " handle as the drop target.");
+          return;
+        }
+        const nextIndex = moveRowTo(sourceIndex, targetIndex, kind);
+        dragSourceRow = null;
+        if (nextIndex !== sourceIndex) finishReorder(row, kind);
+        else announceReorder("That row can only move within its category.");
+      });
+      handle.addEventListener("dragend", function() { dragSourceRow = null; });
+      handle.addEventListener("keydown", function(event) {
+        const index = +this.dataset.reorderRow;
+        const row = rows[index];
+        const kind = this.dataset.reorderKind;
+        if ((event.key === "Enter" || event.key === " ") && !grabbedRow) {
+          event.preventDefault();
+          grabbedRow = row;
+          grabbedKind = kind;
+          grabOriginalRows = rows.slice();
+          this.setAttribute("aria-grabbed", "true");
+          announceReorder("Grabbed " + reorderLabel(row, kind) + ". Use up and down arrows to move, Enter to drop, or Escape to cancel.");
+          return;
+        }
+        if (grabbedRow !== row || grabbedKind !== kind) return;
+        if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+          event.preventDefault();
+          const nextIndex = moveRowByDelta(index, event.key === "ArrowUp" ? -1 : 1, kind);
+          saveState();
+          renderWorksheet();
+          renderStats();
+          requestAnimationFrame(function() {
+            const nextHandle = visibleReorderHandle(nextIndex, kind);
+            if (nextHandle) {
+              nextHandle.setAttribute("aria-grabbed", "true");
+              nextHandle.focus();
+            }
+            const position = reorderPosition(row, kind);
+            announceReorder("Moved " + reorderLabel(row, kind) + " to position " + position.position + " of " + position.count + ".");
+          });
+        } else if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          grabbedRow = null;
+          grabbedKind = null;
+          grabOriginalRows = null;
+          this.setAttribute("aria-grabbed", "false");
+          const position = reorderPosition(row, kind);
+          announceReorder("Dropped " + reorderLabel(row, kind) + " at position " + position.position + " of " + position.count + ".");
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          rows = grabOriginalRows.slice();
+          currentProfile().rows = rows;
+          const restoredIndex = rows.indexOf(row);
+          grabbedRow = null;
+          grabbedKind = null;
+          grabOriginalRows = null;
+          saveState();
+          renderWorksheet();
+          renderStats();
+          requestAnimationFrame(function() {
+            const restoredHandle = visibleReorderHandle(restoredIndex, kind);
+            if (restoredHandle) restoredHandle.focus();
+            announceReorder("Reordering cancelled.");
+          });
+        }
+      });
+    });
+  }
+
   function renderSelection() {
     document.querySelectorAll("#auditBody tr").forEach(tr => {
       const idx = +tr.dataset.idx;
       tr.classList.toggle("selected", selectedRows.has(idx));
+      tr.querySelectorAll("[data-select-row]").forEach(function(button) {
+        button.setAttribute("aria-pressed", selectedRows.has(idx) ? "true" : "false");
+      });
     });
     const bar = document.getElementById("bulkBar");
     const count = document.getElementById("bulkBarCount");
@@ -2824,6 +3133,11 @@ function getJS() {
     if (selectedRows.size > 0) {
       bar.classList.add("visible");
       count.innerHTML = '<strong>' + selectedRows.size + '</strong> row' + (selectedRows.size === 1 ? '' : 's') + ' selected';
+      const moveDisabled = selectedRows.size !== 1;
+      const up = document.getElementById("bulkMoveUp");
+      const down = document.getElementById("bulkMoveDown");
+      if (up) up.disabled = moveDisabled;
+      if (down) down.disabled = moveDisabled;
     } else {
       bar.classList.remove("visible");
     }
@@ -2842,6 +3156,16 @@ function getJS() {
     renderStats();
     showToast("Removed " + count + " row" + (count === 1 ? '' : 's'), true);
   }
+
+  document.addEventListener("pointerdown", function(event) {
+    if (!selectedRows.size) return;
+    if (event.target.closest("[data-select-row], #bulkBar")) return;
+    const row = event.target.closest("#auditBody tr");
+    if (row && selectedRows.has(+row.dataset.idx)) return;
+    selectedRows.clear();
+    lastClickedRowIdx = null;
+    renderSelection();
+  });
 
   function valueCell(row, i, field) {
     const v = row[field];
@@ -2896,11 +3220,23 @@ function getJS() {
     if (field === "category") {
       const previous = rows[idx].category;
       const next = e.target.value;
-      rows.forEach(function(row) {
-        if (row.category === previous) row.category = next;
+      if (mobileCategory === previous) mobileCategory = next;
+      const categories = Array.from(new Set(rows.map(function(row) { return row.category === previous ? next : row.category; })));
+      rows.forEach(function(row, rowIndex) {
+        if (row.category !== previous) return;
+        row.category = next;
+        const renderedRow = document.querySelector('#auditBody tr[data-idx="' + rowIndex + '"]');
+        if (renderedRow) {
+          renderedRow.dataset.category = next;
+          renderedRow.style.setProperty("--category-color", colorFor(next, categories));
+          renderedRow.querySelectorAll(".cell-cat").forEach(function(input) {
+            if (input !== e.target) input.value = next;
+          });
+        }
       });
+      e.target.style.setProperty("--field-width", Math.min(24, Math.max(5, next.length + 2)) + "ch");
       saveState();
-      renderWorksheet();
+      renderStats();
       return;
     }
     rows[idx][field] = e.target.value;
@@ -2982,8 +3318,10 @@ function getJS() {
   // Pleasant palette for category slices, dark-mode tuned.
   const SLICE_COLORS = ["#7A9CFF", "#D2AD79", "#6FBF7E", "#FF9B6B", "#C28BE0", "#5FBEA6", "#E07A97", "#9DB07A", "#F2C56B", "#86C4E0"];
   function colorFor(cat, cats) {
-    const i = cats.indexOf(cat);
-    return SLICE_COLORS[i % SLICE_COLORS.length];
+    let hash = 0;
+    const value = String(cat || "");
+    for (let i = 0; i < value.length; i++) hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
+    return SLICE_COLORS[Math.abs(hash) % SLICE_COLORS.length];
   }
   function buildDonut(byCat, cats, label, totalH) {
     const r = 64, c = 80, stroke = 18;
@@ -5220,6 +5558,13 @@ function getJS() {
       t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable ||
       t.tagName === "SELECT"
     );
+    if (!isTyping && e.key === "Escape" && selectedRows.size > 0 && !grabbedRow) {
+      selectedRows.clear();
+      lastClickedRowIdx = null;
+      renderSelection();
+      e.preventDefault();
+      return;
+    }
     // Allow Delete/Backspace as bulk-delete only when bulk-bar is visible AND not typing
     if (!isTyping && (e.key === "Delete" || e.key === "Backspace") && selectedRows.size > 0) {
       e.preventDefault();

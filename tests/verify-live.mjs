@@ -458,8 +458,8 @@ async function inspectDesktop(browser) {
   const r1 = page.locator("#auditBody tr").nth(0);
   const r4 = page.locator("#auditBody tr").nth(3);
   // Click on the row but not on an input — target the .col-cat td empty space.
-  await r1.locator(".col-cat").click({ position: { x: 5, y: 5 } });
-  await r4.locator(".col-cat").click({ position: { x: 5, y: 5 }, modifiers: ["Shift"] });
+  await r1.locator("[data-select-row]:visible").click();
+  await r4.locator("[data-select-row]:visible").click({ modifiers: ["Shift"] });
   await page.waitForTimeout(150);
   const selected = await page.locator("#auditBody tr.selected").count();
   selected >= 3 ? ok(`shift-click range selected ${selected} rows`) : fail(`shift-click selected ${selected} (expected ≥3)`);

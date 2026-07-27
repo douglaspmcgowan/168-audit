@@ -58,3 +58,11 @@ Working capabilities:
 - The `/user` honesty check changed Data from 44px to 48px, produced the expected red verdict, restored the source, and returned the complete suite to green.
 
 The original checkout, `main` branch, and production deployment remain unchanged. This branch is uncommitted and undeployed. The isolated `claude-personal` project is migrated and verified; the unrelated active Supabase project was left untouched.
+# 2026-07-27 Plan editor refinement
+
+- Focus/All now shares the row-action toolbar; the expandable allocation donut lives with Ideal, Actual, and Weekly total.
+- Category groups and subcategory rows use explicit selection and reorder controls. Selection clears through the worksheet background, Escape, or the visible action bar.
+- Reordering supports pointer drag, keyboard grab/move/drop/cancel, and visible Move up/Move down actions. Category moves preserve contiguous groups; subcategories stay within their category.
+- Category colors remain stable after reorder. Numeric inputs and slider readouts use fixed, tabular, right-aligned rails.
+- Fresh verification passed: overview interaction, full Playwright browser suite, schema contract, deterministic owner/admin/member/outsider cloud UI, axe, 320px/375px/495px/tablet/desktop/zoom, syntax, Impeccable detector, and npm audit.
+- Production cloud remains disabled until the Supabase publishable key and Auth redirects are configured through an authenticated Supabase session.
