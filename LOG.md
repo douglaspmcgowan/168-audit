@@ -24,3 +24,4 @@
 2026-07-27 | Integrated the allocation chart into weekly totals, consolidated Focus/All with row actions, added explicit selection and accessible reordering, stabilized numeric/category presentation, and passed the full local release gate.
 2026-07-27 | Deployed commit 17a1f67 and verified the production toolbar, summary donut, category/subcategory reorder controls, and expanded chart dialog.
 2026-07-27 | Configured Vercel and Supabase Auth for production cloud access, passed the full two-user workflow against production with cleanup, added transcript-safe direct live-verifier input, and refreshed PRODUCT.md to the current Impeccable schema.
+2026-07-30 | Onboarded the committed repository to Pyrgos harness v3, archived completed legacy task/verifier state verbatim, added truthful portable metadata and value-free manifests, and passed project, secret, diff, Gitleaks, syntax, and schema gates.
