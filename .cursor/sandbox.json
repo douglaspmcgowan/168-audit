@@ -1,0 +1,7 @@
+{
+    "enableSharedBuildCache":  true,
+    "additionalReadwritePaths":  [
+                                     "C:\\Users\\dougl\\Data\\Projects\\168-audit"
+                                 ],
+    "type":  "workspace_readwrite"
+}

@@ -1,0 +1,145 @@
+# Project instructions
+
+This file is the portable project contract for local and cloud agents.
+
+<!-- agent-harness:portable:v3:start -->
+## Portable operating rules
+
+Use subagents immediately for every independent, file-disjoint workstream. This is explicit authorization to parallelize. Keep only destructive or dependent final gates serial.
+
+Agents may create local commits for in-scope work without asking. Never push, merge, force-update, discard, delete a worktree, or remove a task workspace unless the user explicitly authorizes that action.
+
+- Answer questions before task narration. Keep routine updates concise.
+- Never invent facts, paths, APIs, versions, source content, measurements, credential state, or passing results. Name the source checked.
+- Verify inherited claims against repository, Git, runtime, or current primary evidence.
+- Match commands and paths to the user's actual shell and device.
+- Avoid the rhetorical "it is X, not Y" construction.
+- Preserve unrelated changes. Inspect exact targets before destructive or broad operations and prefer recoverable changes.
+- Before creating, replacing, renaming, or removing an artifact, search the repository and available shared harness for its existing owner, equivalents, consumers, wiring, tests, and documentation. Extend or consolidate the closest adequate owner. Record search evidence and the reason for a truly new owner in authoritative task state.
+- Extract every discrete obligation from a multi-step prompt into authoritative task state. In an enrolled project, use Work Scope tasks or discoveries; otherwise use legacy `TASK.md` checkboxes.
+- Read a named or clearly matching skill in full. Keep canonical workflows under `.agents\skills` and product adapters thin.
+- Reproduce bugs before fixing them and add a regression test when practical. Exercise the assembled system under the condition that exposed the failure.
+- For browser-visible changes, run the repository browser or end-to-end verifier.
+- When a correction requests permanent prevention, use the `correct` skill and implement a durable, narrowly scoped artifact.
+- Treat `MEMORY.md` as a lean index. Keep behavior in instructions, skills, hooks, permissions, tests, or verifiers.
+- Before claiming non-trivial work complete, run the verification recorded in authoritative task state, relevant tests, and an adversarial pass.
+<!-- agent-harness:portable:v3:end -->
+
+## Project identity
+
+- Name: `168-audit`
+- Purpose: `<one sentence>`
+- Default branch: `main`
+- Local data root variable: `PROJECT_DATA_ROOT`
+
+## Start and resume
+
+1. Read this file.
+2. Read `CURRENT-TASK.md`, `STATUS.md`, and the last 5ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“10 entries in `LOG.md`.
+3. Read `WORK_QUEUE.md` for multi-step work.
+4. Run `git status --short --branch` and `git worktree list --porcelain`.
+5. Reconcile stale chat claims against files and Git before editing.
+6. Run the repository state verifier when the local shared harness is available.
+
+## Commands
+
+- Setup: `<command>`
+- Test: `<command>`
+- Lint: `<command>`
+- Build: `<command>`
+- End-to-end verification: `<command>`
+
+## Safety and evidence
+
+- Never invent facts, paths, APIs, versions, or passing results.
+- Preserve unrelated user changes in a dirty worktree.
+- Avoid destructive commands and broad recursive targets.
+- Back up authored files before replacement.
+- Never read, display, log, or commit secret values.
+- Run the repository verifier before a completion claim.
+- Record failures and remaining uncertainty plainly.
+
+## Data boundary
+
+- Read `data-manifest.yaml` before accessing external data.
+- Keep small safe fixtures under `data\fixtures`.
+- Keep disposable cache under ignored `.local`.
+- Receive local application data through `PROJECT_DATA_ROOT`.
+- Cloud sessions use committed fixtures or explicitly provisioned data.
+- Keep runtime databases, private records, and generated outputs outside Git.
+- Use plain files for documents, media, immutable inputs, portable exports, and append-only logs.
+- Use SQLite for transactions, relationships, integrity constraints, indexed queries, or coordinated multi-record updates.
+
+## Worktree boundary
+
+- One writable task gets one branch, one worktree, and one owner.
+- Detect existing isolation before creating a worktree.
+- Use distinct ports, test databases, deployment targets, and mutable resources for parallel work.
+- Record worktree path, branch, owner, goal, shared resources, and verifier in task state.
+- Merge only after required verification passes and the source worktree has no unexplained changes.
+
+## Task and knowledge files
+
+- `CURRENT-TASK.md`: active goal, completed steps, remaining steps, next verifier.
+- `WORK_QUEUE.md`: actionable multi-step queue.
+- `STATUS.md`: durable project state.
+- `LOG.md`: append-only work log.
+- `BACKBURNER.md`: parked backlog.
+- `VERIFY.md`: required proof before completion.
+- `MAP.md`: architecture, data, ownership, and file navigation.
+- `DESIGN.md`: current design decisions and constraints.
+- `MEMORY.md`: lean index to durable reference files.
+
+Use session-keyed active task files when concurrent sessions share one folder. Shared files remain `STATUS.md`, `LOG.md`, and `BACKBURNER.md`.
+
+### Update triggers
+
+- Start or resume: read `CURRENT-TASK.md`, `STATUS.md`, recent `LOG.md`, and `WORK_QUEUE.md` when the work has multiple steps.
+- Multi-step request: seed `WORK_QUEUE.md` before implementation and update checkboxes as evidence lands.
+- Active goal, completed step, next command, or verifier changes: update `CURRENT-TASK.md`.
+- Durable capability or project-state change: update `STATUS.md`.
+- Meaningful completed work: append one dated line to `LOG.md`.
+- Parked idea or deferred task: update `BACKBURNER.md`.
+- Architecture, data flow, ownership, integration, or important path changes: update `MAP.md`.
+- Product or architecture decision changes: update `DESIGN.md`.
+- Verification command or required evidence changes: update `VERIFY.md`.
+- Reusable fact gains a durable reference: add one linked line to `MEMORY.md`.
+- Douglas corrects recurring behavior: record evidence, choose path/project/shared/platform/provider scope, implement the narrowest reliable rule or enforcement artifact, and add verification.
+- Before handoff or stopping: reconcile the queue, task narrative, durable status, log, and Git state.
+
+`CURRENT-TASK.md` explains the active goal and exact next verifier. `WORK_QUEUE.md` supplies machine-readable action state for loops, hooks, and concurrent work. Keep queue entries short and link to the current-task narrative instead of duplicating it.
+
+## Secret handling
+
+- `secret-manifest.json` is the canonical value-free inventory.
+- `secret-manifest.md` is generated from it.
+- `.env.example` contains names and safe placeholders.
+- `.env`, credential exports, session keys, recovery keys, and real values stay outside Git.
+- Inject secrets only into an approved trusted process for the shortest practical lifetime.
+- Use separate development, preview, and production trust boundaries.
+- Run Gitleaks before commits and in CI.
+- Revoke or rotate a confirmed exposed credential before history cleanup.
+
+## Skills
+
+- `skills-manifest.json` declares project skill bindings.
+- Project-specific portable skills live under `.agents\skills`.
+- Product adapters stay thin and point to the canonical workflow.
+- Add a skill only when repository evidence shows a recurring, fragile, or cloud-required workflow.
+
+## Product adapters
+
+- Claude loads `CLAUDE.md`, which imports this file.
+- Codex loads this `AGENTS.md`.
+- Cursor loads `.cursor\rules\00-project-contract.mdc`, which requires this file.
+
+## Local shared supplement
+
+When present, read:
+
+- `C:\Users\dougl\.agents\HARNESS-MAP.md`
+- `C:\Users\dougl\.agents\CROSS-AGENT-CONTRACT.md`
+- `C:\Users\dougl\.agents\FEEDBACK-ROUTER.md` when Douglas corrects behavior or asks for a durable prevention
+- `C:\Users\dougl\.agents\WORKTREE-PROTOCOL.md` for parallel or isolated work
+
+Cloud sessions continue with this repository contract when those machine-local files are absent.

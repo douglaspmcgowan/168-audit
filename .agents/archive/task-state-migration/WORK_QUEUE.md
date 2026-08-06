@@ -70,3 +70,7 @@
 - [x] Configure the Supabase production site URL and production/local redirect allowlist.
 - [x] Run the full two-user Center workflow against the deployed production app and verify zero-residue cleanup.
 - [x] Refresh `PRODUCT.md` to the current Impeccable product schema.
+- [x] Make All the default weekly-allocation view.
+- [x] Recompose category groups and subcategory rows into an immediately legible hierarchy.
+- [x] Tighten vertical spacing while preserving 44px interaction targets.
+- [x] Verify the All view at desktop and mobile sizes with Playwright, accessibility checks, and the full local regression suite.
