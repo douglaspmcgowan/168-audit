@@ -35,8 +35,8 @@ Agents may create local commits for in-scope work without asking. Never push, me
 ## Start and resume
 
 1. Read this file.
-2. Read `CURRENT-TASK.md`, `STATUS.md`, and the last 5ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“10 entries in `LOG.md`.
-3. Read `WORK_QUEUE.md` for multi-step work.
+2. Read `TASK.md` and the last 5ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“10 entries in `LOG.md`.
+3. Read `BACKBURNER.md` for parked work.
 4. Run `git status --short --branch` and `git worktree list --porcelain`.
 5. Reconcile stale chat claims against files and Git before editing.
 6. Run the repository state verifier when the local shared harness is available.
@@ -80,9 +80,6 @@ Agents may create local commits for in-scope work without asking. Never push, me
 
 ## Task and knowledge files
 
-- `CURRENT-TASK.md`: active goal, completed steps, remaining steps, next verifier.
-- `WORK_QUEUE.md`: actionable multi-step queue.
-- `STATUS.md`: durable project state.
 - `LOG.md`: append-only work log.
 - `BACKBURNER.md`: parked backlog.
 - `VERIFY.md`: required proof before completion.
@@ -90,14 +87,14 @@ Agents may create local commits for in-scope work without asking. Never push, me
 - `DESIGN.md`: current design decisions and constraints.
 - `MEMORY.md`: lean index to durable reference files.
 
-Use session-keyed active task files when concurrent sessions share one folder. Shared files remain `STATUS.md`, `LOG.md`, and `BACKBURNER.md`.
+Use session-keyed active task files when concurrent sessions share one folder. Shared files remain `LOG.md` and `BACKBURNER.md`.
 
 ### Update triggers
 
-- Start or resume: read `CURRENT-TASK.md`, `STATUS.md`, recent `LOG.md`, and `WORK_QUEUE.md` when the work has multiple steps.
-- Multi-step request: seed `WORK_QUEUE.md` before implementation and update checkboxes as evidence lands.
-- Active goal, completed step, next command, or verifier changes: update `CURRENT-TASK.md`.
-- Durable capability or project-state change: update `STATUS.md`.
+- Start or resume: read `TASK.md` and recent `LOG.md`.
+- Multi-step request: seed the queue in `TASK.md` before implementation and update it as evidence lands.
+- Active goal, completed step, next command, or verifier changes: update `TASK.md`.
+- Durable capability or project-state change: update `MAP.md`. `STATUS.md` is retired; do not create one.
 - Meaningful completed work: append one dated line to `LOG.md`.
 - Parked idea or deferred task: update `BACKBURNER.md`.
 - Architecture, data flow, ownership, integration, or important path changes: update `MAP.md`.
@@ -107,7 +104,7 @@ Use session-keyed active task files when concurrent sessions share one folder. S
 - Douglas corrects recurring behavior: record evidence, choose path/project/shared/platform/provider scope, implement the narrowest reliable rule or enforcement artifact, and add verification.
 - Before handoff or stopping: reconcile the queue, task narrative, durable status, log, and Git state.
 
-`CURRENT-TASK.md` explains the active goal and exact next verifier. `WORK_QUEUE.md` supplies machine-readable action state for loops, hooks, and concurrent work. Keep queue entries short and link to the current-task narrative instead of duplicating it.
+`TASK.md` owns the active goal, the actionable queue, blockers, completed evidence, and the exact next verifier. Keep queue entries short. `CURRENT-TASK.md` and `WORK_QUEUE.md` are retired: do not create either, and note that project setup fails while one is present.
 
 ## Secret handling
 
