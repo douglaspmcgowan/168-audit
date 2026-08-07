@@ -16,23 +16,19 @@
     },
     {
       "path": "DESIGN.md",
-      "sha256": "a254e9ad759574a4bd8b2c966b14a87e3d1e61dab42bdb2193599195d13b5670"
+      "sha256": "3e8b945567b242e98c3d42ab840b2444c5de05a34d79afc06e31a78dae0c44d7"
     },
     {
       "path": "MAP.md",
-      "sha256": "8e3ff86969e268678a819bb44a1ce2ad3ae3d11fd261d0596557278c241c8191"
+      "sha256": "b54ecb8553d3e54c0c7a1d0e105cf016ecaf9052977d9ab34d8903f26a56916c"
     },
     {
       "path": "TASK.md",
       "sha256": "7284271fa0462f73f50709016100269ad532bc531d3084e90cfd6f1c33f3f796"
     },
     {
-      "path": "STATUS.md",
-      "sha256": "89217e2fc3aff7bf6b4ab0d16e7dd20a7dd164b5cc030a4964ac8216aabc0c48"
-    },
-    {
       "path": "LOG.md",
-      "sha256": "e48d507dceb0d98501308f32d9359daf1f72457c1d159164c3dea71c1eb14606"
+      "sha256": "c184901739786f97a8d6e432872b9428a4bc5c3b7945035d2aed07be4faa4db8"
     },
     {
       "path": "BACKBURNER.md",
@@ -44,7 +40,7 @@
     },
     {
       "path": "skills-manifest.json",
-      "sha256": "ab24b051a57ecb2a46be9e8cb496cc389a928bd07ce9d2faba9eafb77dc5379d"
+      "sha256": "73793ebf79a8353453b6a8c7cfdd9217d12689d1fc454c17c62e0290b2d40031"
     },
     {
       "path": "data-manifest.yaml",
