@@ -43,7 +43,7 @@ async function inspectDesktop(browser) {
 
   log("\nMasthead");
   const h1 = await page.locator(".brand-title").innerText();
-  /168/.test(h1) ? ok(`brand title: ${h1}`) : fail(`h1: ${h1}`);
+  h1.trim() === "Audit your week" ? ok(`brand title: ${h1}`) : fail(`h1: ${h1}`);
   const stats = await page.locator("#stats").innerText();
   /ideal/i.test(stats) && /actual/i.test(stats) ? ok(`stats: ${stats.replace(/\s+/g, " ").trim()}`) : fail(`stats: ${stats}`);
   const theme = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
@@ -86,7 +86,7 @@ async function inspectDesktop(browser) {
   await page.waitForTimeout(200);
   const statsText = await page.locator("#stats").innerText();
   /40/.test(statsText) ? ok(`stats shows 40: ${statsText.replace(/\s+/g, " ").trim()}`) : fail(`stats: ${statsText}`);
-  /128h left/i.test(statsText) ? ok("remaining hours are consolidated in the masthead") : fail(`missing consolidated balance: ${statsText}`);
+  !/left|over|balanced/i.test(statsText) ? ok("masthead omits redundant balance copy") : fail(`unexpected balance copy: ${statsText}`);
 
   log("\nInline-edit category label");
   const firstCat = page.locator('input.cell-cat').first();
@@ -636,7 +636,7 @@ async function inspectDesktop(browser) {
     const strongs = Array.from(document.querySelectorAll("#stats .stat strong"));
     return strongs.map(s => ({ text: s.textContent, w: Math.round(s.getBoundingClientRect().width) }));
   });
-  const allFixed = statsWidths.length === 3 && statsWidths.every(s => s.w >= 49);
+  const allFixed = statsWidths.length === 2 && statsWidths.every(s => s.w >= 49);
   allFixed ? ok(`stats strongs all min-width: ${statsWidths.map(s => s.text + "=" + s.w).join(", ")}`) : fail(`stats widths: ${JSON.stringify(statsWidths)}`);
 
   log("\nv8: WEEK PLANNER eyebrow gone");
@@ -833,8 +833,8 @@ async function inspectCompleteAudit(browser) {
     actualFields: document.querySelectorAll('.num-input[data-field="actual"]').length,
     notes: Array.from(document.querySelectorAll(".notes-input")).map(input => input.value).filter(Boolean),
   }));
-  (/Ideal week 168h balanced/i.test(numberState.stats.replace(/\s+/g, " ")) &&
-    /Actual week 168h balanced/i.test(numberState.stats.replace(/\s+/g, " ")) &&
+  (/Ideal week 168h/i.test(numberState.stats.replace(/\s+/g, " ")) &&
+    /Actual week 168h/i.test(numberState.stats.replace(/\s+/g, " ")) &&
     numberState.idealFields === completed && numberState.actualFields === completed &&
     numberState.notes.length === 2)
     ? ok(`numbers mode completed ${completed} ideal and actual rows with notes at 168h`)
@@ -902,6 +902,16 @@ async function inspectMobile(browser) {
   log("\nMobile masthead + viewport");
   const overflowX = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   overflowX <= 1 ? ok(`no horizontal overflow (${overflowX}px)`) : fail(`horizontal overflow: ${overflowX}px`);
+  const mobileDefaultState = await page.evaluate(() => ({
+    mode: document.querySelector("#view-worksheet")?.dataset.categoryView,
+    pickerHidden: document.querySelector(".mobile-category-nav")?.hidden,
+    visibleRows: Array.from(document.querySelectorAll("#auditBody tr")).filter(tr => getComputedStyle(tr).display !== "none").length,
+    totalRows: document.querySelectorAll("#auditBody tr").length,
+  }));
+  (mobileDefaultState.mode === "all" && mobileDefaultState.pickerHidden && mobileDefaultState.visibleRows === mobileDefaultState.totalRows)
+    ? ok(`mobile defaults to all ${mobileDefaultState.totalRows} rows`)
+    : fail(`mobile all default: ${JSON.stringify(mobileDefaultState)}`);
+  await page.click("#categoryViewFocus");
   const mobileCategoryState = await page.evaluate(() => ({
     selected: document.getElementById("mobileCategory")?.value,
     visibleRows: Array.from(document.querySelectorAll("#auditBody tr")).filter(tr => getComputedStyle(tr).display !== "none").length,
@@ -961,11 +971,11 @@ async function inspectMobile(browser) {
   (mastheadLayout.data.width === 44 && mastheadLayout.data.height === 44)
     ? ok("495px: Data matches the adjacent 44px controls")
     : fail(`495px Data geometry: ${JSON.stringify(mastheadLayout.data)}`);
-  (mastheadLayout.stats.length === 3 && mastheadLayout.stats.every(Boolean) &&
+  (mastheadLayout.stats.length === 2 && mastheadLayout.stats.every(Boolean) &&
     new Set(mastheadLayout.stats.map(stat => stat.labelTop)).size === 1 &&
     new Set(mastheadLayout.stats.map(stat => stat.valueTop)).size === 1 &&
     mastheadLayout.overflow <= 1)
-    ? ok("495px: ideal, actual, and target summaries share aligned label and value rails")
+    ? ok("495px: ideal and actual summaries share aligned label and value rails")
     : fail(`495px stats alignment: ${JSON.stringify(mastheadLayout)}`);
 
   log("\nMobile: 320px minimum");
@@ -1025,8 +1035,8 @@ async function inspectMobile(browser) {
     const stats = document.getElementById("stats");
     return stats ? { display: getComputedStyle(stats).display, text: stats.innerText } : null;
   });
-  (mobileTotals && mobileTotals.display !== "none" && /ideal/i.test(mobileTotals.text) && /actual/i.test(mobileTotals.text) && /left|over|balanced/i.test(mobileTotals.text))
-    ? ok("320px: consolidated totals and balances remain visible")
+  (mobileTotals && mobileTotals.display !== "none" && /ideal/i.test(mobileTotals.text) && /actual/i.test(mobileTotals.text) && !/left|over|balanced/i.test(mobileTotals.text))
+    ? ok("320px: ideal and actual totals remain visible without balance copy")
     : fail(`320px totals: ${JSON.stringify(mobileTotals)}`);
   await page.screenshot({ path: path.join(SHOTS, "08-worksheet-320.png"), fullPage: true });
   ok("screenshot: 08-worksheet-320.png");

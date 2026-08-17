@@ -11,10 +11,9 @@ const check = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-try {
+  try {
   await page.goto(url, { waitUntil: "networkidle" });
   if (await page.locator("#whatIs").isVisible()) await page.locator("#whatIs button[data-close]").first().click();
-  await page.locator("#categoryViewAll").click();
 
   const overview = await page.evaluate(() => {
     const rows = [...document.querySelectorAll("#auditBody tr")];
@@ -32,6 +31,11 @@ try {
       chartLabel: document.querySelector("#worksheetDonutBtn")?.getAttribute("aria-label"),
       toggleParent: document.querySelector("#categoryViewAll")?.closest(".worksheet-toolbar")?.className,
       chartParent: document.querySelector("#worksheetDonutBtn")?.closest(".masthead-stats")?.id,
+      categoryCells: document.querySelectorAll("#auditBody td.col-cat").length,
+      categorySelectors: document.querySelectorAll("#auditBody td.col-cat [data-select-row]").length,
+      firstCategorySpan: Number(document.querySelector("#auditBody td.col-cat")?.getAttribute("rowspan")),
+      firstSubcategoryLabel: document.querySelector("#auditBody tr [data-select-row]")?.getAttribute("aria-label"),
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     };
   });
   check(overview.mode === "all", `expected all mode, got ${overview.mode}`);
@@ -40,6 +44,11 @@ try {
   check(overview.chartLabel?.includes("Expand"), "worksheet donut has no accessible expand action");
   check(overview.toggleParent?.includes("worksheet-toolbar"), "category view toggle is outside the row-action toolbar");
   check(overview.chartParent === "stats", "allocation donut is outside the weekly summary");
+  check(overview.categoryCells === overview.categoryStarts, "category labels do not map one-to-one to category groups");
+  check(overview.categorySelectors === 0, "category panel duplicates the subcategory selection control");
+  check(overview.firstCategorySpan > 1, "first category panel does not visually span its child rows");
+  check(overview.firstSubcategoryLabel === "Select Mandatory Work", `first child selector is mislabeled: ${overview.firstSubcategoryLabel}`);
+  check(overview.overflow <= 1, `All view overflows horizontally by ${overview.overflow}px`);
   check(
     overview.download[0] === overview.help[0] && overview.download[1] === overview.help[1],
     `download control ${overview.download} does not match help ${overview.help}`,

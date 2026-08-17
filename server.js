@@ -85,17 +85,9 @@ function buildPage(nonce) {
   <header class="masthead">
     <div class="masthead-row">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
-            <line x1="12" y1="3" x2="12" y2="5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="12" y1="12" x2="16.5" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-          </svg>
-        </span>
+        <span class="brand-mark" aria-hidden="true">168</span>
         <div class="brand-titles">
-          <h1 class="brand-title">168 &mdash; Audit Your Week</h1>
+          <h1 class="brand-title">Audit your week</h1>
         </div>
       </div>
       <div class="masthead-actions">
@@ -796,8 +788,15 @@ table.audit tbody tr.selected td { color: var(--ink); }
 .bulk-bar-actions button:hover { color: var(--ink); background: var(--paper-soft); }
 .bulk-bar-actions button:disabled { opacity:.42; cursor:not-allowed; background:transparent; }
 .row-title-line { display:flex; align-items:center; gap:var(--space-1); min-width:0; }
+.category-color-key { width:.65rem; height:.65rem; margin-left:auto; flex:0 0 .65rem; border-radius:2px; background:var(--category-color); }
+.category-panel { display:flex; flex-direction:column; gap:0; min-width:0; }
+.category-panel-head { display:flex; align-items:center; gap:var(--space-1); min-width:0; }
+.category-label {
+  color:var(--ink-faint); font:600 var(--text-meta)/var(--leading-ui) var(--sans);
+  letter-spacing:.04em; text-transform:uppercase;
+}
+.category-count { margin-left:auto; color:var(--ink-faint); font:400 var(--text-meta)/var(--leading-ui) var(--sans); }
 .row-controls-sub { display:contents; }
-.cat-start .row-controls-sub .row-select-btn { display:none; }
 .row-select-btn,
 .row-reorder-btn {
   width:2.75rem; height:2.75rem; flex:0 0 2.75rem; display:grid; place-items:center;
@@ -814,6 +813,7 @@ table.audit tbody tr.selected td { color: var(--ink); }
 .row-reorder-btn[aria-grabbed="true"] { color:var(--accent); background:var(--accent-soft); cursor:grabbing; }
 .row-reorder-btn[draggable="true"] { cursor:grab; touch-action:none; }
 .row-reorder-btn[draggable="true"]:active { cursor:grabbing; }
+tr.reorder-drop-target { background:var(--accent-soft); outline:2px solid var(--accent); outline-offset:-2px; }
 .reorder-live { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 @keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-rise { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
@@ -1037,7 +1037,7 @@ main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-5) va
   background:transparent; color:var(--ink-soft); cursor:pointer; font:500 .82rem var(--sans);
 }
 .category-view-toggle button.active { background:var(--paper-raised); color:var(--ink); box-shadow:inset 0 0 0 1px var(--rule); }
-.distribution-panel { max-width:44rem; }
+.distribution-panel { max-width:44rem; max-height:none; overflow:visible; }
 .distribution-layout { display:grid; grid-template-columns:minmax(13rem,.8fr) minmax(14rem,1.2fr); gap:var(--space-6); align-items:center; }
 .distribution-layout .donut { width:min(18rem, 100%); height:auto; margin:auto; }
 .distribution-layout .legend { margin:0; }
@@ -1091,7 +1091,7 @@ main { max-width: var(--content-max); margin: 0 auto; padding: var(--space-5) va
 .mode-123 { font-variant-numeric:tabular-nums; letter-spacing:-.05em; }
 .mode-slider { font-size:1.15rem; }
 
-.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-wrap { overflow-x: clip; }
 table.audit {
   width: 100%;
   border-collapse: separate;
@@ -1118,14 +1118,14 @@ table.audit th {
 }
 table.audit th.col-num { text-align: right; }
 table.audit td {
-  padding: 0.38rem 0.9rem;
+  padding: var(--space-1) var(--space-3);
   border-bottom: 1px solid var(--rule-soft);
   vertical-align: middle;
 }
 table.audit tbody tr:last-child td { border-bottom: 0; }
 table.audit tbody tr.cat-start:not(.cat-start-first) td {
   border-top: 2px solid var(--rule);
-  padding-top: 0.85rem;
+  padding-top: var(--space-2);
 }
 table.audit tbody tr.cat-start td.col-cat { color: var(--ink); }
 table.audit tbody tr.cat-start td.col-cat .cell-input.cell-cat { font-weight: 600; }
@@ -1138,13 +1138,11 @@ table.audit td.col-cat {
   width: 15.5rem;
   min-width: 15.5rem;
   max-width: 15.5rem;
+  padding:var(--space-2) var(--space-3);
+  vertical-align:top;
+  background:color-mix(in srgb, var(--category-color, var(--accent)) 7%, var(--paper));
 }
-table.audit tbody tr.cat-start td.col-cat { position:relative; padding-left:.65rem; }
-table.audit tbody tr.cat-start td.col-cat::before {
-  content:""; position:absolute; left:.15rem; top:50%; width:.42rem; height:.42rem;
-  border-radius:50%; background:var(--category-color, var(--accent)); transform:translateY(-50%);
-}
-table.audit td.col-cat.cat-merged { color: transparent; user-select: none; }
+table.audit tbody tr.cat-start td.col-cat { border-right:1px solid var(--category-color, var(--accent)); }
 table.audit td.col-sub { color: var(--ink-soft); font-size: 0.92rem; min-width: 10rem; }
 table.audit td.col-num { text-align: right; width: 13rem; min-width: 13rem; }
 table.audit td.col-notes { min-width: 10rem; }
@@ -1152,7 +1150,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 .add-note-btn { display:none; }
 
 /* category text in editable cells inherits the bigger size */
-.cell-input.cell-cat { font-size: 1.02rem; font-weight: 600; letter-spacing: -0.015em; }
+.cell-input.cell-cat { font-size: 1.02rem; font-weight: 650; letter-spacing: -0.015em; padding-left:0; }
 .cell-input.cell-sub { font-size: 0.92rem; font-weight: 400; }
 
 /* number inputs */
@@ -1192,8 +1190,6 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 .cell-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; box-shadow:none; background: var(--paper); }
 .cell-input.cell-cat { color: var(--ink); }
 .cell-input.cell-sub { color: var(--ink-soft); }
-.cell-input.cell-cat-merged { color: transparent; }
-.cell-input.cell-cat-merged:hover, .cell-input.cell-cat-merged:focus-visible { color: var(--ink); }
 
 /* slider input mode — fixed width in dashboard rows so the column doesn't reflow */
 .range-cell {
@@ -1965,7 +1961,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   .plan-stage-toggle button { flex: 1; min-height: 2.75rem; padding: 0 0.45rem; }
   .mobile-category-nav {
     display: grid; grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem; gap: 0.5rem;
-    align-items: end; margin-bottom: 0; order: 2;
+    align-items: end; margin-bottom: 0; order: 5; flex:1 1 100%;
   }
   .mobile-category-nav[hidden] { display:none; }
   .mobile-category-nav button {
@@ -1978,8 +1974,8 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   }
   .mobile-category-nav select {
     width: 100%; height: 2.75rem; padding: 0 0.65rem;
-    border: 1px solid var(--rule); border-radius: 6px;
-    background: var(--paper-raised); color: var(--ink);
+    border: 1px solid var(--rule); border-radius:var(--radius-control);
+    background: var(--paper-raised); color: var(--ink); font:500 var(--text-ui)/var(--leading-ui) var(--sans);
   }
   #auditBody tr.mobile-category-hidden { display: none; }
   .worksheet-icon-actions { margin-left: auto; }
@@ -2004,7 +2000,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
     border-radius: 0;
     box-shadow: none;
     border-bottom:1px solid var(--rule-soft);
-    padding: 0.48rem 0.25rem;
+    padding: var(--space-1) 0;
     margin-bottom: 0;
     position: relative;
   }
@@ -2016,11 +2012,11 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   table.audit tbody tr.cat-start td,
   table.audit tbody tr.cat-start:not(.cat-start-first) td {
     border-top: 0;
-    padding-top: 0.25rem;
+    padding-top: var(--space-1);
   }
   table.audit td {
     border-bottom: 0;
-    padding: 0.25rem 0;
+    padding: var(--space-1) 0;
     text-align: left;
   }
   table.audit td::before {
@@ -2033,24 +2029,25 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
     color: var(--ink-faint);
     margin-bottom: 0.18rem;
   }
-  table.audit td.col-cat.cat-merged { display: none; }
   table.audit tbody tr { display:grid; grid-template-columns:minmax(0,1fr) 6.5rem 2.75rem; column-gap:.5rem; align-items:center; }
   table.audit tbody tr.selected { box-shadow:inset 3px 0 0 var(--accent); }
   table.audit td.col-cat { display:none; }
-  #view-worksheet[data-category-view="all"] table.audit tr.cat-start { margin-top:var(--space-4); }
+  #view-worksheet[data-category-view="all"] table.audit tr.cat-start { margin-top:var(--space-3); }
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start-first { margin-top:0; }
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-cat {
-    display:block; grid-column:1 / -1; grid-row:1; width:100%; max-width:none; padding:.25rem .25rem .45rem 1.2rem;
+    display:block; grid-column:1 / -1; grid-row:1; width:100%; max-width:none;
+    padding:var(--space-2); margin-bottom:var(--space-1); border:0;
+    border-radius:var(--radius-control); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--category-color) 34%, var(--rule));
   }
-  #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-cat::before { left:.25rem; }
+  #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-cat::before { display:none; }
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-sub,
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-num,
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-del { grid-row:2; }
   #view-worksheet[data-category-view="all"] table.audit tr.cat-start td.col-notes { grid-row:3; }
   table.audit td.col-sub { grid-column:1; grid-row:1; min-width:0; padding-right:0; }
-  table.audit td.col-sub .cell-input { padding: 0.22rem 0.25rem; font-size: 1rem; color: var(--ink); }
+  table.audit td.col-sub .cell-input { padding:var(--space-1); font-size:1rem; color:var(--ink); }
+  #view-worksheet[data-category-view="all"] table.audit td.col-sub { padding-left:var(--space-2); }
   table.audit .row-title-line { gap:0; }
-  #view-worksheet[data-category-view="focus"] table.audit tr.cat-start .row-controls-sub .row-select-btn { display:grid; }
   table.audit .row-select-btn,
   table.audit .row-reorder-btn { width:2.75rem; height:2.75rem; flex-basis:2.75rem; }
   table.audit td.col-num { grid-column:2; grid-row:1; width:auto; min-width:6.5rem; }
@@ -2295,7 +2292,7 @@ function getJS() {
   })();
   let mobileCategory = null;
   let categoryView = (function() {
-    try { return localStorage.getItem("168-audit:category-view") || (matchMedia("(max-width: 720px)").matches ? "focus" : "all"); }
+    try { return localStorage.getItem("168-audit:category-view") || "all"; }
     catch(e) { return "all"; }
   })();
   let selectedRows = new Set(); // row indices currently selected (for bulk actions)
@@ -2608,16 +2605,13 @@ function getJS() {
     const distribution = worksheetDistribution();
     const chartLabel = distribution.field === "actual" ? "Actual week" : "Ideal week";
     const summaryInner =
-      '<span class="stat"><span class="stat-label">Ideal week</span><span class="stat-value"><strong class="' + idealClass + '">' + fmtH(ideal) + 'h</strong><span class="stat-detail">' + statDetail(ideal) + '</span></span></span>' +
-      '<span class="stat"><span class="stat-label">Actual week</span><span class="stat-value"><strong class="' + actualClass + '">' + fmtH(actual) + 'h</strong><span class="stat-detail">' + statDetail(actual) + '</span></span></span>' +
-      '<span class="stat"><span class="stat-label">Weekly total</span><span class="stat-value"><strong>' + TARGET + 'h</strong></span></span>';
+      '<span class="stat"><span class="stat-label">Ideal week</span><span class="stat-value"><strong class="' + idealClass + '">' + fmtH(ideal) + 'h</strong></span></span>' +
+      '<span class="stat"><span class="stat-label">Actual week</span><span class="stat-value"><strong class="' + actualClass + '">' + fmtH(actual) + 'h</strong></span></span>';
     statsEl.innerHTML =
-      '<span class="stat"><span class="stat-label">Ideal week</span><span class="stat-value"><strong class="' + idealClass + '">' + fmtH(ideal) + 'h</strong><span class="stat-detail">' + statDetail(ideal) + '</span></span></span>' +
-      '<span class="stat"><span class="stat-label">Actual week</span><span class="stat-value"><strong class="' + actualClass + '">' + fmtH(actual) + 'h</strong><span class="stat-detail">' + statDetail(actual) + '</span></span></span>' +
-      '<span class="stat stat-total"><span><span class="stat-label">Weekly total</span><span class="stat-value"><strong>' + TARGET + 'h</strong></span></span>' +
-        '<button type="button" class="stats-donut-btn" id="worksheetDonutBtn" aria-label="Expand ' + chartLabel.toLowerCase() + ' allocation chart" title="View ' + chartLabel.toLowerCase() + ' allocation">' +
-          '<span class="worksheet-donut-content" aria-hidden="true">' + worksheetDonutMarkup(distribution) + '</span>' +
-        '</button></span>';
+      summaryInner +
+      '<button type="button" class="stats-donut-btn" id="worksheetDonutBtn" aria-label="Expand ' + chartLabel.toLowerCase() + ' allocation chart" title="View ' + chartLabel.toLowerCase() + ' allocation">' +
+        '<span class="worksheet-donut-content" aria-hidden="true">' + worksheetDonutMarkup(distribution) + '</span>' +
+      '</button>';
     const chartButton = document.getElementById("worksheetDonutBtn");
     if (chartButton) chartButton.addEventListener("click", openDistributionDialog);
     const sticky = document.getElementById("statsStickyRow");
@@ -2676,13 +2670,13 @@ function getJS() {
         '<button type="button" data-plan-stage="both"' + (planStage === "both" ? ' class="active"' : '') + '>Both</button>' +
       '</div></div>';
 
-    html += '<div class="mobile-category-nav"' + (categoryView === "all" ? ' hidden' : '') + '><button type="button" id="prevCategory" aria-label="Previous category"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="m12.5 5-5 5 5 5"/></svg></button>' +
+    let categoryPicker = '<div class="mobile-category-nav"' + (categoryView === "all" ? ' hidden' : '') + '><button type="button" id="prevCategory" aria-label="Previous category"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="m12.5 5-5 5 5 5"/></svg></button>' +
       '<label><span class="sr-only">Category</span><select id="mobileCategory">';
     categories.forEach(function(cat, index) {
-      html += '<option value="' + escAttr(cat) + '"' + (mobileCategory === cat ? " selected" : "") + '>' +
+      categoryPicker += '<option value="' + escAttr(cat) + '"' + (mobileCategory === cat ? " selected" : "") + '>' +
         (index + 1) + ' of ' + categories.length + ' · ' + escHtml(cat) + '</option>';
     });
-    html += '<option value="all"' + (mobileCategory === "all" ? " selected" : "") + '>All categories</option></select></label>' +
+    categoryPicker += '</select></label>' +
       '<button type="button" id="nextCategory" aria-label="Next category"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="m7.5 5 5 5-5 5"/></svg></button></div>';
 
     html += '<div class="worksheet-toolbar">' +
@@ -2693,6 +2687,7 @@ function getJS() {
         '<button type="button" id="categoryViewFocus"' + (categoryView === "focus" ? ' class="active" aria-pressed="true"' : ' aria-pressed="false"') + '>Focus</button>' +
         '<button type="button" id="categoryViewAll"' + (categoryView === "all" ? ' class="active" aria-pressed="true"' : ' aria-pressed="false"') + '>All</button>' +
       '</div>' +
+      categoryPicker +
       '<div class="worksheet-icon-actions">' +
         '<button class="toolbar-icon-btn" id="snapshotBtn" type="button" title="Save snapshot" aria-label="Save snapshot"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="M4 5.5h12v10H4zM6.5 3.5h7v2M7 9h6m-6 3h4"/></svg></button>' +
         '<button class="toolbar-icon-btn input-mode-btn active" id="inputModeBtn" data-mode="' + (inputMode === "numbers" ? "sliders" : "numbers") + '" type="button" title="Switch to ' + (inputMode === "numbers" ? "sliders" : "numbers") + '" aria-label="Input mode: ' + inputMode + '. Switch to ' + (inputMode === "numbers" ? "sliders" : "numbers") + '">' +
@@ -2735,7 +2730,7 @@ function getJS() {
       const rowName = catStart ? row.category : row.sub;
       const titleWidth = Math.min(24, Math.max(5, String(rowName || "").length + 2));
       const selectControl =
-        '<button type="button" class="row-select-btn" data-select-row="' + i + '" aria-pressed="' + (selectedRows.has(i) ? "true" : "false") + '" aria-label="Select ' + escAttr(rowName || "row") + '">' +
+        '<button type="button" class="row-select-btn" data-select-row="' + i + '" aria-pressed="' + (selectedRows.has(i) ? "true" : "false") + '" aria-label="Select ' + escAttr(row.sub || "subcategory") + '">' +
           '<svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5"/><path class="select-check" d="m6.8 10 2 2.1 4.5-4.5"/></svg></button>';
       const reorderControl = function(kind, label) {
         const position = kind === "category"
@@ -2747,12 +2742,18 @@ function getJS() {
         return '<button type="button" class="row-reorder-btn" data-reorder-row="' + i + '" data-reorder-kind="' + kind + '" draggable="true" aria-grabbed="false" aria-label="Reorder ' + escAttr(label || "row") + ', position ' + position + ' of ' + count + '" title="Drag to reorder. Keyboard: Enter, then arrow keys.">' +
           '<svg class="ui-icon" aria-hidden="true" viewBox="0 0 20 20"><path d="M7 5h6M7 10h6M7 15h6"/></svg></button>';
       };
+      const categorySize = catStart ? rows.filter(function(item) { return item.category === row.category; }).length : 0;
       html += '<tr data-idx="' + i + '" data-category="' + escAttr(row.category) + '" style="--category-color:' + colorFor(row.category, categories) + '"' + (classes.length ? ' class="' + classes.join(" ") + '"' : '') + '>' +
-        '<td class="col-cat' + (merged ? ' cat-merged' : '') + '" data-label="Category">' +
-          (catStart ? '<div class="row-title-line">' + selectControl + reorderControl("category", row.category) : '') +
-          '<input type="text" class="cell-input cell-cat' + (merged ? ' cell-cat-merged' : '') + '" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category" style="--field-width:' + titleWidth + 'ch">' +
-          (catStart ? '</div>' : '') +
-        '</td>' +
+        (catStart ? '<td class="col-cat" data-label="Category" rowspan="' + categorySize + '">' +
+          '<div class="category-panel"><div class="category-panel-head">' +
+            '<span class="category-label">Category</span>' +
+            '<span class="category-count">' + categorySize + ' subcategor' + (categorySize === 1 ? 'y' : 'ies') + '</span>' +
+            '<span class="category-color-key" aria-hidden="true"></span>' +
+          '</div>' +
+          '<div class="category-panel-head">' + reorderControl("category", row.category) +
+            '<input type="text" class="cell-input cell-cat" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category name" style="--field-width:' + titleWidth + 'ch">' +
+          '</div></div>' +
+        '</td>' : '') +
         '<td class="col-sub" data-label="Sub-category">' +
           '<div class="row-title-line"><span class="row-controls-sub">' + selectControl + reorderControl("subcategory", row.sub) + '</span>' +
             '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" aria-label="Sub-category" style="--field-width:' + Math.min(30, Math.max(8, String(row.sub || "").length + 2)) + 'ch">' +
@@ -3017,7 +3018,8 @@ function getJS() {
         const distance = Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY);
         if (distance < 8) return;
         event.preventDefault();
-        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-reorder-kind="' + pointerDrag.kind + '"]');
+        const targetRow = document.elementFromPoint(event.clientX, event.clientY)?.closest('tr[data-idx]');
+        const target = targetRow?.querySelector('[data-reorder-kind="' + pointerDrag.kind + '"]');
         if (target) pointerDrag.target = target;
       });
       handle.addEventListener("pointerup", function(event) {
@@ -3045,6 +3047,7 @@ function getJS() {
       });
       handle.addEventListener("drop", function(event) {
         event.preventDefault();
+        event.stopPropagation();
         const sourceIndex = rows.indexOf(dragSourceRow.row);
         const targetIndex = +this.dataset.reorderRow;
         const row = dragSourceRow.row;
@@ -3116,6 +3119,34 @@ function getJS() {
           });
         }
       });
+    });
+    const body = container.querySelector("#auditBody");
+    body.addEventListener("dragover", function(event) {
+      if (!dragSourceRow) return;
+      const target = event.target.closest("tr[data-idx]");
+      if (!target) return;
+      event.preventDefault();
+      body.querySelectorAll(".reorder-drop-target").forEach(function(row) { row.classList.remove("reorder-drop-target"); });
+      target.classList.add("reorder-drop-target");
+    });
+    body.addEventListener("dragleave", function(event) {
+      const target = event.target.closest("tr[data-idx]");
+      if (target) target.classList.remove("reorder-drop-target");
+    });
+    body.addEventListener("drop", function(event) {
+      if (!dragSourceRow) return;
+      event.preventDefault();
+      const target = event.target.closest("tr[data-idx]");
+      body.querySelectorAll(".reorder-drop-target").forEach(function(row) { row.classList.remove("reorder-drop-target"); });
+      if (!target) return;
+      const sourceIndex = rows.indexOf(dragSourceRow.row);
+      const targetIndex = +target.dataset.idx;
+      const row = dragSourceRow.row;
+      const kind = dragSourceRow.kind;
+      dragSourceRow = null;
+      const nextIndex = moveRowTo(sourceIndex, targetIndex, kind);
+      if (nextIndex !== sourceIndex) finishReorder(row, kind);
+      else announceReorder(kind === "subcategory" ? "Subcategories stay within their category." : "That category is already in this position.");
     });
   }
 
