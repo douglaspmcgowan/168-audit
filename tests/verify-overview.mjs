@@ -219,6 +219,100 @@ const check = (condition, message) => {
   const axe = await new AxeBuilder({ page }).include("#view-worksheet").analyze();
   check(axe.violations.length === 0, `axe violations: ${axe.violations.map((item) => item.id).join(", ")}`);
   check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "375px overview overflows");
+
+  const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await desktopContext.addInitScript(() => {
+    localStorage.setItem("168-audit:intro-seen-v2", "1");
+    localStorage.setItem("168-audit:category-view", "all");
+  });
+  const desktopPage = await desktopContext.newPage();
+  await desktopPage.goto(url, { waitUntil: "networkidle" });
+  await desktopPage.locator("#categoryViewFocus").click();
+  const desktopFocus = await desktopPage.evaluate(() => {
+    const rows = [...document.querySelectorAll("#auditBody tr")];
+    const picker = document.querySelector(".mobile-category-nav");
+    return {
+      mode: document.querySelector("#view-worksheet")?.dataset.categoryView,
+      pickerVisible: picker && getComputedStyle(picker).display !== "none" && !picker.hidden,
+      selected: document.querySelector("#mobileCategory")?.value,
+      visibleRows: rows.filter((row) => getComputedStyle(row).display !== "none").length,
+      totalRows: rows.length,
+    };
+  });
+  check(desktopFocus.mode === "focus", `desktop Focus did not set mode: ${JSON.stringify(desktopFocus)}`);
+  check(desktopFocus.pickerVisible, `desktop Focus hides its category picker: ${JSON.stringify(desktopFocus)}`);
+  check(
+    desktopFocus.selected && desktopFocus.visibleRows > 0 && desktopFocus.visibleRows < desktopFocus.totalRows,
+    `desktop Focus leaves every category visible: ${JSON.stringify(desktopFocus)}`,
+  );
+  const toggleTypography = await desktopPage.locator(
+    ".plan-stage-toggle button, .category-view-toggle button",
+  ).evaluateAll((elements) => elements.map((element) => {
+    const style = getComputedStyle(element);
+    return { label: element.textContent.trim(), fontSize: parseFloat(style.fontSize), lineHeight: parseFloat(style.lineHeight) };
+  }));
+  check(
+    toggleTypography.every(({ fontSize, lineHeight }) => Math.abs(fontSize - 14) < 0.1 && Math.abs(lineHeight - 19.6) < 0.1),
+    `toggle groups diverge from UI typography tokens: ${JSON.stringify(toggleTypography)}`,
+  );
+  const desktopRowTargets = await desktopPage.locator(
+    "#auditBody .num-input:visible, #auditBody .notes-input:visible, #auditBody .del-btn:visible",
+  ).evaluateAll((elements) => elements.map((element) => {
+    const rect = element.getBoundingClientRect();
+    return { type: element.className, width: rect.width, height: rect.height };
+  }));
+  check(
+    desktopRowTargets.every(({ width, height }) => width >= 44 && height >= 44),
+    `desktop worksheet controls miss 44px: ${JSON.stringify(desktopRowTargets.filter(({ width, height }) => width < 44 || height < 44))}`,
+  );
+  await desktopContext.close();
+
+  const responsiveContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await responsiveContext.addInitScript(() => {
+    localStorage.setItem("168-audit:intro-seen-v2", "1");
+    localStorage.setItem("168-audit:category-view", "all");
+  });
+  const responsivePage = await responsiveContext.newPage();
+  await responsivePage.goto(url, { waitUntil: "networkidle" });
+  for (const width of [390, 320]) {
+    await responsivePage.setViewportSize({ width, height: 844 });
+    const subcategoryWidth = await responsivePage.locator("#auditBody tr").first().locator(".cell-sub").evaluate((element) =>
+      Math.round(element.getBoundingClientRect().width),
+    );
+    check(subcategoryWidth >= 120, `${width}px subcategory name collapses to ${subcategoryWidth}px`);
+  }
+  await responsivePage.locator("#exportTrigger").click();
+  const compactTargets = await responsivePage.locator(
+    "#categoryViewFocus, #categoryViewAll, #auditBody .cell-sub:visible, .data-menu-action, .data-menu-footer .text-action",
+  ).evaluateAll((elements) => elements.map((element) => {
+    const rect = element.getBoundingClientRect();
+    return { label: element.id || element.getAttribute("aria-label") || element.textContent.trim(), width: rect.width, height: rect.height };
+  }));
+  check(
+    compactTargets.every(({ width, height }) => width >= 44 && height >= 44),
+    `interactive controls miss 44px: ${JSON.stringify(compactTargets.filter(({ width, height }) => width < 44 || height < 44))}`,
+  );
+  await responsiveContext.close();
+
+  const tabletContext = await browser.newContext({ viewport: { width: 768, height: 1024 } });
+  await tabletContext.addInitScript(() => {
+    localStorage.setItem("168-audit:intro-seen-v2", "1");
+    localStorage.setItem("168-audit:category-view", "all");
+  });
+  const tabletPage = await tabletContext.newPage();
+  await tabletPage.goto(url, { waitUntil: "networkidle" });
+  const tabletControls = await tabletPage.locator("#auditBody .del-btn:visible").evaluateAll((elements) => ({
+    viewport: document.documentElement.clientWidth,
+    bounds: elements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { left: rect.left, right: rect.right };
+    }),
+  }));
+  check(
+    tabletControls.bounds.length > 0 && tabletControls.bounds.every(({ left, right }) => left >= 0 && right <= tabletControls.viewport),
+    `768px clips rightmost row controls: ${JSON.stringify(tabletControls)}`,
+  );
+  await tabletContext.close();
 } finally {
   await browser.close();
 }

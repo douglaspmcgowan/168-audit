@@ -2,11 +2,11 @@
 
 ## Goal
 
-Record the active outcome when work begins.
+Ship the verified All-view hierarchy and align its design-language documentation with the deployed application.
 
 ## Active
 
-<!-- Move the item currently being worked here. -->
+- [~] Review and reconcile `DESIGN.md` and `MAP.md`, then commit, push, deploy, and verify production.
 
 ## Queue
 
@@ -22,11 +22,12 @@ Record the active outcome when work begins.
 
 ## Completed
 
-<!-- Keep only current completion evidence here; durable history belongs in LOG.md. -->
+- [x] Confirmed `origin/main` at `94c0703` already contains the All-default hierarchy, compact spacing, selection semantics, and browser regression updates.
+- [x] Applied read-only Modernize and Design Review passes; adoption findings remain outside this release.
 
 ## Verification
 
-- Next: record the exact command or observable proof when work begins.
+- Next: start the app on a clean port; run `npm.cmd run test:overview -- http://localhost:<port>`, `node tests/verify-live.mjs http://localhost:<port>`, and every remaining command in `VERIFY.md`; then push and verify `https://168-audit.vercel.app/` against the pushed commit.
 
 <!--
 Markers use a space for queued work, a tilde for active work, x for complete,

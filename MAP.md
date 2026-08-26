@@ -7,12 +7,10 @@
 | `AGENTS.md` | Agents and humans | Every repository session | Portable project contract |
 | `CLAUDE.md` | Claude adapter | Every Claude repository session | Imports `AGENTS.md` |
 | `.cursor/rules/00-project-contract.mdc` | Cursor adapter | Every Cursor repository session | Requires `AGENTS.md` |
-| `CURRENT-TASK.md` | Agents and humans | Start, resume, handoff | Active goal, progress, exact next verifier |
-| `WORK_QUEUE.md` | Agents and harness | Multi-step work | Actionable checkbox state |
-| `STATUS.md` | Agents and humans | Start, resume, milestone | Durable project state |
+| `TASK.md` | Agents and humans | Start, resume, handoff | Active goal, queue, blockers, evidence, and next verifier |
 | `LOG.md` | Agents and humans | Recent history, handoff | Append-only work record |
 | `BACKBURNER.md` | Humans and agents | Planning | Parked backlog |
-| `VERIFY.md` | Agents and CI | Before completion | Required evidence and commands |
+| `VERIFY.md` | Agents and CI | Before completion | Required evidence and executable verification commands |
 | `MAP.md` | Agents and humans | Orientation | This document graph and project navigation |
 | `DESIGN.md` | Agents and humans | Feature and architecture work | Goals, constraints, decisions |
 | `MEMORY.md` | Agents | Recall | Lean links to durable topic notes |
@@ -25,32 +23,45 @@
 
 | Component | Purpose | Entry point | Owner |
 |---|---|---|---|
-| `<component>` | `<purpose>` | `<path or command>` | `<owner>` |
+| Express application | Serves the app shell, health check, favicon, and browser Supabase bundle | `server.js`; `npm start` | `server.js` |
+| Worksheet data | Supplies the default categories, reference copy, reflection prompts, target hours, and slider defaults | `data/categories.js` | `data/categories.js` |
+| Browser interface | Implements Plan, Compare, Reflect, History, Center, local persistence, export, and responsive behavior | `GET *` in `server.js` | `server.js`; design contract in `DESIGN.md` |
+| Cloud schema | Defines optional multi-user storage, authorization, sharing, and conflict behavior | `supabase/migrations/` | Supabase migrations and `supabase/tests/rls_contract.sql` |
+| Browser verification | Exercises the assembled interface, All/Focus hierarchy, cloud UI, accessibility, and responsive containment | `npm run test:local`; `npm run test:overview` | `tests/verify-*.mjs` |
 
 ## Important paths
 
 | Path | Purpose | Generated | Committed |
 |---|---|---|---|
-| `<path>` | `<purpose>` | `<yes/no>` | `<yes/no>` |
+| `server.js` | Express entry point and single-page application source | no | yes |
+| `data/categories.js` | Default worksheet and reference content | no | yes |
+| `DESIGN.md` | Current interface language and route-specific rules | no | yes |
+| `VERIFY.md` | Release and completion evidence contract | no | yes |
+| `tests/verify-overview.mjs` | Focused All/Focus hierarchy and reordering browser contract | no | yes |
+| `tests/verify-live.mjs` | Full local browser regression | no | yes |
+| `supabase/migrations/` | Versioned optional cloud schema | no | yes |
+| `vercel.json` | Routes the hosted application to `server.js` | no | yes |
 
 ## Data flow
 
-Describe inputs, transformations, stores, outputs, and trust-boundary crossings.
+`data/categories.js` seeds worksheet rows rendered by `server.js`. Browser edits persist in local storage. Optional authenticated cloud actions cross the Supabase boundary for week sync, group membership, invitations, and explicit sharing. Export and share actions produce user-controlled files or links from the active browser state.
 
 ## Integrations
 
 | System | Direction | Authentication name | Failure behavior |
 |---|---|---|---|
-| `<system>` | `<in/out/both>` | `<manifest name only>` | `<behavior>` |
+| Supabase | both | `SUPABASE_URL`; `SUPABASE_PUBLISHABLE_KEY` | Cloud features stay disabled when configuration is absent; local schedules remain available |
+| Vercel | out | deployment configuration | `vercel.json` routes all hosted requests to the Express entry point |
 
 ## Ownership and concurrency
 
-Record component owners, shared mutable resources, worktree constraints, ports, test databases, and deployment targets.
+`server.js` owns the application and interface implementation; `DESIGN.md` owns its design language; `tests/` owns executable behavioral evidence; `supabase/` owns cloud schema and authorization. Writable workstreams use isolated worktrees, ports, and test resources. `main` and the production deployment remain serial integration targets.
 
 ## State
 
-- The professional guided-audit redesign is implemented on branch `codex/168-audit-redesign` in its isolated worktree; the original checkout, `main` branch, and production deployment remain unchanged; this branch is uncommitted and undeployed; the isolated `claude-personal` project is migrated and verified; the unrelated active Supabase project was left untouched.
+- `main` contains the guided-audit redesign and the default All-view hierarchy. Production deployment state is verified against the hosted application after each release.
 - Working capabilities:
+  - Plan defaults to the complete All view; tinted category panels span compact child rows, while Focus adds category navigation beside the view toggle.
   - Staged Plan workflow with a combined expert view.
   - Focused mobile category navigation.
   - Ranked Compare workflow with direct correction links.
@@ -73,7 +84,7 @@ Record component owners, shared mutable resources, worktree constraints, ports, 
   - Center member roster, manager removal, single-use invitation display, attributed full shared-week details, offline protection, and version-checked cloud saves.
   - Passing schema and configured-cloud contracts plus a 98-second Playwright matrix covering desktop, tablet, 375 px, 320 px, five tour aspect ratios, axe, recovery, malformed shares, and security headers.
   - A unified 20-pixel outline-SVG icon family across primary app controls; semantic control/surface/overlay radii; stable color/border hover states.
-  - Mobile Plan uses one category selector as the group heading, compact divided worksheet rows, and a single aligned action rail.
+  - Mobile All uses full-width category headers above compact divided subcategory rows; Focus places category navigation beside the view toggle.
   - Help exposes one adaptive walkthrough action with optional Quick/Full tour choices under disclosure; repeated feedback and browser-storage copy were removed.
   - Full Center lifecycle UI: rename, promote/demote, transfer ownership, leave, delete, active invitation status/revocation, and one-session join links.
   - Filter-aware configured-cloud browser verification now exercises owner, admin, member, and outsider interfaces and exact role controls.
@@ -84,11 +95,11 @@ Record component owners, shared mutable resources, worktree constraints, ports, 
   - The responsive gate now also proves a 200% browser-zoom equivalent and 200% text-only zoom. The durable implementation plan has been reconciled with current source/test evidence.
   - `.env.example` documents the browser-safe and disposable live-verifier variable names using placeholders only.
   - Claude-to-Codex skill parity is complete in the shared `.agents\skills` catalog: Tactician and 33 other missing commands are ported, 23 missing skill packages are copied, and a repeatable parity checker reports zero gaps.
-  - The release UI pass removes the worksheet heading and duplicate total card, surfaces remaining/over hours in the masthead, combines desktop planning controls into one command bar, uses compact Data and "123" controls, and provides a consolidated source/feedback footer.
+  - The release UI pass removes the worksheet heading and duplicate total card, keeps concise Ideal and Actual totals in the masthead, combines desktop planning controls into one command bar, uses compact Data and "123" controls, and provides a consolidated source/feedback footer.
   - Feedback now opens an accessible in-app form, returns focus on close, builds a complete email handoff, and offers a clipboard fallback.
   - The final schema, configured-cloud owner/admin/member/outsider, Impeccable, and 95-second browser matrices pass across desktop, tablet, 375 px, 320 px, five tour aspect ratios, 200% zoom, axe, resilience, and hostile data.
   - The mobile masthead omits routine save copy; Data uses a 36px square visual with a 44px effective hit area; New category names its outcome; category navigation has no repeated heading; row controls align to one 44px rail; and the brand mark/title share an optical center.
-  - Masthead totals use three aligned semantic columns: Ideal week, Actual week, and Weekly total, with each balance directly attached to its value.
+  - Masthead totals use aligned Ideal week and Actual week columns beside the expandable allocation chart.
   - The assembled browser suite completes all 20 rows in both ideal and actual weeks to exactly 168 hours, persists two notes, proves number and slider modes, opens Compare, and verifies the completed audit after reload.
   - Configured-cloud coverage opens a populated same-group member week and verifies its category, subcategory, ideal hours, actual hours, and notes.
   - The isolated live Supabase project passes six-person authorization coverage: private weeks, explicit sharing, cross-group denial, invitation edge cases and concurrency, direct-write attacks, role changes, ownership transfer, two-client conflicts, Auth-user and group cascades, and zero-residue cleanup.

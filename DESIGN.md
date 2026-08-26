@@ -170,7 +170,10 @@ An inner element never has a larger radius than its containing surface.
 ## Route rules
 
 - Plan: wide worksheet, one stage title, stage selector, compact actions, clear totals.
-- Plan category manager: Focus and All-category views share one data model; category colors link group headings to the live allocation donut and expanded legend.
+- Plan category manager: All is the initial view when no preference is stored and presents the complete schedule. Focus preserves a locally stored preference and places its category picker directly after the All/Focus toggle.
+- In All, each category is a parent group spanning its child rows. The group panel carries the category label, child count, category reorder control, editable name, and a color key at the right edge. Each subcategory keeps its own selection, reorder, name, hours, notes, and removal controls.
+- Category groups use a tinted surface and stronger boundary; subcategories use quieter divided rows beneath that parent. Group separation exceeds spacing within a group.
+- Category colors link group headings to the live allocation donut and expanded legend. Text labels and totals preserve meaning without relying on color.
 - Compare: ranked differences first, totals adjacent to the heading, optional charts below disclosure.
 - Reflect: one question at a time, short progress label, prior answers and reference material under disclosure.
 - History: compact snapshot list with comparison and safe deletion.
@@ -179,7 +182,8 @@ An inner element never has a larger radius than its containing surface.
 ## Responsive behavior
 
 - Preserve the five destination labels down to 320px.
-- Plan changes from table to structured editing rows without horizontal page scrolling.
+- Plan changes from table to compact structured editing rows without horizontal page scrolling.
+- Mobile All promotes each category panel to a full-width header above its subcategories. Mobile Focus shows one category and its previous, next, and picker controls.
 - Analysis and reading routes become single-column layouts.
 - Center forms and member controls stack while identity text receives the flexible width.
 - Mobile chrome is compressed so the current task begins in the first viewport where practical.
