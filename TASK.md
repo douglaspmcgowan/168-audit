@@ -6,7 +6,7 @@ Ship the verified All-view hierarchy and align its design-language documentation
 
 ## Active
 
-- [~] Review and reconcile `DESIGN.md` and `MAP.md`, then commit, push, deploy, and verify production.
+<!-- Move the item currently being worked here. -->
 
 ## Queue
 
@@ -24,10 +24,12 @@ Ship the verified All-view hierarchy and align its design-language documentation
 
 - [x] Confirmed `origin/main` at `94c0703` already contains the All-default hierarchy, compact spacing, selection semantics, and browser regression updates.
 - [x] Applied read-only Modernize and Design Review passes; adoption findings remain outside this release.
+- [x] Fixed the review blockers for desktop Focus, narrow labels, 44px controls, tablet containment, and short-landscape tutorial geometry.
+- [x] Pushed `99e2235`, deployed Vercel production `dpl_EqQsLcaaootcUv5HNtstFW2d2WMU`, and passed the focused plus complete production browser suites.
 
 ## Verification
 
-- Next: start the app on a clean port; run `npm.cmd run test:overview -- http://localhost:<port>`, `node tests/verify-live.mjs http://localhost:<port>`, and every remaining command in `VERIFY.md`; then push and verify `https://168-audit.vercel.app/` against the pushed commit.
+- Evidence: `npm.cmd run test:overview -- https://168-audit.vercel.app` and `node tests/verify-live.mjs https://168-audit.vercel.app` both exited 0; the remaining non-credential checks in `VERIFY.md` passed.
 
 <!--
 Markers use a space for queued work, a tilde for active work, x for complete,
