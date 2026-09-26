@@ -5703,6 +5703,6 @@ function getJS() {
 `;
 }
 
-const server = app.listen(PORT, () => console.log("168-audit listening on :" + PORT));
+const server = app.listen(PORT, '127.0.0.1', () => console.log("168-audit listening on :" + PORT));
 
 module.exports = app;
