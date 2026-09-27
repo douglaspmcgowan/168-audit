@@ -19,14 +19,17 @@
     "test:local": "node tests/verify-live.mts http://localhost:3168"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4",
-    "express": "^4.21.2"
+    "@supabase/supabase-js": "2.57.4",
+    "express": "4.22.3"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.12.1",
-    "@types/express": "^5.0.5",
-    "@types/node": "^24.9.2",
-    "playwright": "^1.59.1",
-    "typescript": "^5.9.3"
+    "@axe-core/playwright": "4.12.1",
+    "@types/express": "5.0.5",
+    "@types/node": "24.9.2",
+    "playwright": "1.60.0",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "qs": "6.16.0"
   }
 }

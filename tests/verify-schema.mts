@@ -3,7 +3,7 @@ import fs from "node:fs";
 const migrationPath = "supabase/migrations/202607250001_multi_user_center.sql";
 const sql = fs.readFileSync(migrationPath, "utf8");
 const rlsContract = fs.readFileSync("supabase/tests/rls_contract.sql", "utf8");
-const liveVerifier = fs.readFileSync("tests/verify-supabase-live.mjs", "utf8");
+const liveVerifier = fs.readFileSync("tests/verify-supabase-live.mts", "utf8");
 const liveLauncher = fs.readFileSync("tests/run-supabase-live.ps1", "utf8");
 const failures = [];
 
@@ -52,7 +52,7 @@ const conflictSql = fs.readFileSync("supabase/migrations/202607260002_week_confl
 if (!/save_audit_week[\s\S]+errcode = 'PT409'/i.test(conflictSql)) {
   failures.push("conflict repair migration uses PT409");
 }
-const serverSource = fs.readFileSync("server.js", "utf8");
+const serverSource = fs.readFileSync("server.ts", "utf8");
 if (!/error\.code === "PT409"/.test(serverSource)) {
   failures.push("cloud error normalization recognizes PT409");
 }

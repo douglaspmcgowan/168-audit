@@ -18,10 +18,10 @@ const check = (condition, message) => {
   const overview = await page.evaluate(() => {
     const rows = [...document.querySelectorAll("#auditBody tr")];
     const categoryStarts = rows.filter((row) => row.classList.contains("cat-start"));
-    const download = document.querySelector("#exportTrigger").getBoundingClientRect();
-    const help = document.querySelector("#tourReplay").getBoundingClientRect();
+    const download = document.querySelector<HTMLElement>("#exportTrigger")!.getBoundingClientRect();
+    const help = document.querySelector<HTMLElement>("#tourReplay")!.getBoundingClientRect();
     return {
-      mode: document.querySelector("#view-worksheet")?.dataset.categoryView,
+      mode: document.querySelector<HTMLElement>("#view-worksheet")?.dataset.categoryView,
       visibleRows: rows.filter((row) => !row.classList.contains("mobile-category-hidden")).length,
       totalRows: rows.length,
       categoryStarts: categoryStarts.length,
@@ -66,7 +66,7 @@ const check = (condition, message) => {
   await firstCategoryInput.fill(originalCategory);
   await firstCategoryInput.press("Tab");
   const hoverBounds = await firstRow.evaluate((row) => {
-    const title = row.querySelector(".cell-cat").getBoundingClientRect();
+    const title = row.querySelector<HTMLElement>(".cell-cat")!.getBoundingClientRect();
     const rowRect = row.getBoundingClientRect();
     return { title: title.width, row: rowRect.width };
   });
@@ -232,9 +232,9 @@ const check = (condition, message) => {
     const rows = [...document.querySelectorAll("#auditBody tr")];
     const picker = document.querySelector(".mobile-category-nav");
     return {
-      mode: document.querySelector("#view-worksheet")?.dataset.categoryView,
+      mode: document.querySelector<HTMLElement>("#view-worksheet")?.dataset.categoryView,
       pickerVisible: picker && getComputedStyle(picker).display !== "none" && !picker.hidden,
-      selected: document.querySelector("#mobileCategory")?.value,
+      selected: document.querySelector<HTMLInputElement>("#mobileCategory")?.value,
       visibleRows: rows.filter((row) => getComputedStyle(row).display !== "none").length,
       totalRows: rows.length,
     };

@@ -1,10 +1,16 @@
 // Playwright end-to-end verification of 168-audit.
-// Run locally: node tests/verify-live.mjs              (defaults to http://localhost:3168)
-// Run live:    node tests/verify-live.mjs https://168-audit.vercel.app
+// Run locally: node tests/verify-live.mts              (defaults to http://localhost:3168)
+// Run live:    node tests/verify-live.mts https://168-audit.vercel.app
 import { chromium, devices } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
 import fs from "node:fs";
 import path from "node:path";
+
+// Type-only; erased by Node's type stripping. Declared so the settle-wait in the tour aspect-ratio
+// matrix does not add to the test-suite type-error count tracked in tsconfig.tests.json.
+declare global {
+  interface Window { __tourGeomLast?: string }
+}
 
 const URL = process.argv[2] || "http://localhost:3168";
 const SHOTS = path.resolve("tests/screenshots");
@@ -108,7 +114,7 @@ async function inspectDesktop(browser) {
   const maxes = await page.evaluate(() => {
     const rows = Array.from(document.querySelectorAll("#auditBody tr"));
     return rows.map(tr => {
-      const sub = tr.querySelector(".cell-sub")?.value || "";
+      const sub = tr.querySelector<HTMLInputElement>(".cell-sub")?.value || "";
       const range = tr.querySelector("input.range-input");
       return { sub, max: range ? +range.max : null };
     });
@@ -359,13 +365,24 @@ async function inspectDesktop(browser) {
   const totalTutSteps = parseInt(tut.count.split(" of ")[1] || "0");
   await page.click("#tourNext");
   await page.waitForTimeout(250);
+  // The spotlight deliberately does NOT transition position -- see the comment on `.tour-spotlight`
+  // in server.ts: an instant snap matches the tutorial's discrete-step model and avoids the
+  // tooltip-placement race a mid-transition measurement causes. The tooltip's easing belongs to its
+  // ENTRY (opacity 180ms / transform 220ms), not to a step change. This reads the declared computed
+  // transitions instead of sampling getAnimations() 250ms after a click, which raced the very 220ms
+  // duration it was trying to observe and asserted motion the product had deliberately removed.
   const tourMotion = await page.evaluate(() => ({
-    spotlight: document.getElementById("tourSpotlight").getAnimations().map(a => a.effect?.getTiming().duration),
-    tooltip: document.getElementById("tourTooltip").getAnimations().map(a => a.effect?.getTiming().duration),
+    spotlight: getComputedStyle(document.getElementById("tourSpotlight")).transition,
+    tooltip: getComputedStyle(document.getElementById("tourTooltip")).transition,
   }));
-  (tourMotion.spotlight.some(d => d >= 180 && d <= 350) && tourMotion.tooltip.some(d => d >= 150 && d <= 350))
-    ? ok(`tutorial step transition is eased: ${JSON.stringify(tourMotion)}`)
-    : fail(`tutorial step transition is abrupt: ${JSON.stringify(tourMotion)}`);
+  /\b(top|left|width|height)\b/.test(tourMotion.spotlight)
+    ? fail(`tutorial spotlight should snap, not animate position: ${tourMotion.spotlight}`)
+    : ok("tutorial spotlight snaps position by design (no top/left/width/height transition)");
+  (/opacity 0\.18s/.test(tourMotion.tooltip)
+    && /transform 0\.22s/.test(tourMotion.tooltip)
+    && /cubic-bezier/.test(tourMotion.tooltip))
+    ? ok(`tutorial tooltip entry is eased: ${tourMotion.tooltip}`)
+    : fail(`tutorial tooltip entry is not eased: ${tourMotion.tooltip}`);
   await page.click("#tourBack");
   await page.waitForTimeout(320);
 
@@ -425,7 +442,7 @@ async function inspectDesktop(browser) {
     editActions: document.querySelectorAll(".edit-gap").length,
     donuts: document.querySelectorAll(".compare-details .donut").length,
     legendItems: document.querySelectorAll(".legend li").length,
-    detailsClosed: !document.querySelector(".compare-details")?.open,
+    detailsClosed: !document.querySelector<HTMLDetailsElement>(".compare-details")?.open,
   }));
   compareShape.rankedRows > 0 && compareShape.editActions === compareShape.rankedRows && compareShape.donuts === 2 && compareShape.legendItems > 0 && compareShape.detailsClosed
     ? ok(`Compare: ${compareShape.rankedRows} ranked gaps with edit actions; charts available under disclosure`)
@@ -478,7 +495,7 @@ async function inspectDesktop(browser) {
   await page.waitForTimeout(80);
   await page.keyboard.press("2");
   await page.waitForTimeout(220);
-  const activeAfter2 = await page.evaluate(() => document.querySelector(".view-tab.active")?.dataset.view);
+  const activeAfter2 = await page.evaluate(() => document.querySelector<HTMLElement>(".view-tab.active")?.dataset.view);
   activeAfter2 === "compare" ? ok("keyboard '2' → Compare") : fail(`'2' → ${activeAfter2}`);
 
   log("\nAccessible four-step navigation");
@@ -490,7 +507,7 @@ async function inspectDesktop(browser) {
     selected: document.activeElement?.getAttribute("aria-selected"),
     controls: document.activeElement?.getAttribute("aria-controls"),
     selectedCount: document.querySelectorAll('.view-tab[aria-selected="true"]').length,
-    tabbableCount: Array.from(document.querySelectorAll(".view-tab")).filter(t => t.tabIndex === 0).length,
+    tabbableCount: Array.from(document.querySelectorAll<HTMLElement>(".view-tab")).filter(t => t.tabIndex === 0).length,
   }));
   (tabState.active === "compare" && tabState.selected === "true" && tabState.controls === "view-compare" && tabState.selectedCount === 1 && tabState.tabbableCount === 1)
     ? ok("Arrow keys activate/focus one correctly-linked tab")
@@ -603,7 +620,7 @@ async function inspectDesktop(browser) {
   log("Same category name with different casing groups separately (intentional)");
   await page.click("#addCatBtn");
   await page.waitForTimeout(120);
-  const allCats = await page.evaluate(() => Array.from(document.querySelectorAll("#auditBody input.cell-cat")).map(i => i.value));
+  const allCats = await page.evaluate(() => Array.from(document.querySelectorAll<HTMLInputElement>("#auditBody input.cell-cat")).map(i => i.value));
   ok(`${allCats.length} rows present after edge case adds; cats include: ${[...new Set(allCats)].slice(0, 4).join(", ")}…`);
 
   log("Reload preserves v2 state (incl. edited category name)");
@@ -678,7 +695,7 @@ async function inspectDesktop(browser) {
   log("\nv8: Slider mode always shows a slider (no number-fallback) — even when value > rowMax");
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(150);
-  await page.evaluate(() => { if (!document.querySelector(".range-input")) document.querySelector("#inputModeBtn").click(); });
+  await page.evaluate(() => { if (!document.querySelector(".range-input")) document.querySelector<HTMLElement>("#inputModeBtn").click(); });
   await page.waitForTimeout(180);
   // Force a row's actual to exceed its sliderMax via state, then re-render
   await page.evaluate(() => {
@@ -693,11 +710,11 @@ async function inspectDesktop(browser) {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(150);
   // Use evaluate to click directly — Playwright's visibility check sometimes races with the layout settling.
-  await page.evaluate(() => { if (!document.querySelector(".range-input")) document.querySelector("#inputModeBtn").click(); });
+  await page.evaluate(() => { if (!document.querySelector(".range-input")) document.querySelector<HTMLElement>("#inputModeBtn").click(); });
   await page.waitForTimeout(220);
   const travelRow = await page.evaluate(() => {
     const rows = Array.from(document.querySelectorAll("#auditBody tr"));
-    const tr = rows.find(r => /Non-Regular Travel/i.test(r.querySelector(".cell-sub")?.value || ""));
+    const tr = rows.find(r => /Non-Regular Travel/i.test(r.querySelector<HTMLInputElement>(".cell-sub")?.value || ""));
     if (!tr) return null;
     const actualCell = tr.querySelectorAll(".col-num")[1];
     return {
@@ -726,10 +743,10 @@ async function inspectDesktop(browser) {
   log("\nColumn-width stability: range value width fixed regardless of value");
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(150);
-  await page.evaluate(() => document.querySelector('.view-tab[data-view="worksheet"]').click());
+  await page.evaluate(() => document.querySelector<HTMLElement>('.view-tab[data-view="worksheet"]').click());
   await page.waitForTimeout(180);
   // Go back to sliders; check that the .range-val element width is constant for 0 vs 80
-  await page.evaluate(() => { if (!document.querySelector(".range-input")) document.querySelector("#inputModeBtn").click(); });
+  await page.evaluate(() => { if (!document.querySelector(".range-input")) document.querySelector<HTMLElement>("#inputModeBtn").click(); });
   await page.waitForTimeout(180);
   const valWidths = await page.evaluate(() => {
     const cells = Array.from(document.querySelectorAll("#auditBody .range-cell")).filter(el => el.getClientRects().length);
@@ -776,7 +793,25 @@ async function inspectTourLayouts(browser) {
     let boundaryFailures = 0;
     let overlapFailures = 0;
     for (let index = 0; index < total; index++) {
-      await page.waitForTimeout(560);
+      // Wait for the tooltip and spotlight rects to stop moving rather than sampling after a fixed
+      // 560ms. At 812x375 the step-9 tooltip is still mid-reposition at 560ms (bottom 381 against a
+      // 375px viewport) and settles inside the viewport by ~1400ms, so the fixed wait reported a
+      // boundary failure for a layout that is correct once it lands. Reproduced identically against
+      // the pre-repair server, which is how it was identified as a sampling race rather than a
+      // regression. The assertion below is unchanged; only the moment it reads is.
+      await page.waitForFunction(() => {
+        const key = () => {
+          const tip = document.getElementById("tourTooltip").getBoundingClientRect();
+          const spot = document.getElementById("tourSpotlight").getBoundingClientRect();
+          return [tip.left, tip.top, tip.right, tip.bottom, spot.left, spot.top, spot.right, spot.bottom]
+            .map(n => Math.round(n)).join(",");
+        };
+        const now = key();
+        const settled = window.__tourGeomLast === now && document.getAnimations().every(a => a.playState !== "running");
+        window.__tourGeomLast = now;
+        return settled;
+      }, null, { timeout: 5000, polling: 120 }).catch(() => {});
+      await page.evaluate(() => { delete window.__tourGeomLast; });
       const geometry = await page.evaluate(() => {
         const tip = document.getElementById("tourTooltip").getBoundingClientRect();
         const spot = document.getElementById("tourSpotlight").getBoundingClientRect();
@@ -831,7 +866,7 @@ async function inspectCompleteAudit(browser) {
     stats: document.getElementById("stats").innerText,
     idealFields: document.querySelectorAll('.num-input[data-field="ideal"]').length,
     actualFields: document.querySelectorAll('.num-input[data-field="actual"]').length,
-    notes: Array.from(document.querySelectorAll(".notes-input")).map(input => input.value).filter(Boolean),
+    notes: Array.from(document.querySelectorAll<HTMLInputElement>(".notes-input")).map(input => input.value).filter(Boolean),
   }));
   (/Ideal week 168h/i.test(numberState.stats.replace(/\s+/g, " ")) &&
     /Actual week 168h/i.test(numberState.stats.replace(/\s+/g, " ")) &&
@@ -844,7 +879,7 @@ async function inspectCompleteAudit(browser) {
   const sliderState = await page.evaluate(() => ({
     ideal: document.querySelectorAll('.range-input[data-field="ideal"]').length,
     actual: document.querySelectorAll('.range-input[data-field="actual"]').length,
-    values: Array.from(document.querySelectorAll(".range-input")).every(input => Number(input.value) >= 0),
+    values: Array.from(document.querySelectorAll<HTMLInputElement>(".range-input")).every(input => Number(input.value) >= 0),
   }));
   (sliderState.ideal === completed && sliderState.actual === completed && sliderState.values)
     ? ok("the completed ideal and actual audit remains editable in slider mode")
@@ -903,8 +938,8 @@ async function inspectMobile(browser) {
   const overflowX = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   overflowX <= 1 ? ok(`no horizontal overflow (${overflowX}px)`) : fail(`horizontal overflow: ${overflowX}px`);
   const mobileDefaultState = await page.evaluate(() => ({
-    mode: document.querySelector("#view-worksheet")?.dataset.categoryView,
-    pickerHidden: document.querySelector(".mobile-category-nav")?.hidden,
+    mode: document.querySelector<HTMLElement>("#view-worksheet")?.dataset.categoryView,
+    pickerHidden: document.querySelector<HTMLElement>(".mobile-category-nav")?.hidden,
     visibleRows: Array.from(document.querySelectorAll("#auditBody tr")).filter(tr => getComputedStyle(tr).display !== "none").length,
     totalRows: document.querySelectorAll("#auditBody tr").length,
   }));
@@ -1313,7 +1348,7 @@ async function inspectCenterAndDistillation(browser) {
     modeCount: document.querySelectorAll("#inputModeBtn").length,
     snapshotLabel: document.getElementById("snapshotBtn")?.getAttribute("aria-label"),
     modeLabel: document.getElementById("inputModeBtn")?.getAttribute("aria-label"),
-    text: document.querySelector(".worksheet-toolbar")?.innerText || "",
+    text: document.querySelector<HTMLElement>(".worksheet-toolbar")?.innerText || "",
   }));
   (toolbar.snapshotCount === 1 && toolbar.modeCount === 1 && toolbar.snapshotLabel === "Save snapshot" &&
     /Input mode:/.test(toolbar.modeLabel || "") && !/Save snapshot|Numbers|Sliders/.test(toolbar.text))
