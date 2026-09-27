@@ -1,0 +1,10 @@
+{
+  "//": "The six Playwright suites are TypeScript and run under Node's type stripping, but they are NOT yet strict-clean: 39 errors remain, all of them Element-vs-HTMLElement property reads where the element arrives through an intermediate variable or an array rather than a direct querySelector call, plus two AxeBuilder default-export interop errors. They are relaxed here rather than silenced per-file, so the remaining debt has one number and one owner. Measured 2026-09-26 with typescript 5.9.3; `npx tsc -p tsconfig.tests.json --noEmit` reproduces it. Fix the 39 by typing those intermediates, then tighten noImplicitAny, then strictNullChecks; do not weaken tsconfig.json to make this pass.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.mts"]
+}

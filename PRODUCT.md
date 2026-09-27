@@ -44,8 +44,8 @@ Avoid surveillance-oriented time trackers, dense spreadsheet-only experiences, m
 
 ## Evidence on Hand
 
-- The runnable application and product copy are in `server.js`.
-- Browser journeys and accessibility checks are in `tests/verify-live.mjs` and `tests/verify-overview.mjs`.
+- The runnable application and product copy are in `server.ts`.
+- Browser journeys and accessibility checks are in `tests/verify-live.mts` and `tests/verify-overview.mts`.
 - Cloud role and sharing contracts are exercised in `tests/verify-cloud-ui.mjs`, `tests/verify-supabase-live.mjs`, and `tests/verify-supabase-ui-live.mjs`.
 - The Supabase schema and row-level-security policies are in `supabase/schema.sql`.
 - No testimonials, adoption claims, or outcome benchmarks are established; future work must not fabricate them.

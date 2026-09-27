@@ -3,17 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "description": "Interactive 168-hour weekly audit — plan an ideal week, log your actual week, compare and export.",
-  "main": "server.js",
+  "main": "server.ts",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "test:schema": "node tests/verify-schema.mjs",
-    "test:cloud-ui": "node tests/verify-cloud-ui.mjs",
-    "test:overview": "node tests/verify-overview.mjs",
+    "start": "node server.ts",
+    "dev": "node server.ts",
+    "test:schema": "node tests/verify-schema.mts",
+    "test:cloud-ui": "node tests/verify-cloud-ui.mts",
+    "test:overview": "node tests/verify-overview.mts",
     "test:supabase-live": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-supabase-live.ps1",
     "test:supabase-ui-live": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/run-supabase-ui-live.ps1",
-    "test:live": "node tests/verify-live.mjs",
-    "test:local": "node tests/verify-live.mjs http://localhost:3168"
+    "test:live": "node tests/verify-live.mts",
+    "test:local": "node tests/verify-live.mts http://localhost:3168"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
@@ -21,6 +24,9 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
-    "playwright": "^1.59.1"
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.9.2",
+    "playwright": "^1.59.1",
+    "typescript": "^5.9.3"
   }
 }

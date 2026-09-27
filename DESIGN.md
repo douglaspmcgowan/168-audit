@@ -91,6 +91,38 @@ The full universal rules are `~/.agents/DESIGN.md`. Where a library entry and a 
 
 # 168 Audit Design System
 
+## Stack template declaration (B8)
+
+**Template 2 — Application with auth and data**, from `~/.agents/design/STACK-TEMPLATES.md`.
+
+Selected by questions 3 and 4 of the six in `~/.agents/skills/stack/SKILL.md` § 1: a human signs in (Supabase Auth, optional but shipped), and data survives between sessions (weeks, snapshots, groups and shares in Postgres under row-level security). Those two answers occupy the auth and `database/ORM` slots, and only template 2 occupies both. Question 6 confirms the internet-reachable answer: the app is live at https://168-audit.vercel.app.
+
+The app runs fully signed-out on `localStorage` alone, which is why the auth slot reads "optional but shipped" rather than "required".
+
+### Deviations from template 2, each with its reason
+
+| Slot | Template 2 says | This app has | Reason |
+|---|---|---|---|
+| language | TypeScript | TypeScript | Converged 2026-09-27. `server.ts` and `data/categories.ts` are strict-clean (`npx tsc --noEmit` exits 0); the six Playwright suites are `.mts` with 39 type errors left, tracked in `tsconfig.tests.json`. |
+| UI library | React | none — hand-written DOM strings | **Open deviation.** No component boundary exists to convert. Closing it is workstream 13 and is gated behind the floor. |
+| framework/build | Next.js, App Router | hand-written Express, no build step | **Open deviation.** Express is on the cut list. The floor-first stop in `APP-REPAIR-SPEC.md` forbids entering workstream 13 until this row is DONE at BASELINE, so the move is deliberately not taken here. |
+| styling method | Tailwind plus CSS custom properties | one inline `<style>` template literal, 73 custom properties on one `:root` | **Partial.** The custom-property half is in place and is the app's single source of colour, size, space, radius, shadow, duration and easing. Tailwind is absent and arrives with the framework move. |
+| headless primitives | Base UI, via shadcn | none | **Open deviation.** Follows the UI-library row. Radix, Vite and Astro are out of the stack entirely and are not alternatives here. |
+| component source | shadcn/ui | none | Follows the UI-library row. |
+| motion | Framer Motion, CSS transitions for plain state changes | CSS transitions only, on duration and easing tokens | **Accepted deviation.** Every state change in this app is a plain one; 50 transition rules, two `@keyframes`, a `prefers-reduced-motion: reduce` block. Framer Motion would be weight with nothing to spend it on. |
+| charts | Recharts when there is a reporting surface | hand-written bars and SVG | **Accepted deviation.** The Compare surface draws one comparative bar form from data the client already holds; a chart library here is a dependency for one shape. |
+| icons | Lucide | hand-written inline SVG in one `ui-icon` class | **Accepted deviation.** One set, project-wide, which is the rule the slot exists to enforce. Emoji appear only as category *content* in `data/categories.ts`, never as interface icons. |
+| fonts | `next/font` with a self-hosted face | system UI stack via `--sans` | **Accepted deviation.** Zero font requests and zero layout shift, which is what the slot buys; there is no display face to self-host. |
+| state/data/forms | TanStack Query, React Hook Form, Zod | `localStorage` plus direct `@supabase/supabase-js` calls | Follows the UI-library row. |
+| tables | TanStack Table | a semantic `<table>` reshaped with CSS grid at narrow widths | **Accepted deviation.** The worksheet is not sorted, filtered or paginated; it is edited in place. |
+| database/ORM | Postgres with Drizzle | Postgres on Supabase, SQL migrations, no ORM | **Accepted deviation.** Four `.sql` files with an explicit row-level-security contract. An ORM over four tables under RLS would move the authorization surface away from the file that states it. |
+| testing | Playwright end to end, Vitest for units | Playwright via six hand-rolled `.mts` scripts, no `playwright.config.*`, no Vitest | **Open deviation.** 149 checks across five viewports, both themes, keyboard, WCAG, persistence, backup/restore, hostile payloads, zoom and touch targets. Converging on `playwright.config.*` is a real migration rather than a rename and is not taken here. |
+| observability | Sentry, PostHog | none | **Accepted deviation.** A signed-out user's data never leaves the browser; adding a third-party beacon would be the first time it did. |
+
+### Motion exception, recorded here because the universal rule says to
+
+`~/.agents/DESIGN.md` § Motion holds that "an instant state change with no transition … reads as unfinished". The tutorial spotlight is a deliberate exception: it snaps rather than animating position, because the tutorial is a discrete-step model and a mid-transition measurement races the tooltip's placement. `.tour-spotlight` in `server.ts` carries the reason, and `tests/verify-live.mts` asserts the snap rather than asserting motion the product had removed on purpose.
+
 ## Product character
 
 Professional, calm, direct, and trustworthy. The app should feel like a mature planning instrument: clear enough for a first visit, efficient enough for weekly reuse, and restrained enough to keep attention on the user's hours and decisions.
