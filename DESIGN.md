@@ -106,7 +106,7 @@ The app runs fully signed-out on `localStorage` alone, which is why the auth slo
 | language | TypeScript | TypeScript | Converged 2026-09-27. `server.ts` and `data/categories.ts` are strict-clean (`npx tsc --noEmit` exits 0); the six Playwright suites are `.mts` with 39 type errors left, tracked in `tsconfig.tests.json`. |
 | UI library | React | none — hand-written DOM strings | **Open deviation.** No component boundary exists to convert. Closing it is workstream 13 and is gated behind the floor. |
 | framework/build | Next.js, App Router | hand-written Express, no build step | **Open deviation.** Express is on the cut list. The floor-first stop in `APP-REPAIR-SPEC.md` forbids entering workstream 13 until this row is DONE at BASELINE, so the move is deliberately not taken here. |
-| styling method | Tailwind plus CSS custom properties | one inline `<style>` template literal, 79 custom properties on one `:root` | **Partial.** The custom-property half is in place and is the app's single source of colour, size, space, radius, shadow, duration and easing — including the Compare donut palette (`--slice-1` .. `--slice-10`), which the client reads at render time rather than holding its own array. No hex literal, no `px` font size and no `rem` or `px` radius survives outside `:root`; the only hex left anywhere outside it is inside the standalone `/favicon.svg` document, which is served as an image and cannot see the page's custom properties. Tailwind is absent and arrives with the framework move. |
+| styling method | Tailwind plus CSS custom properties | one inline `<style>` template literal, 91 custom properties on one `:root` | **Partial.** The custom-property half is in place and is the app's single source of colour, size, space, radius, shadow, duration and easing — including the Compare donut palette (`--slice-1` .. `--slice-10`), which the client reads at render time rather than holding its own array. No hex literal, no `px` font size and no `rem` or `px` radius survives outside `:root`; the only hex left anywhere outside it is inside the standalone `/favicon.svg` document, which is served as an image and cannot see the page's custom properties. Tailwind is absent and arrives with the framework move. |
 | headless primitives | Base UI, via shadcn | none | **Open deviation.** Follows the UI-library row. Radix, Vite and Astro are out of the stack entirely and are not alternatives here. |
 | component source | shadcn/ui | none | Follows the UI-library row. |
 | motion | Framer Motion, CSS transitions for plain state changes | CSS transitions only, on duration and easing tokens | **Accepted deviation.** Every state change in this app is a plain one; 50 transition rules, two `@keyframes`, a `prefers-reduced-motion: reduce` block. Framer Motion would be weight with nothing to spend it on. |
@@ -123,13 +123,16 @@ The app runs fully signed-out on `localStorage` alone, which is why the auth slo
 
 `~/.agents/DESIGN.md` § Motion holds that "an instant state change with no transition … reads as unfinished". The tutorial spotlight is a deliberate exception: it snaps rather than animating position, because the tutorial is a discrete-step model and a mid-transition measurement races the tooltip's placement. `.tour-spotlight` in `server.ts` carries the reason, and `tests/verify-live.mts` asserts the snap rather than asserting motion the product had removed on purpose.
 
-### Two open universal-rule findings whose only fixes move pixels
+### Conventions in force (2026-10-06 compliance pass)
 
-Recorded rather than executed, because the 2026-09-27 repair pass was authorized to change non-visual structure and to fix rule violations, and both of these can only be closed by changing what renders.
-
-1. **`backdrop-filter` on scrolling content.** `~/.agents/DESIGN.md` § Performance: "Backdrop blur and grain overlays belong on fixed or sticky elements. On a scrolling container either one forces continuous repaints." Seven rules carry `backdrop-filter`. Five are compliant — `.stats-sticky` (`position: fixed`), `.modal-backdrop` and `.modal-panel` (inside a fixed modal), `.tour-tooltip` (inside a fixed overlay) and `.profile-menu` (an absolutely positioned popover). Two violate it: `.theme-toggle` (`blur(8px)`) sits in the static `.masthead`, and `.export-btn` (`blur(10px)`) sits in `.export-fab`, which is `position: relative`. Both surfaces use `--paper-raised`, which is translucent in both themes (`rgba(255,255,255,0.62)` light, `rgba(39,33,24,0.86)` dark), so the blur is genuinely visible and removing it changes the rendered surface. Closing this is a visual decision: either drop the blur, or make those two surfaces opaque, or move them into a fixed layer.
-
-2. **Four `!important` declarations.** They are the whole of `server.ts`'s remaining `!important` count, and all four sit inside the `@media (prefers-reduced-motion: reduce)` block (`animation-duration`, `animation-iteration-count`, `transition-duration`, `scroll-behavior`). That is the WAI-recommended override shape: the block has to beat every per-component transition in the file, and removing the `!important` would weaken the reduced-motion guarantee the universal § Motion rule requires. The other four `!important` that existed at the 2026-09-27 baseline were removed by raising selector specificity instead, with no computed-style change.
+- **Dates.** Short month, day, and year for saved snapshots (`Oct 6, 2026`); month and day for week titles and invite expiry; times as locale hour and minute. No middle-dot or bullet dividers anywhere in visible text: use a comma, semicolon, or colon.
+- **Numbers and units.** Hours carry a lowercase `h` suffix with no space (`12.5h`). Whole hours print bare (`40h`), fractions trim trailing zeros to at most two decimals, and snapshot totals use one decimal. Tabular numerals on every aligned quantity.
+- **Case.** Sentence case everywhere. There are no uppercase transforms and no eyebrow or kicker labels; a region is named by its heading or an accessible name.
+- **Token roles added.** `--weight-regular` (with medium and semibold, the only three weights); `--track-tight`, `--track-snug`, `--track-label` (the only letter-spacing values); `--paper-solid` (opaque control surface, light and dark); `--scrim-modal`, `--scrim-tour`, `--scrim-spot` (overlay dims); `--shadow-thumb`, `--shadow-hair`, `--shadow-pop`, `--shadow-menu`, `--shadow-lift` (the only shadow recipes). `--text-title` and `--text-display` are `clamp()` values that equal 24px and 28px at 375px and above.
+- **Layout.** Every margin, padding, and gap reads from `--space-1` to `--space-8`. The Plan category panel is a size container (`category-panel`) and adapts through `@container`; route padding uses `clamp()`.
+- **Backdrop blur** lives only on fixed layers (sticky stats, modal, tour tooltip) and the profile popover. The theme toggle and export buttons use the opaque `--paper-solid`.
+- **Tutorial spotlight** is the scrim plus a crisp `--accent` ring and one offset neutral shadow; no zero-offset coloured glow.
+- **Reduced motion.** No `!important`. Every transition and animation reads `--dur-in` or `--dur-out`, and `@media (prefers-reduced-motion: reduce)` redefines both tokens to `0.01ms` on `:root` and sets `html { scroll-behavior: auto }`, so the outcome holds for every present and future rule that uses the tokens.
 
 ## Product character
 
@@ -174,7 +177,7 @@ Use the system sans stack throughout. The hierarchy has six roles:
 | Title | `--text-title` | 24px | route headings |
 | Display | `--text-display` | 28px | product title and top-level Center heading |
 
-Use `--leading-tight` for headings, `--leading-ui` for controls and metadata, and `--leading-body` for prose. Hours and totals use tabular numerals. Uppercase metadata remains concise and never drops below 12px. Reading text stays within `--measure` / 68ch.
+Use `--leading-tight` for headings, `--leading-ui` for controls and metadata, and `--leading-body` for prose. Hours and totals use tabular numerals. Metadata is sentence case and never drops below 12px. Reading text stays within `--measure` / 68ch.
 
 ## Color
 
@@ -211,7 +214,7 @@ An inner element never has a larger radius than its containing surface.
 
 - Plan: wide worksheet, one stage title, stage selector, compact actions, clear totals.
 - Plan category manager: All is the initial view when no preference is stored and presents the complete schedule. Focus preserves a locally stored preference and places its category picker directly after the All/Focus toggle.
-- In All, each category is a parent group spanning its child rows. The group panel carries the category label, child count, category reorder control, editable name, and a color key at the right edge. Each subcategory keeps its own selection, reorder, name, hours, notes, and removal controls.
+- In All, each category is a parent group spanning its child rows. The group panel carries the child count, category reorder control, editable name, and a color key at the right edge. Each subcategory keeps its own selection, reorder, name, hours, notes, and removal controls.
 - Category groups use a tinted surface and stronger boundary; subcategories use quieter divided rows beneath that parent. Group separation exceeds spacing within a group.
 - Category colors link group headings to the live allocation donut and expanded legend. Text labels and totals preserve meaning without relying on color.
 - Compare: ranked differences first, totals adjacent to the heading, optional charts below disclosure.
