@@ -196,14 +196,14 @@ function buildPage(nonce: string, origin: string = ""): string {
       <button type="button" class="modal-close" data-close="1" aria-label="Close">&times;</button>
       <h2 class="modal-title" id="whatIsTitle">168 hours, your week</h2>
       <div class="modal-body">
-        <p>There are <strong>168 hours in a week</strong> — 24 × 7. Sleep, work, family, ministry, leisure, transit: all of it comes out of the same fixed budget.</p>
+        <p>There are <strong>168 hours in a week</strong> (24 × 7). Sleep, work, family, ministry, leisure, transit: all of it comes out of the same fixed budget.</p>
         <p>This is a planning tool, not a tracker. You make two passes:</p>
         <ul>
           <li><strong>Ideal:</strong> the week you'd live if you were intentional about every hour.</li>
           <li><strong>Actual:</strong> what last week really looked like.</li>
         </ul>
-        <p>The gap between them is the useful part. Most people's first ideal week comes out 15–40 hours over budget — which is the whole point. It surfaces what you actually believe should give.</p>
-        <p>Adapted from the <a href="https://dpm5970digitalgarden.vercel.app/168-audit-your-week/" target="_blank" rel="noopener">"168 — Audit Your Week"</a> note in Douglas McGowan's digital garden, which in turn draws on Laura Vanderkam's <a href="https://lauravanderkam.com/start-here/" target="_blank" rel="noopener">168 Hours</a> work.</p>
+        <p>The gap between them is the useful part. Most people's first ideal week comes out 15–40 hours over budget, which is the whole point. It surfaces what you actually believe should give.</p>
+        <p>Adapted from the <a href="https://dpm5970digitalgarden.vercel.app/168-audit-your-week/" target="_blank" rel="noopener">"168: Audit Your Week"</a> note in Douglas McGowan's digital garden, which in turn draws on Laura Vanderkam's <a href="https://lauravanderkam.com/start-here/" target="_blank" rel="noopener">168 Hours</a> work.</p>
         <details class="modal-shortcuts">
           <summary>Keyboard shortcuts</summary>
           <table>
@@ -430,6 +430,8 @@ function getCSS() {
   --dur-in: 120ms;
   --dur-out: 240ms;
   --dur-draw: 480ms;
+  --wb-stagger: 480ms;
+  --hairline: 1px;
   --ease-in: cubic-bezier(0.3, 0, 0.7, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --text-root: 16px;
@@ -571,7 +573,7 @@ h1, h2, h3, .brand-title { text-wrap: balance; }
 :where([aria-disabled="true"]) { opacity: 0.45; cursor: not-allowed; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur-in: 0.01ms; --dur-out: 0.01ms; --dur-draw: 0.01ms; }
+  :root { --dur-in: 0.01ms; --dur-out: 0.01ms; --dur-draw: 0.01ms; --wb-stagger: 0.01ms; }
   html { scroll-behavior: auto; }
 }
 
@@ -1291,6 +1293,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   font: inherit;
   color: inherit;
   box-shadow:inset 0 -1px 0 transparent;
+  text-overflow: ellipsis;
   transition: box-shadow var(--dur-in) var(--ease-out), background-color var(--dur-in) var(--ease-out);
 }
 .cell-input:hover { box-shadow:inset 0 -1px 0 var(--rule); background:var(--paper-soft); }
@@ -1579,6 +1582,22 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 }
 .compare-empty h3 { margin: 0 0 var(--space-2); font-size: var(--text-body); }
 .compare-empty p { margin: 0 0 var(--space-4); color: var(--ink-soft); font-size: var(--text-ui); }
+
+/* ------ Week band: one cell is one hour, 168 cells to the week ------ */
+.week-band { container-type: inline-size; container-name: week-band; display: grid; gap: var(--space-4); margin-bottom: var(--space-5); }
+.wb-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin-bottom: var(--space-2); font-size: var(--text-meta); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.wb-name, .wb-total { color: var(--ink); font-weight: var(--weight-semibold); }
+.wb-over { color: var(--warn); font-weight: var(--weight-medium); }
+.wb-note { margin: 0; color: var(--ink-soft); font-size: var(--text-meta); }
+.wb-strip { --wb-h: var(--space-4); display: grid; grid-template-columns: repeat(42, minmax(0, 1fr)); gap: var(--hairline); }
+.wb-run { display: contents; }
+.wb-c { display: block; height: var(--wb-h); border-radius: var(--radius-hairline); background: var(--c); transform-origin: bottom; }
+.wb-c.wb-e { background: transparent; box-shadow: inset 0 0 0 var(--hairline) var(--rule); }
+.wb-mini .wb-strip { --wb-h: var(--space-2); }
+.wb-anim .wb-c:not(.wb-e) { animation: wb-draw var(--dur-draw) var(--ease-out) backwards; animation-delay: calc(var(--i) * var(--wb-stagger) / 167); }
+@keyframes wb-draw { from { opacity: 0; transform: scaleY(0); } }
+@container week-band (min-width: 480px) { .wb-strip { grid-template-columns: repeat(84, minmax(0, 1fr)); } }
+@container week-band (min-width: 900px) { .wb-strip { --wb-h: var(--space-5); grid-template-columns: repeat(168, minmax(0, 1fr)); } }
 .bar-fill.bar-actual { background: var(--ink-soft); }
 .bar-val {
   font-family: var(--mono);
@@ -1874,17 +1893,21 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
 .history-empty-icon .ui-icon { width:1.35rem; height:1.35rem; }
 .history-empty-title { font-size: var(--text-body); font-weight: var(--weight-semibold); margin: 0 0 var(--space-2); color: var(--ink); letter-spacing: var(--track-snug); }
 .history-empty-body { font-size: var(--text-ui); color: var(--ink-soft); margin: 0 0 var(--space-4); line-height: 1.6; }
-.snap-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
+.snap-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--space-4); margin-top: var(--space-2); }
 .snap-row {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "info del" "band band";
+  align-content: start;
   gap: var(--space-3);
   background: var(--paper-soft);
   border-radius: var(--radius-surface);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4);
 }
-.snap-row-info { min-width: 0; }
+.snap-band { grid-area: band; }
+.snap-band .week-band { margin-bottom: 0; }
+.snap-total { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.snap-row-info { grid-area: info; min-width: 0; }
 .snap-label {
   font-size: var(--text-ui);
   font-weight: var(--weight-semibold);
@@ -1893,15 +1916,15 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 22rem;
 }
 .snap-meta {
+  display: flex; flex-wrap: wrap; gap: 0 var(--space-3);
   font-size: var(--text-meta);
   color: var(--ink-faint);
   font-family: var(--sans);
   margin-top: var(--space-1);
 }
-.snap-compare-wrap { display:none; align-items:center; gap:var(--space-2); flex-shrink:0; }
+.snap-compare-wrap { grid-column: 1 / -1; display:none; align-items:center; gap:var(--space-2); }
 .history-compare-mode .snap-compare-wrap { display:flex; }
 .snap-commitment { margin-top:var(--space-1); color:var(--ink-soft); font-size:var(--text-meta); line-height:1.4; }
 .snap-compare-label { font-size: var(--text-meta); color: var(--ink-faint); letter-spacing: var(--track-label); }
@@ -1920,7 +1943,7 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   background-position: calc(100% - 0.9rem) 55%, calc(100% - 0.6rem) 55%;
   background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
   transition: border-color var(--dur-in) var(--ease-out);
-  max-width: 11rem;
+  width: 100%;
 }
 .snap-compare-select:hover { border-color: var(--ink-soft); }
 .snap-compare-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
@@ -1934,16 +1957,11 @@ table.audit td.col-del { width: 2.4rem; text-align: center; }
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-xs);
   line-height: 1;
-  flex-shrink: 0;
+  grid-area: del;
+  align-self: start;
   transition: color var(--dur-in) var(--ease-out), background-color var(--dur-in) var(--ease-out);
 }
 .snap-del-btn:hover { color: var(--urgent); background: var(--urgent-soft);  }
-@media (max-width: 600px) {
-  .snap-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: var(--space-2) var(--space-2); }
-  .snap-row-info { grid-column: 1; grid-row: 1; }
-  .snap-del-btn { grid-column: 2; grid-row: 1; }
-  .snap-compare-wrap { grid-column: 1 / -1; grid-row: 2; }
-  .snap-label { max-width: none; }
 }
 
 /* History diff table */
@@ -2598,7 +2616,7 @@ function getJS() {
     try {
       saveState();
     } catch(e) {
-      if (e.name === "QuotaExceededError") showToast("Storage full — couldn't save snapshot.");
+      if (e.name === "QuotaExceededError") showToast("Storage full. Couldn't save snapshot.");
     }
   }
 
@@ -2870,12 +2888,12 @@ function getJS() {
             '<span class="category-color-key" aria-hidden="true"></span>' +
           '</div>' +
           '<div class="category-panel-head">' + reorderControl("category", row.category) +
-            '<input type="text" class="cell-input cell-cat" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" aria-label="Category name" style="--field-width:' + titleWidth + 'ch">' +
+            '<input type="text" class="cell-input cell-cat" data-field="category" data-idx="' + i + '" value="' + escAttr(row.category) + '" title="' + escAttr(row.category) + '" aria-label="Category name" style="--field-width:' + titleWidth + 'ch">' +
           '</div></div>' +
         '</td>' : '') +
         '<td class="col-sub" data-label="Sub-category">' +
           '<div class="row-title-line"><span class="row-controls-sub">' + selectControl + reorderControl("subcategory", row.sub) + '</span>' +
-            '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" aria-label="Sub-category" style="--field-width:' + Math.min(30, Math.max(8, String(row.sub || "").length + 2)) + 'ch">' +
+            '<input type="text" class="cell-input cell-sub" data-field="sub" data-idx="' + i + '" value="' + escAttr(row.sub) + '" title="' + escAttr(row.sub) + '" aria-label="Sub-category" style="--field-width:' + Math.min(30, Math.max(8, String(row.sub || "").length + 2)) + 'ch">' +
           '</div>' +
         '</td>' +
         '<td class="col-num stage-ideal" data-label="Ideal (h)">' + valueCell(row, i, "ideal") + '</td>' +
@@ -3328,8 +3346,8 @@ function getJS() {
       const overMax = raw > rowMax;
       const displayed = numericValue === "" ? "0" : fmtH(raw);
       return '<div class="range-cell' + (overMax ? ' over-max' : '') + '" data-row-max="' + rowMax + '">' +
-        '<input type="range" class="range-input range-' + field + '" data-field="' + field + '" data-idx="' + i + '" data-row-max="' + rowMax + '" min="0" max="' + rowMax + '" step="0.25" value="' + sv + '" style="--fill:' + fill + '%" aria-valuetext="' + displayed + ' hours" aria-label="' + field + ' hours' + (overMax ? ' (currently ' + raw + 'h, slider capped at ' + rowMax + 'h — switch to Numbers mode to set higher)' : '') + '">' +
-        '<span class="range-val" data-val-for="' + field + '-' + i + '" title="Max for this row: ' + rowMax + 'h' + (overMax ? '. Current value (' + raw + 'h) exceeds it — switch to Numbers mode to keep changing.' : '') + '">' + displayed + 'h</span>' +
+        '<input type="range" class="range-input range-' + field + '" data-field="' + field + '" data-idx="' + i + '" data-row-max="' + rowMax + '" min="0" max="' + rowMax + '" step="0.25" value="' + sv + '" style="--fill:' + fill + '%" aria-valuetext="' + displayed + ' hours" aria-label="' + field + ' hours' + (overMax ? ' (currently ' + raw + 'h, slider capped at ' + rowMax + 'h; switch to Numbers mode to set higher)' : '') + '">' +
+        '<span class="range-val" data-val-for="' + field + '-' + i + '" title="Max for this row: ' + rowMax + 'h' + (overMax ? '. Current value (' + raw + 'h) exceeds it. Switch to Numbers mode to keep changing.' : '') + '">' + displayed + 'h</span>' +
         '</div>';
     }
     return '<input type="number" class="num-input" data-field="' + field + '" data-idx="' + i + '" value="' + numericValue + '" step="0.25" min="0" max="168" placeholder="0" inputmode="decimal" aria-label="' + field + ' hours">';
@@ -3367,6 +3385,7 @@ function getJS() {
   function onCellTextChange(e) {
     const idx = +e.target.dataset.idx;
     const field = e.target.dataset.field;
+    e.target.title = e.target.value;
     if (field === "category") {
       const previous = rows[idx].category;
       const next = e.target.value;
@@ -3380,7 +3399,7 @@ function getJS() {
           renderedRow.dataset.category = next;
           renderedRow.style.setProperty("--category-color", colorFor(next, categories));
           renderedRow.querySelectorAll(".cell-cat").forEach(function(input) {
-            if (input !== e.target) input.value = next;
+            if (input !== e.target) { input.value = next; input.title = next; }
           });
         }
       });
@@ -3464,6 +3483,45 @@ function getJS() {
     renderStats();
   }
 
+  // ------ Week band ------
+  // Two strips of 168 cells, one cell per hour, filled in category order. Rounding is per category;
+  // the text label carries the exact total. Cells past 168 are not drawn; the overflow is said in words.
+  var weekBandDrawn = false;
+  function weekBandStrip(byCat, order, name, total, animate) {
+    var cells = "", used = 0;
+    var parts = [];
+    order.forEach(function(cat) {
+      var hours = byCat[cat] || 0;
+      if (hours > 0) parts.push(cat + " " + fmtH(hours) + " hours");
+      var n = Math.min(168 - used, Math.max(0, Math.round(hours)));
+      if (n <= 0) return;
+      cells += '<span class="wb-run" style="--c:' + colorFor(cat, order) + '">';
+      for (var k = 0; k < n; k++) cells += '<span class="wb-c"' + (animate ? ' style="--i:' + (used + k) + '"' : '') + '></span>';
+      cells += '</span>';
+      used += n;
+    });
+    for (var j = used; j < 168; j++) cells += '<span class="wb-c wb-e"></span>';
+    var over = total - 168;
+    var label = name + ", " + fmtH(total) + " hours" + (over > 0.005 ? ", " + fmtH(over) + " hours over the week" : "") +
+      ": " + (parts.length ? parts.join(", ") : "no hours added");
+    return { html: '<div class="wb-strip" role="img" aria-label="' + escAttr(label) + '">' + cells + '</div>', filled: used };
+  }
+  function weekBandHTML(specs, order, animate) {
+    var anyFilled = false;
+    var body = specs.map(function(spec) {
+      var strip = weekBandStrip(spec.byCat, order, spec.name, spec.total, animate);
+      if (strip.filled) anyFilled = true;
+      var over = spec.total - 168;
+      return '<div class="wb-row"><div class="wb-head"><span class="wb-name">' + escHtml(spec.name) + '</span>' +
+        '<span><span class="wb-total">' + fmtH(spec.total) + 'h</span>' +
+        (over > 0.005 ? ' <span class="wb-over">' + fmtH(over) + 'h over the week</span>' : '') + '</span></div>' + strip.html + '</div>';
+    }).join("");
+    return { html: '<div class="week-band' + (animate && anyFilled ? ' wb-anim' : '') + '" id="weekBand">' + body + '</div>', drew: animate && anyFilled };
+  }
+  function weekBandMini(byCat, order, name, total) {
+    return '<div class="week-band wb-mini">' + weekBandStrip(byCat, order, name, total, false).html + '</div>';
+  }
+
   // ------ Compare ------
   // Pleasant palette for category slices, dark-mode tuned.
   // The values live in the :root token block (--slice-1 .. --slice-10) so that the token layer
@@ -3543,19 +3601,19 @@ function getJS() {
     const sumI = cats.reduce((a, c) => a + byIdeal[c], 0);
     const sumA = cats.reduce((a, c) => a + byActual[c], 0);
     if (sumI === 0 && sumA === 0) {
-      return '<p class="insights-line">Start by filling in your <strong>ideal</strong> week — type hours per row in the worksheet, then come back here.</p>';
+      return '<p class="insights-line">Start by filling in your <strong>ideal</strong> week: type hours per row in the worksheet, then come back here.</p>';
     }
     const out = [];
     // Ideal commentary
     if (sumI > 0) {
-      if (sumI > TARGET + 0.5) out.push("Your ideal week is " + fmtH(sumI - TARGET) + "h <strong>over</strong> the 168 target — something has to give.");
-      else if (sumI < TARGET - 0.5) out.push("Your ideal week is " + fmtH(TARGET - sumI) + "h <strong>under</strong> 168 — room to be more ambitious.");
+      if (sumI > TARGET + 0.5) out.push("Your ideal week is " + fmtH(sumI - TARGET) + "h <strong>over</strong> the 168 target, so something has to give.");
+      else if (sumI < TARGET - 0.5) out.push("Your ideal week is " + fmtH(TARGET - sumI) + "h <strong>under</strong> 168, with room to be more ambitious.");
       else out.push("Your ideal week is <strong>balanced</strong> at 168h.");
     }
     // Actual commentary
     if (sumA > 0) {
       if (sumA > TARGET + 0.5) out.push("Your actual week ran " + fmtH(sumA - TARGET) + "h over.");
-      else if (sumA < TARGET - 0.5) out.push("Your actual week ran " + fmtH(TARGET - sumA) + "h under — what's filling the unaccounted hours?");
+      else if (sumA < TARGET - 0.5) out.push("Your actual week ran " + fmtH(TARGET - sumA) + "h under. What's filling the unaccounted hours?");
     }
     // Biggest delta (if both sides have data)
     if (sumI > 0 && sumA > 0) {
@@ -3576,7 +3634,7 @@ function getJS() {
       if (topActualCat && byActual[topActualCat] > 0) {
         const idealRank = cats.slice().sort((a, b) => byIdeal[b] - byIdeal[a]).indexOf(topActualCat);
         if (idealRank > 2 && byActual[topActualCat] >= 6) {
-          out.push("<strong>" + escHtml(topActualCat) + "</strong> ate " + fmtH(byActual[topActualCat]) + "h — that's bigger than you planned for.");
+          out.push("<strong>" + escHtml(topActualCat) + "</strong> ate " + fmtH(byActual[topActualCat]) + "h, which is bigger than you planned for.");
         }
       }
     }
@@ -3613,8 +3671,16 @@ function getJS() {
     let html = '<header class="compare-header"><div><h2>Where your week diverged</h2></div>' +
       '<div class="compare-total"><span>Ideal ' + fmtH(sumI) + 'h</span><span>Actual ' + fmtH(sumA) + 'h</span></div></header>';
 
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const band = weekBandHTML([
+      { name: "Ideal week", byCat: byIdeal, total: sumI },
+      { name: "Lived week", byCat: byActual, total: sumA }
+    ], cats, !weekBandDrawn && !reduceMotion);
+    if (band.drew) weekBandDrawn = true;
+    html += band.html;
+
     if (sumI === 0 && sumA === 0) {
-      container.innerHTML = html + '<div class="compare-empty"><h3>Your comparison will appear here</h3>' +
+      container.innerHTML = html + '<p class="wb-note">Add hours in Plan to fill your week</p><div class="compare-empty"><h3>Your comparison will appear here</h3>' +
         '<p>Add hours to your ideal or actual week, then return to see the largest gaps first.</p>' +
         '<button type="button" class="btn btn-primary" id="emptyToPlan">Start with ideal week</button></div>';
       document.getElementById("emptyToPlan").addEventListener("click", function() {
@@ -3799,10 +3865,18 @@ function getJS() {
       '</div>' +
       '<div class="snap-list">';
 
+    const currentById = {};
+    rows.forEach(function(r) { currentById[r.id] = r; });
+    const bandOrder = Array.from(new Set(rows.map(function(r) { return r.category; })));
     snaps.slice().reverse().forEach(function(s) {
+      const snapByCat = {};
       const total = s.rows.reduce(function(sum, r) {
         const h = r.actual !== undefined ? r.actual : (r.hours !== undefined ? r.hours : 0);
-        return sum + (parseFloat(h) || 0);
+        const value = parseFloat(h) || 0;
+        const cat = r.category || (currentById[r.id] && currentById[r.id].category) || "Other";
+        if (bandOrder.indexOf(cat) < 0) bandOrder.push(cat);
+        snapByCat[cat] = (snapByCat[cat] || 0) + value;
+        return sum + value;
       }, 0);
       const date = new Date(s.takenAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
       const options =
@@ -3815,9 +3889,10 @@ function getJS() {
         '<div class="snap-row" data-snap-id="' + escAttr(s.id) + '">' +
           '<div class="snap-row-info">' +
             '<div class="snap-label">' + escHtml(s.label) + '</div>' +
-            '<div class="snap-meta">' + date + '; ' + total.toFixed(1) + 'h actual</div>' +
+            '<div class="snap-meta"><span>' + date + '</span><span class="snap-total">' + total.toFixed(1) + 'h lived</span></div>' +
             '<div class="snap-commitment">Experiment: ' + (s.commitment ? escHtml(s.commitment) : "not recorded") + '</div>' +
           '</div>' +
+          '<div class="snap-band">' + weekBandMini(snapByCat, bandOrder, "Lived week, " + date, total) + '</div>' +
           '<div class="snap-compare-wrap">' +
             '<select class="snap-compare-select" data-from="' + escAttr(s.id) + '">' + options + '</select>' +
           '</div>' +
@@ -4127,7 +4202,7 @@ function getJS() {
     const actualTotal = sumActual();
     const diff = actualTotal - idealTotal;
     const signed = (diff >= 0 ? "+" : "") + fmtH(diff);
-    let md = "# 168 — Audit Your Week\\n";
+    let md = "# 168: Audit Your Week\\n";
     md += "**Schedule:** " + cp.name + "\\n\\n";
     md += "| Category | Sub-category | Ideal (h) | Actual (h) | Notes |\\n";
     md += "|---|---|---:|---:|---|\\n";
@@ -4160,7 +4235,7 @@ function getJS() {
   document.getElementById("exportJournal").addEventListener("click", function() {
     const cp = currentProfile();
     const dateLabel = new Date().toISOString().slice(0, 10);
-    let md = "# Weekly journal — " + dateLabel + "\\n";
+    let md = "# Weekly journal: " + dateLabel + "\\n";
     md += "**Schedule:** " + cp.name + "\\n\\n";
     md += "## What I planned vs what happened\\n\\n";
     const sumI = sumIdeal(), sumA = sumActual();
@@ -4200,7 +4275,7 @@ function getJS() {
       const url = location.origin + location.pathname + "#share=" + encoded;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(url);
-        showToast("Share link copied — anyone with it sees a read-only copy.", false);
+        showToast("Share link copied. Anyone with it sees a read-only copy.", false);
       } else {
         await openAppDialog({
           kind: "text",
@@ -5034,7 +5109,7 @@ function getJS() {
     {
       selector: ".brand-titles",
       title: "168 hours, your week",
-      body: "Plan an ideal week, log your actual one, and see where the gap lives. Quick tour — about 60 seconds."
+      body: "Plan an ideal week, log your actual one, and see where the gap lives. Quick tour, about 60 seconds."
     },
     {
       view: "worksheet",
@@ -5463,7 +5538,7 @@ function getJS() {
       kind: "intro",
       view: "worksheet",
       title: "Why 168?",
-      body: "There are 168 hours in a week. Sleep, work, family, ministry, leisure — all of it comes out of the same fixed budget. We'll walk through each category and plan an ideal week together. About five minutes."
+      body: "There are 168 hours in a week. Sleep, work, family, ministry, leisure: all of it comes out of the same fixed budget. We'll walk through each category and plan an ideal week together. About five minutes."
     },
     {
       cat: "Work", view: "worksheet",
@@ -5483,7 +5558,7 @@ function getJS() {
     {
       cat: "Transit / Maintenance", view: "worksheet",
       title: "4. Transit & maintenance",
-      body: "Commute, hygiene, cooking, admin, medical, housework. People reliably underestimate this — usually 25–35h. Be honest now to avoid the surprise later."
+      body: "Commute, hygiene, cooking, admin, medical, housework. People reliably underestimate this, usually 25–35h. Be honest now to avoid the surprise later."
     },
     {
       cat: "Productive Transit", view: "worksheet",
@@ -5493,32 +5568,32 @@ function getJS() {
     {
       cat: "God Time", view: "worksheet",
       title: "6. God time",
-      body: "Individual (prayer, scripture, sermons) and communal (church, small group). Communal often overlaps with people-time — that's fine; log it here for the spiritual dimension."
+      body: "Individual (prayer, scripture, sermons) and communal (church, small group). Communal often overlaps with people-time. That's fine, so log it here for the spiritual dimension."
     },
     {
       cat: "Play", view: "worksheet",
       title: "7. Play",
-      body: "Active leisure. Hangouts, media, hobbies. Media tends to silently expand — log it as honestly as you can; the slider tops out at 20h for a reason."
+      body: "Active leisure. Hangouts, media, hobbies. Media tends to silently expand, so log it as honestly as you can; the slider tops out at 20h for a reason."
     },
     {
       cat: "Rest", view: "worksheet",
       title: "8. Rest",
-      body: "Sabbath / quiet rest. Not the same as play. For introverts this means solitude; for extroverts it can mean low-stimulation time alone with God. Plan a real chunk — it's a command, not a suggestion."
+      body: "Sabbath / quiet rest. Not the same as play. For introverts this means solitude; for extroverts it can mean low-stimulation time alone with God. Plan a real chunk: it's a command, not a suggestion."
     },
     {
       cat: "Other", view: "worksheet",
       title: "9. Other",
-      body: "Exercise + non-regular travel. Travel is the one that can blow up a normal week — plan an average if your travel is irregular."
+      body: "Exercise + non-regular travel. Travel is the one that can blow up a normal week, so plan an average if your travel is irregular."
     },
     {
       kind: "total", view: "worksheet",
       title: "Check the total",
-      body: "Does it add to 168? Most people's first pass goes 15–40h over. That's the whole point — it shows you which categories you're treating as 'always available' when they aren't."
+      body: "Does it add to 168? Most people's first pass goes 15–40h over. That's the whole point: it shows you which categories you're treating as 'always available' when they aren't."
     },
     {
       view: "reflect",
       title: "Reflect on it",
-      body: "Switch to Reflect and answer the prompts in writing. The honest answers are what make this useful — they show you what you actually believe vs what you wish you believed.",
+      body: "Switch to Reflect and answer the prompts in writing. The honest answers are what make this useful: they show you what you actually believe vs what you wish you believed.",
       selector: "#view-reflect .reflect-answer"
     },
     {
