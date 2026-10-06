@@ -13,4 +13,4 @@ This generated view contains variable names and operating metadata only. Secret 
 | `SUPABASE_URL` | TODO: classify | Bitwarden Secrets Manager or deployment platform | development | Douglas | on compromise, ownership change, or provider policy |  | needs-classification |
 
 Canonical source: `secret-manifest.json`
-Refresh: `C:\Users\dougl\.agents\tools\Update-SecretManifest.cmd -Repository <repo>`
+Refresh: `%USERPROFILE%\.agents\tools\Update-SecretManifest.cmd -Repository <repo>`
