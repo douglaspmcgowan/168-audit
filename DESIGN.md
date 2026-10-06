@@ -198,7 +198,7 @@ Status tokens are separate from the sage accent and always come with a word, sig
 ### Type
 
 - **Face:** Rethink Sans (OFL-1.1), one variable family for display, interface and prose. It is self-hosted from `@fontsource-variable/rethink-sans` (npm, pinned in the lockfile): the latin woff2 is copied to `public/fonts/` and served at `/fonts/rethink-sans-latin-wght-normal.woff2` with `font-display: swap`. The fallback is the platform sans, tuned with `size-adjust` so that the swap does not reflow. There is no code on screen, so there is no monospace role.
-- **Scale:** one ratio, 1.333 (perfect fourth), from a 16px body: `--text-meta` 0.75rem (body / 1.333), `--text-body` 1rem, `--text-title` 1.333rem (× 1.333), `--text-display` `clamp(1.777rem, 1.4rem + 1.6vw, 2.369rem)` (× 1.333² at 375, × 1.333³ = 37.9px at 1440, which is 2.37 × body). There are four sizes in the whole app, and **at most three on any one screen**. The masthead wordmark is `--text-title`. Route headings are `--text-display`. Card and section headings are `--text-body` at semibold, so hierarchy comes from weight. Metadata, table headings and chips are `--text-meta`. `--text-ui` and `--text-section` survive only as aliases of body and title, so old selectors keep resolving.
+- **Scale:** one ratio, 1.333 (perfect fourth), from a 16px body: `--text-meta` 0.75rem (body / 1.333), `--text-body` 1rem, `--text-title` 1.333rem (× 1.333), `--text-display` `clamp(1.777rem, 1.4rem + 1.6vw, 2.369rem)` (× 1.333² at 375, × 1.333³ = 37.9px at 1440, which is 2.37 × body). There are four sizes in the whole app, and **at most three on any one screen**. Route headings are `--text-display`. The wordmark, card and section headings are `--text-body` at semibold, so hierarchy comes from weight; `--text-title` is defined but unused (see Packet 1 record). Metadata, table headings and chips are `--text-meta`. `--text-ui` and `--text-section` survive only as aliases of body and title, so old selectors keep resolving.
 - **Weights:** 400 for prose, 500 for controls, 600 for headings and totals. **Tracking:** display `-0.02em`, body 0, meta `0.01em`. **Measure:** 68ch. **Leading:** 1.15 display, 1.4 interface, 1.6 prose. All quantities use tabular numerals.
 
 ### Space, shape, elevation
@@ -224,11 +224,97 @@ Status tokens are separate from the sage accent and always come with a word, sig
 - **Week band.** Compare shows two strips of 168 cells (ideal above, lived below), one cell per hour, filled in category order with the same ordered list `colorFor` uses. Each category rounds to whole cells, the strip stops at 168 and says the overflow in words; the label and total carry the exact hours. Each strip is `role="img"` with an `aria-label` listing per-category hours. Cells are `--radius-hairline` (2px), a sub-rule below `--radius-xs`, with a `--hairline` (1px) gap; empty cells are hairline outlines. The wrapper is `container-name: week-band`: 1 row of 168 at 900px and up, 2 of 84 from 480px, 4 of 42 below. The category colour is set once per run of cells (`--c`), and only the animated strip carries a per-cell `--i`.
 - **Draw-in.** The one authored motion: `opacity` and `scaleY`, `--dur-draw` per cell plus a stagger across the strip of `--wb-stagger` (480ms, 0.01ms under reduced motion) with `--ease-out`. It plays on the first Compare render that has at least one filled cell, once per page visit; JS also skips it under reduced motion. Mini bands never animate.
 - **Snapshot shelf.** History cards sit in `repeat(auto-fill, minmax(16rem, 1fr))` on the 60rem rail, level-1 tinted surfaces, each with the date, the lived total and a mini band. History has no cloud-loading path, so there are no placeholder cards.
-- **Copy and truncation.** Visible strings no longer use an em-dash as a divider. Plan inputs truncate with `text-overflow: ellipsis` and carry the full value in `title`.
+- **Copy and truncation.** Visible strings no longer use an em-dash as a divider. Plan inputs truncate with `text-overflow: ellipsis` and c### Motion
 
-### Motion
+`--dur-in` 120ms for hover and press feedback. `--dur-out` 240ms for state changes. `--dur-draw` 480ms with `--wb-stagger` for the one authored moment. `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)`. `--ease-in` for exits. Every motion animates `transform` and `opacity` only. `prefers-reduced-motion: reduce` sets every duration token to 0.01ms on `:root`.
 
-The motion inventory is under Design system: Thrive. `--dur-in` handles direct hover and press feedback, `--dur-out` handles state changes, and `--dur-draw` is reserved for the week-band draw-in.
+| Motion | Duration | Communicates |
+|---|---|---|
+| Control hover, press and focus | dur-in | feedback: the control heard you |
+| Route switch | dur-out | state change: you changed destination |
+| Menu and popover open | dur-out | hierarchy: where it came from |
+| Save status and toasts | dur-out | feedback: the save landed |
+| Week bands draw left to right on the first Compare render with data, once per visit | dur-draw + wb-stagger | sequence: the week accumulates hour by hour |
+| Tour tooltip fades; the spotlight snaps (recorded exception above) | dur-out | sequence: the next step |
+| Validation message under its field | dur-out | state change: what needs fixing |
+
+### Icons
+
+The existing hand-drawn 20×20 outline SVG set, 1.5px stroke with round caps and joins, is the only icon family. Emoji appear only as category content, never as interface icons.
+
+### Layout grid
+
+- **375px:** one column, 18px gutter, chrome compressed. The week band shows 4 rows of 42 hours.
+- **768px:** one column on the 60rem analysis rail with 32px gutters. Plan becomes the structured row editor. The band shows 2 rows of 84.
+- **1440px:** the 78rem rail for Plan, 60rem for Compare and History, 46rem for Reflect, 68rem for Center. The band is a single row of 168 cells.
+
+The band sizes itself to its container (`@container week-band`), so the same component serves Compare at full width and the History shelf at card width.
+
+### Component states
+
+Every button, segmented control, input, row control, menu item and nav tab defines:
+
+- default, hover, and active;
+- focus-visible: a 2px `--accent` outline with a 2px offset, visible on every surface level;
+- disabled: 45% opacity with `cursor: not-allowed`;
+- loading, where it applies.
+
+Data regions define loading, empty, error and stale, each visibly distinct from live data. The week band's own states are: empty (outlined cells plus "Add hours in Plan to fill your week"), partial, full, and over 168 (the overflow stated in words).
+
+### Recommendations
+
+- **In this build:**
+  - the Thrive token set (colour, type, radii, elevation);
+  - self-hosted Rethink Sans;
+  - index-based category colours, so no two categories share a slice;
+  - week bands on Compare;
+  - the snapshot shelf on History;
+  - the band draw-in as the one authored motion;
+  - the focus-ring standard;
+  - deliberate ellipsis truncation;
+  - em-dash-free copy.
+- **Proposed for later:**
+  - a gap list where each difference row takes one optional sentence of reflection (it needs a storage field, so it is a product change);
+  - light as the default theme for new visitors (Thrive is light-first; the existing default and the stored preference are kept today);
+  - a print stylesheet that prints the bands;
+  - moving the donuts into a disclosure below the bands;
+  - a container-query Plan row editor that replaces its viewport media query;
+  - including `public/**` explicitly in the Vercel function bundle for the font and OG routes.
+
+## Components
+
+- Navigation uses five text labels with an underline for the active destination.
+- Route toolbars share spacing, divider, type, and control-height rules.
+- All interactive controls have a 44px minimum target.
+- Cards group a distinct task or entity. Dividers and whitespace handle ordinary row separation.
+- Icon actions use the shared 20×20 outline SVG language and require accessible names.
+- Empty states use a concise heading, one recovery sentence, and one primary action.
+- Dialogs share overlay radius, padding, focus entry, focus containment, Escape handling, and focus return.
+- Status text is brief, live-region compatible, and placed near the state it describes.
+
+## Route rules
+
+- Plan: wide worksheet, one stage title, stage selector, compact actions, clear totals.
+- Plan category manager: All is the initial view when no preference is stored and presents the complete schedule. Focus preserves a locally stored preference and places its category picker directly after the All/Focus toggle.
+- In All, each category is a parent group spanning its child rows. The group panel carries the child count, category reorder control, editable name, and a color key at the right edge. Each subcategory keeps its own selection, reorder, name, hours, notes, and removal controls.
+- Category groups use a tinted surface and stronger boundary; subcategories use quieter divided rows beneath that parent. Group separation exceeds spacing within a group.
+- Category colors link group headings to the live allocation donut and expanded legend. Text labels and totals preserve meaning without relying on color.
+- Compare: ranked differences first, totals adjacent to the heading, optional charts below disclosure.
+- Reflect: one question at a time, short progress label, prior answers and reference material under disclosure.
+- History: compact snapshot list with comparison and safe deletion.
+- Center: one 68rem rail, clear signed-in state, entity cards, explicit sharing and membership consequences.
+
+## Responsive behavior
+
+- Preserve the five destination labels down to 320px.
+- Plan changes from table to compact structured editing rows without horizontal page scrolling.
+- Mobile All promotes each category panel to a full-width header above its subcategories. Mobile Focus shows one category and its previous, next, and picker controls.
+- Analysis and reading routes become single-column layouts.
+- Center forms and member controls stack while identity text receives the flexible width.
+- Mobile chrome is compressed so the current task begins in the first viewport where practical.
+- Long labels wrap when they carry meaning; secondary metadata may truncate.
+
+rved for the week-band draw-in.
 
 ## Content
 
