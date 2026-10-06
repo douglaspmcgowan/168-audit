@@ -219,6 +219,13 @@ Status tokens are separate from the sage accent and always come with a word, sig
 - **Category colour follows position.** `colorFor` takes the slice at the category's index in the ordered list, so reordering a category changes its colour with its position.
 - **Fallback face.** `Rethink Sans Fallback` is `local("Arial")` with `size-adjust` 104.47%, `ascent-override` 94.76%, `descent-override` 29.67% and `line-gap-override` 0%, measured against the shipped woff2.
 
+### Packet 2 record (2026-10-06)
+
+- **Week band.** Compare shows two strips of 168 cells (ideal above, lived below), one cell per hour, filled in category order with the same ordered list `colorFor` uses. Each category rounds to whole cells, the strip stops at 168 and says the overflow in words; the label and total carry the exact hours. Each strip is `role="img"` with an `aria-label` listing per-category hours. Cells are `--radius-hairline` (2px), a sub-rule below `--radius-xs`, with a `--hairline` (1px) gap; empty cells are hairline outlines. The wrapper is `container-name: week-band`: 1 row of 168 at 900px and up, 2 of 84 from 480px, 4 of 42 below. The category colour is set once per run of cells (`--c`), and only the animated strip carries a per-cell `--i`.
+- **Draw-in.** The one authored motion: `opacity` and `scaleY`, `--dur-draw` per cell plus a stagger across the strip of `--wb-stagger` (480ms, 0.01ms under reduced motion) with `--ease-out`. It plays on the first Compare render that has at least one filled cell, once per page visit; JS also skips it under reduced motion. Mini bands never animate.
+- **Snapshot shelf.** History cards sit in `repeat(auto-fill, minmax(16rem, 1fr))` on the 60rem rail, level-1 tinted surfaces, each with the date, the lived total and a mini band. History has no cloud-loading path, so there are no placeholder cards.
+- **Copy and truncation.** Visible strings no longer use an em-dash as a divider. Plan inputs truncate with `text-overflow: ellipsis` and carry the full value in `title`.
+
 ### Motion
 
 The motion inventory is under Design system: Thrive. `--dur-in` handles direct hover and press feedback, `--dur-out` handles state changes, and `--dur-draw` is reserved for the week-band draw-in.
