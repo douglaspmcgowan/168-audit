@@ -161,6 +161,16 @@ const check = (condition, message) => {
     (await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category")) === reorderAfter.first,
     "reordered category did not persist after reload",
   );
+  // html carries scroll-behavior: smooth, so a drop target below the fold makes Playwright's
+  // scroll-into-view race the pointer. Bring both category handles into view instantly first.
+  const frameFirstTwoCategories = () =>
+    page.evaluate(() => {
+      const starts = document.querySelectorAll("#auditBody tr.cat-start");
+      const top = starts[0].getBoundingClientRect().top;
+      const bottom = starts[1].getBoundingClientRect().bottom;
+      window.scrollTo({ top: window.scrollY + (top + bottom) / 2 - window.innerHeight / 2, behavior: "instant" });
+    });
+  await frameFirstTwoCategories();
   const dragFirstCategory = await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category");
   await page.locator("#auditBody tr.cat-start").first().locator('[data-reorder-kind="category"]:visible').dragTo(
     page.locator("#auditBody tr.cat-start").nth(1).locator('[data-reorder-kind="category"]:visible'),
@@ -170,6 +180,7 @@ const check = (condition, message) => {
     "pointer drag did not reorder a category group",
   );
 
+  await frameFirstTwoCategories();
   const touchSource = page.locator("#auditBody tr.cat-start").first().locator('[data-reorder-kind="category"]:visible');
   const touchTarget = page.locator("#auditBody tr.cat-start").nth(1).locator('[data-reorder-kind="category"]:visible');
   const touchSourceCategory = await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category");
