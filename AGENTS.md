@@ -86,11 +86,18 @@ The block covered only the portable operating rules until 2026-08-09. The startu
 
 ## Commands
 
-- Setup: `<command>`
-- Test: `<command>`
+- Setup: `npm.cmd ci`
+- Test: `npm.cmd run test:schema` (static contracts); `npm.cmd run test:cloud-ui` (deterministic cloud personas)
 - Lint: `<command>`
 - Build: `<command>`
-- End-to-end verification: `<command>`
+- End-to-end verification: start the app, then `npm.cmd run test:overview -- http://localhost:<port>` (focused allocation interface); start `npm.cmd start`, then `npm.cmd run test:local` (local end-to-end)
+- Live RLS and database lifecycle: `npm.cmd run test:supabase-live`
+- Live multi-browser Center: `npm.cmd run test:supabase-ui-live`
+- Syntax: `npx tsc --noEmit`
+- Dependency audit: `npm.cmd audit --omit=dev`
+- Secret scan: `C:\Users\dougl\Tools\gitleaks\gitleaks.exe dir . --redact --no-banner --config .gitleaks.toml`
+- Design detector: `node C:\Users\dougl\.agents\skills\impeccable\scripts\detect.mjs --json server.ts`
+- Diff hygiene: `git diff --check`
 
 ## Safety and evidence
 
@@ -125,7 +132,7 @@ The block covered only the portable operating rules until 2026-08-09. The startu
 
 - `LOG.md`: append-only work log.
 - `BACKBURNER.md`: parked backlog.
-- `VERIFY.md`: required proof before completion.
+- `## Commands` above: verification commands and required evidence (the earlier `VERIFY.md` is preserved at `.agents/archive/task-state-migration/VERIFY.3b3c2db1ea41.md`).
 - `MAP.md`: architecture, data, ownership, and file navigation.
 - `DESIGN.md`: current design decisions and constraints.
 - `MEMORY.md`: lean index to durable reference files.
@@ -142,7 +149,7 @@ Use session-keyed active task files when concurrent sessions share one folder. S
 - Parked idea or deferred task: update `BACKBURNER.md`.
 - Architecture, data flow, ownership, integration, or important path changes: update `MAP.md`.
 - Product or architecture decision changes: update `DESIGN.md`.
-- Verification command or required evidence changes: update `VERIFY.md`.
+- Verification command or required evidence changes: update the `## Commands` section of `AGENTS.md`.
 - Reusable fact gains a durable reference: add one linked line to `MEMORY.md`.
 - Douglas corrects recurring behavior: record evidence, choose path/project/shared/platform/provider scope, implement the narrowest reliable rule or enforcement artifact, and add verification.
 - Before handoff or stopping: reconcile the queue, task narrative, durable status, log, and Git state.

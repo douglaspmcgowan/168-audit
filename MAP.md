@@ -10,7 +10,7 @@
 | `TASK.md` | Agents and humans | Start, resume, handoff | Active goal, queue, blockers, evidence, and next verifier |
 | `LOG.md` | Agents and humans | Recent history, handoff | Append-only work record |
 | `BACKBURNER.md` | Humans and agents | Planning | Parked backlog |
-| `VERIFY.md` | Agents and CI | Before completion | Required evidence and executable verification commands |
+| `AGENTS.md` `## Commands` | Agents and CI | Before completion | Required evidence and executable verification commands (earlier `VERIFY.md` preserved at `.agents/archive/task-state-migration/VERIFY.3b3c2db1ea41.md`) |
 | `MAP.md` | Agents and humans | Orientation | This document graph and project navigation |
 | `DESIGN.md` | Agents and humans | Feature and architecture work | Goals, constraints, decisions |
 | `MEMORY.md` | Agents | Recall | Lean links to durable topic notes |
@@ -36,7 +36,7 @@
 | `server.ts` | Express entry point and single-page application source | no | yes |
 | `data/categories.ts` | Default worksheet and reference content | no | yes |
 | `DESIGN.md` | Current interface language and route-specific rules | no | yes |
-| `VERIFY.md` | Release and completion evidence contract | no | yes |
+| `.agents/archive/task-state-migration/VERIFY.3b3c2db1ea41.md` | Archived release and completion evidence contract; live commands are in `AGENTS.md` `## Commands` | no | yes |
 | `tests/verify-overview.mts` | Focused All/Focus hierarchy and reordering browser contract | no | yes |
 | `tests/verify-live.mts` | Full local browser regression | no | yes |
 | `supabase/migrations/` | Versioned optional cloud schema | no | yes |
