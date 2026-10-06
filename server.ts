@@ -5581,7 +5581,25 @@ function getJS() {
       const t1 = collectTarget();
       if (t1.scroll) {
         const initialRect = t1.scroll.getBoundingClientRect();
-        const tutorialTopOffset = document.documentElement.clientHeight <= 480 ? 96 : 112;
+        const vh = document.documentElement.clientHeight;
+        let tutorialTopOffset = vh <= 480 ? 96 : 112;
+        // When the tooltip cannot sit beside the target, it goes above or below. On a short
+        // viewport neither fits at the default offset (812x375, "Check the total"), so lift the
+        // target until the tooltip fits underneath it. Measure the tooltip at a neutral position
+        // and restore it in the same frame.
+        if (t1.rect) {
+          const savedTop = tooltip.style.top, savedLeft = tooltip.style.left;
+          tooltip.style.top = "0px"; tooltip.style.left = "0px";
+          const tip = tooltip.getBoundingClientRect();
+          tooltip.style.top = savedTop; tooltip.style.left = savedLeft;
+          const spotH = t1.rect.height + 20;
+          const sideRoom = Math.max(document.documentElement.clientWidth - t1.rect.right, t1.rect.left) - 10 - 26 - 14;
+          const fitsAbove = tutorialTopOffset - 10 - 26 - 14 >= tip.height;
+          const fitsBelow = vh - (tutorialTopOffset - 10 + spotH) - 26 - 14 >= tip.height;
+          if (sideRoom < tip.width && !fitsAbove && !fitsBelow) {
+            tutorialTopOffset = Math.max(24, Math.min(tutorialTopOffset, vh - 14 - tip.height - 26 - spotH + 10));
+          }
+        }
         const targetTop = Math.max(0, window.scrollY + initialRect.top - tutorialTopOffset);
         window.scrollTo({
           top: targetTop,
