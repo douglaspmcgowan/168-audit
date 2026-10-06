@@ -1,5 +1,20 @@
 # Worklog
 
+2026-09-27 | App-repair floor pass, non-visual only. Landed the TypeScript conversion (`server.ts`, `data/categories.ts`, six `.mts` suites, `tsconfig.json` with `strict: true`, `npx tsc --noEmit` exit 0), the runtime pin (`engines: node >=24.0.0 <25`, `.nvmrc`, `.node-version`), exact dependency pins in place of every caret range plus `overrides.qs` 6.16.0 and express 4.22.3 (`npm audit` 0 vulnerabilities, down from 3 moderate), a `prefers-color-scheme: dark` block redefining the `:root` tokens, and the token layer's remaining literals. Fixed two test defects that asserted things the product had deliberately decided against: the tutorial-motion assertion (the spotlight snaps by design) and the tour aspect-ratio matrix's fixed 560ms sample, which read the step-9 tooltip mid-reposition at 812x375 and which reproduced identically against the pre-repair server.
+
+Floor rows, both measured with the same script against the sole style source (`server.ts` / `server.js` — this app tracks no `.css` and no `.html`, so the Appendix A scan returns an all-zero row for it):
+
+```
+BEFORE  3b1b17d  stylefiles=1 | bytes=263874 | unique-hex=34 | distinct-font-sizes=48 | custom-props=92  | transition=50 | @keyframes=2 | !important=8 | :focus-visible=11 | prefers-color-scheme=0 | @container=0 | clamp(=0 | prefers-reduced-motion=5
+AFTER            stylefiles=1 | bytes=272580 | unique-hex=34 | distinct-font-sizes=48 | custom-props=135 | transition=50 | @keyframes=2 | !important=4 | :focus-visible=11 | prefers-color-scheme=1 | @container=0 | clamp(=0 | prefers-reduced-motion=5
+```
+
+No column is worse. `unique-hex` and `distinct-font-sizes` are unchanged on purpose: every literal moved into `:root` at its current value, so the same values still appear in the file, and collapsing 48 declared font sizes onto a smaller scale would change what renders and is therefore out of scope for a non-visual pass. The four surviving `!important` are the reduced-motion overrides; `DESIGN.md` records why they stay, and records the two `backdrop-filter` rules that violate the universal performance rule but whose only fixes move pixels.
+
+Proof the token work changed no pixel: an A/B Playwright capture of 838 elements x 14 computed properties, taken from the pre-repair server and the repaired server under identical conditions (`reducedMotion: "no-preference"`, 1280x900), in both `prefers-color-scheme: light` and `dark`. **0 computed-style differences in both schemes**; 15 tokens added, 0 changed, 0 removed. Playwright rather than the desktop browser pane, because the pane emulates reduced motion and collapses every transition to `1e-05s`.
+
+Verified: `npx tsc --noEmit` exit 0 · `node tests/verify-live.mts` 149/149 "All checks passed", three consecutive clean runs · `npm run test:overview` exit 0 · `npm run test:schema` exit 0 · `npm run test:cloud-ui` exit 0 · `npm ci` exit 0 · `npm audit` 0 vulnerabilities · gitleaks 38 commits, no leaks · `git diff --check` exit 0.
+
 2026-07-26 | Added and verified the all-category allocation manager, linked donut, larger sliders, compact responsive groups, complete password recovery, and deployed commit 38907a5 to Vercel production; production Supabase environment configuration remains blocked on dashboard authentication.
 
 2026-07-26 | Audited Claude-to-Codex skill parity, synchronized 23 skill packages and 34 command ports into the shared catalog, added a repeatable drift checker, and verified zero missing/duplicate/invalid packages.
@@ -30,3 +45,4 @@
 2026-07-27 | Unified the Focus/All row-action toolbar with the expandable donut in the Ideal/Actual/Weekly summary; added explicit selection and pointer/keyboard/visible reorder for category groups and subcategory rows with contiguous-group and stable-color guarantees and fixed tabular numeric rails; passed overview interaction, full Playwright, schema, deterministic cloud-persona, axe, responsive, zoom, syntax, and Impeccable verification; production cloud remained disabled pending Supabase publishable key and Auth redirect configuration.
 2026-07-27 | Made All the default allocation view on every viewport with Focus retained; rebuilt categories as spanning tinted group panels on desktop and compact mobile headers, corrected subcategory selection/reorder semantics including Mandatory Work, reached 53px desktop rows and 77px mobile headers with zero horizontal overflow, and passed the overview interaction test plus the complete local Playwright regression including axe, drag/keyboard/touch reordering, 320px-desktop layouts, 200% zoom, recovery, and Center coverage.
 2026-08-25 | Reviewed, hardened, documented, pushed, and deployed the default All-view hierarchy; production passed focused and complete browser verification across desktop, tablet, 320px, accessibility, and tour matrices.
+2026-10-06 | Task state consolidated into TASK.md; legacy task and verification sources retained under .agents/archive/task-state-migration.

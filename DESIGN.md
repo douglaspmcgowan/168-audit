@@ -19,7 +19,9 @@ beige-brass-espresso "premium consumer" palette is the same tell; rotate off it.
 - Lock one accent color page-wide, and one gray family per project.
 - Lock one corner-radius system per page. Mix radii only under a rule you can state.
 - Keep one theme per page. Sections do not invert light and dark mid-scroll except as a single deliberate composition device.
-- A section layout family appears at most once per page. At most two consecutive image-text zigzag splits. At most one small uppercase eyebrow label per three sections.
+- A section layout family appears at most once per page. At most two consecutive image-text zigzag splits.
+- **No eyebrow labels and no kicker titles on any page, deck, or artifact.** An eyebrow or kicker is the small uppercase or letter-spaced label above a heading; the heading carries its own weight, so delete the label. Ruled 2026-09-30.
+- **Never use the middle dot `·` (U+00B7, `&middot;`) or the bullet `•` as an inline divider.** Separate inline items with a semicolon, `|`, a comma, or a line break. The em-dash stays banned as a divider. Ruled 2026-09-30.
 - Where a brief reads as an established design system, use that system's official package rather than approximating it. One system per project.
 - The brief wins. Honor a pinned aesthetic even when it is not the choice you would make; redirecting a clear brief toward your own taste is failure, not judgment.
 
@@ -48,15 +50,21 @@ run, against the heading "Interaction and accessibility" a few sections down.
 ### Everything else
 
 - Never use IBM Plex Mono.
+- **Never set anything in a monospace typeface unless it is code.** Not numbers, not labels, not reference tags, not captions, not credits, not timestamps. Monospace outside a code block is a costume that says "technical" and reads as machine output. Numerals that need to line up get `font-variant-numeric: tabular-nums` on the normal face instead.
+- **Never use the middle dot as a separator.** No `·`, and no bullet character standing in for it. Separate with an en dash, a slash, a comma, or plain whitespace with a rule. The middle dot reads as machine-assembled metadata everywhere it appears, which is why it is out on every surface, not just decks.
+- **Never write a line that is only "The" plus a noun.** "The transfer function", "The result", "The problem" — a bare definite noun phrase standing alone is the most common shape in machine-written copy and carries no more information than the noun alone. A title may open with "The"; a label, a bullet or a caption may not be one.
+- **Never title anything as a noun followed by a rhythmic tag.** "The argument, rung by rung", "The story, piece by piece", "Design, from the ground up". The tag adds cadence, not meaning, and it is the tell that a title was composed rather than named. Title the thing by what it is.
+- **A reference shown to a reader must be identifiable without the source document.** A bare bracket number or a bare superscript means nothing to someone who does not have the bibliography open, which on a slide or a poster is everyone. Name the author and year, and put the numbering in a source line if the numbering itself matters.
 - Default to a sans display face. Use serif only with an articulated reason; `Fraunces` and `Instrument Serif` are banned as defaults specifically because they are the common machine-made choice.
 - Hero discipline: the hero fits the first viewport, the headline runs at most two lines, subtext stays under roughly twenty words, and no more than four text elements sit inside it. Trust marks and logo walls go below the hero, never in it.
 - A grid has exactly as many cells as there is content for. Reshape the grid rather than pasting in a blank tile.
 - Every animation names what it communicates — hierarchy, sequence, feedback, or state change. An animation that names nothing gets cut.
 - Reread every visible string before shipping. Never invent a precise-sounding number.
 - Use a proportional body face for prose, navigation, labels, dates, names, and human-readable metadata.
-- Reserve monospace for code, commands, identifiers, timestamps, and genuinely tabular numeric data.
-- Define explicit body, display, and monospace roles. Use tabular numerals on the proportional face for aligned quantities.
+- Reserve monospace for code and commands only, and set it in a code block. Identifiers, timestamps and numeric columns take the proportional face.
+- Define explicit body and display roles, and a monospace role only where the surface actually renders code. Use tabular numerals on the proportional face for aligned quantities.
 - Establish hierarchy through size, weight, spacing, and placement before decoration.
+- **Use all-caps titles, labels, and headings very, very sparingly, only when absolutely necessary.** Uppercase letters and `text-transform: uppercase` both count; the default is sentence case. Ruled 2026-09-30.
 - Give each screen a clear primary action or reading path. Use spacing and alignment to show relationships.
 - Reuse existing tokens and components before adding variants.
 - Cover relevant default, hover, focus, active, disabled, loading, empty, error, and success states.
@@ -72,6 +80,8 @@ run, against the heading "Interaction and accessibility" a few sections down.
 Concrete things to reach for — animation packages and working skeletons, icon kits, typeface pools, design-system install commands and canonical documentation. Read the leaf you need; each one loads on its own.
 
 - **Index** `~/.agents/design/LIBRARIES.md`
+- **Precedence and routing** `~/.agents/design/precedence.md` — which source wins when the universal rules, `impeccable` and a pinned brief disagree, and whether this project's design detector hook is actually wired
+- **Stack templates** `~/.agents/design/STACK-TEMPLATES.md` — seven app-kind templates naming an occupant for all 22 stack slots, and the per-slot deviation rules. The selection itself belongs to `~/.agents/skills/stack/SKILL.md`: six observable questions, the scaffold, and `architecture.md`'s import direction. Enter there before choosing a framework, styling method, primitive layer or component source, and read the result in this file's `## Stack selection`; `solo-review` stack mode measures a real repository against it
 - **Motion** `~/.agents/design/animation/` — `libraries.md`, `sticky-stack.md`, `horizontal-pan.md`, `scroll-reveal.md`, `liquid-glass.md` (frosted glass), `forbidden.md`
 - **Icons** `~/.agents/design/icons/libraries.md`
 - **Type** `~/.agents/design/type/families.md`
@@ -83,6 +93,10 @@ Concrete things to reach for — animation packages and working skeletons, icon 
 - **Pre-ship matrix** `~/.agents/design/preflight.md` — the mechanical finish check for landing, marketing and portfolio surfaces; not dashboards, not product UI
 - **Dashboards and data-dense product UI** `~/.agents/design/dashboards.md` — the full system for the surface this tree used to leave uncovered: the three dashboard kinds and why building one while thinking of another causes most of the mistakes, information architecture and the three reading distances, density targets set against marketing spacing, typography and colour for data (sequential, diverging, categorical and semantic scales), chart selection ordered by the Cleveland-McGill perceptual ranking, chart and table craft, the six states every data region has, filters and URL state, interaction, real-time cadence, renderer choice by point count, the charting-library table, the anti-patterns, and a §18 pre-ship matrix that is the entry above's equivalent for this medium. This line used to say the tree did not own dashboards and pointed at the `/design-review` rubric, which critiques a running app rather than generating one; that gap closed on 2026-08-09
 - **Mobile, touch and responsive** `~/.agents/design/mobile.md` — the medium, not a surface type: the three kinds of mobile thing and why a responsive site should not get a bottom tab bar, the viewport and its moving parts (`svh`/`lvh`/`dvh`, `viewport-fit=cover`, `env(safe-area-inset-*)` with the `max()` fallback that is the part people omit), the three touch-target floors — WCAG 2.2's 24px, Material's 48dp, Apple's 44pt — and which to design to, thumb reach and what it decides, mobile type including the 16px threshold below which iOS zooms a focused input, breakpoints and container queries, navigation patterns, forms with `inputmode`/`autocomplete`/`enterkeyhint` and the keyboard that covers your action bar, the gestures the OS has already reserved, the states that do not exist without a pointer, scrolling, the motion budget on a mid-tier device, images, offline, touch accessibility, the anti-patterns, a §18 pre-ship matrix, and §19 on the four checks emulation cannot answer. It does not restate `impeccable`'s `reference/adapt.md`, which owns converting an existing surface between contexts
+- **Production readiness** `~/.agents/design/ADVISOR-PRODUCTION-READY.md` — what still stands between the design-space explorer and the Work Scope graph and real use
+- **Design-space explorer** `~/.agents/design/design-space-explorer/README.md` — the reusable two-axis combination explorer, its intent, specification, design rules, and inspection record
+- **Design-space manifests** `~/.agents/design/design-spaces/README.md` — the reusable schema for design-space axes, entries, palettes, templates, and generated-axis sources
+- **Mission-control design studies** `~/.agents/design/mission-control/AESTHETIC-OPTIONS.md` and `REPRESENTATIONS.md` — visual-world and information-representation options for that surface
 
 The full universal rules are `~/.agents/DESIGN.md`. Where a library entry and a rule disagree, the rule wins.
 
@@ -90,6 +104,49 @@ The full universal rules are `~/.agents/DESIGN.md`. Where a library entry and a 
 <!-- agent-harness:universal-design:v1:end -->
 
 # 168 Audit Design System
+
+## Stack template declaration (B8)
+
+**Template 2 — Application with auth and data**, from `~/.agents/design/STACK-TEMPLATES.md`.
+
+Selected by questions 3 and 4 of the six in `~/.agents/skills/stack/SKILL.md` § 1: a human signs in (Supabase Auth, optional but shipped), and data survives between sessions (weeks, snapshots, groups and shares in Postgres under row-level security). Those two answers occupy the auth and `database/ORM` slots, and only template 2 occupies both. Question 6 confirms the internet-reachable answer: the app is live at https://168-audit.vercel.app.
+
+The app runs fully signed-out on `localStorage` alone, which is why the auth slot reads "optional but shipped" rather than "required".
+
+### Deviations from template 2, each with its reason
+
+| Slot | Template 2 says | This app has | Reason |
+|---|---|---|---|
+| language | TypeScript | TypeScript | Converged 2026-09-27. `server.ts` and `data/categories.ts` are strict-clean (`npx tsc --noEmit` exits 0); the six Playwright suites are `.mts` with 39 type errors left, tracked in `tsconfig.tests.json`. |
+| UI library | React | none — hand-written DOM strings | **Open deviation.** No component boundary exists to convert. Closing it is workstream 13 and is gated behind the floor. |
+| framework/build | Next.js, App Router | hand-written Express, no build step | **Open deviation.** Express is on the cut list. The floor-first stop in `APP-REPAIR-SPEC.md` forbids entering workstream 13 until this row is DONE at BASELINE, so the move is deliberately not taken here. |
+| styling method | Tailwind plus CSS custom properties | one inline `<style>` template literal, 91 custom properties on one `:root` | **Partial.** The custom-property half is in place and is the app's single source of colour, size, space, radius, shadow, duration and easing — including the Compare donut palette (`--slice-1` .. `--slice-10`), which the client reads at render time rather than holding its own array. No hex literal, no `px` font size and no `rem` or `px` radius survives outside `:root`; the only hex left anywhere outside it is inside the standalone `/favicon.svg` document, which is served as an image and cannot see the page's custom properties. Tailwind is absent and arrives with the framework move. |
+| headless primitives | Base UI, via shadcn | none | **Open deviation.** Follows the UI-library row. Radix, Vite and Astro are out of the stack entirely and are not alternatives here. |
+| component source | shadcn/ui | none | Follows the UI-library row. |
+| motion | Framer Motion, CSS transitions for plain state changes | CSS transitions only, on duration and easing tokens | **Accepted deviation.** Every state change in this app is a plain one; 50 transition rules, two `@keyframes`, a `prefers-reduced-motion: reduce` block. Framer Motion would be weight with nothing to spend it on. |
+| charts | Recharts when there is a reporting surface | hand-written bars and SVG | **Accepted deviation.** The Compare surface draws one comparative bar form from data the client already holds; a chart library here is a dependency for one shape. |
+| icons | Lucide | hand-written inline SVG in one `ui-icon` class | **Accepted deviation.** One set, project-wide, which is the rule the slot exists to enforce. Emoji appear only as category *content* in `data/categories.ts`, never as interface icons. |
+| fonts | `next/font` with a self-hosted face | system UI stack via `--sans` | **Accepted deviation.** Zero font requests and zero layout shift, which is what the slot buys; there is no display face to self-host. |
+| state/data/forms | TanStack Query, React Hook Form, Zod | `localStorage` plus direct `@supabase/supabase-js` calls | Follows the UI-library row. |
+| tables | TanStack Table | a semantic `<table>` reshaped with CSS grid at narrow widths | **Accepted deviation.** The worksheet is not sorted, filtered or paginated; it is edited in place. |
+| database/ORM | Postgres with Drizzle | Postgres on Supabase, SQL migrations, no ORM | **Accepted deviation.** Four `.sql` files with an explicit row-level-security contract. An ORM over four tables under RLS would move the authorization surface away from the file that states it. |
+| testing | Playwright end to end, Vitest for units | Playwright via six hand-rolled `.mts` scripts, no `playwright.config.*`, no Vitest | **Open deviation.** 149 checks across five viewports, both themes, keyboard, WCAG, persistence, backup/restore, hostile payloads, zoom and touch targets. Converging on `playwright.config.*` is a real migration rather than a rename and is not taken here. |
+| observability | Sentry, PostHog | none | **Accepted deviation.** A signed-out user's data never leaves the browser; adding a third-party beacon would be the first time it did. |
+
+### Motion exception, recorded here because the universal rule says to
+
+`~/.agents/DESIGN.md` § Motion holds that "an instant state change with no transition … reads as unfinished". The tutorial spotlight is a deliberate exception: it snaps rather than animating position, because the tutorial is a discrete-step model and a mid-transition measurement races the tooltip's placement. `.tour-spotlight` in `server.ts` carries the reason, and `tests/verify-live.mts` asserts the snap rather than asserting motion the product had removed on purpose.
+
+### Conventions in force (2026-10-06 compliance pass)
+
+- **Dates.** Short month, day, and year for saved snapshots (`Oct 6, 2026`); month and day for week titles and invite expiry; times as locale hour and minute. No middle-dot or bullet dividers anywhere in visible text: use a comma, semicolon, or colon.
+- **Numbers and units.** Hours carry a lowercase `h` suffix with no space (`12.5h`). Whole hours print bare (`40h`), fractions trim trailing zeros to at most two decimals, and snapshot totals use one decimal. Tabular numerals on every aligned quantity.
+- **Case.** Sentence case everywhere. There are no uppercase transforms and no eyebrow or kicker labels; a region is named by its heading or an accessible name.
+- **Token roles added.** `--weight-regular` (with medium and semibold, the only three weights); `--track-tight`, `--track-snug`, `--track-label` (the only letter-spacing values); `--paper-solid` (opaque control surface, light and dark); `--scrim-modal`, `--scrim-tour`, `--scrim-spot` (overlay dims); `--shadow-thumb`, `--shadow-hair`, `--shadow-pop`, `--shadow-menu`, `--shadow-lift` (the only shadow recipes). `--text-title` and `--text-display` are `clamp()` values that equal 24px and 28px at 375px and above.
+- **Layout.** Every margin, padding, and gap reads from `--space-1` to `--space-8`. The Plan category panel is a size container (`category-panel`) and adapts through `@container`; route padding uses `clamp()`.
+- **Backdrop blur** lives only on fixed layers (sticky stats, modal, tour tooltip) and the profile popover. The theme toggle and export buttons use the opaque `--paper-solid`.
+- **Tutorial spotlight** is the scrim plus a crisp `--accent` ring and one offset neutral shadow; no zero-offset coloured glow.
+- **Reduced motion.** No `!important`. Every transition and animation reads `--dur-in` or `--dur-out`, and `@media (prefers-reduced-motion: reduce)` redefines both tokens to `0.01ms` on `:root` and sets `html { scroll-behavior: auto }`, so the outcome holds for every present and future rule that uses the tokens.
 
 ## Product character
 
@@ -134,7 +191,7 @@ Use the system sans stack throughout. The hierarchy has six roles:
 | Title | `--text-title` | 24px | route headings |
 | Display | `--text-display` | 28px | product title and top-level Center heading |
 
-Use `--leading-tight` for headings, `--leading-ui` for controls and metadata, and `--leading-body` for prose. Hours and totals use tabular numerals. Uppercase metadata remains concise and never drops below 12px. Reading text stays within `--measure` / 68ch.
+Use `--leading-tight` for headings, `--leading-ui` for controls and metadata, and `--leading-body` for prose. Hours and totals use tabular numerals. Metadata is sentence case and never drops below 12px. Reading text stays within `--measure` / 68ch.
 
 ## Color
 
@@ -171,7 +228,7 @@ An inner element never has a larger radius than its containing surface.
 
 - Plan: wide worksheet, one stage title, stage selector, compact actions, clear totals.
 - Plan category manager: All is the initial view when no preference is stored and presents the complete schedule. Focus preserves a locally stored preference and places its category picker directly after the All/Focus toggle.
-- In All, each category is a parent group spanning its child rows. The group panel carries the category label, child count, category reorder control, editable name, and a color key at the right edge. Each subcategory keeps its own selection, reorder, name, hours, notes, and removal controls.
+- In All, each category is a parent group spanning its child rows. The group panel carries the child count, category reorder control, editable name, and a color key at the right edge. Each subcategory keeps its own selection, reorder, name, hours, notes, and removal controls.
 - Category groups use a tinted surface and stronger boundary; subcategories use quieter divided rows beneath that parent. Group separation exceeds spacing within a group.
 - Category colors link group headings to the live allocation donut and expanded legend. Text labels and totals preserve meaning without relying on color.
 - Compare: ranked differences first, totals adjacent to the heading, optional charts below disclosure.

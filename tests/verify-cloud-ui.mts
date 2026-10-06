@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 
 const PORT = 3170;
 const URL = `http://localhost:${PORT}`;
-const server = spawn(process.execPath, ["server.js"], {
+const server = spawn(process.execPath, ["server.ts"], {
   cwd: process.cwd(),
   env: {
     ...process.env,
@@ -194,7 +194,7 @@ try {
   const adminControls = await page.evaluate(() => ({
     leave: Boolean(document.getElementById("leaveGroupBtn")),
     rename: Boolean(document.getElementById("renameGroupBtn")),
-    removes: [...document.querySelectorAll("[data-remove-member]")].map(button => button.dataset.removeMember),
+    removes: [...document.querySelectorAll<HTMLElement>("[data-remove-member]")].map(button => button.dataset.removeMember),
     roles: Boolean(document.querySelector("[data-member-role]")),
     invite: Boolean(document.getElementById("createInviteForm")),
     deleteGroup: Boolean(document.getElementById("deleteGroupBtn")),

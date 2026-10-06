@@ -10,7 +10,7 @@
 | `TASK.md` | Agents and humans | Start, resume, handoff | Active goal, queue, blockers, evidence, and next verifier |
 | `LOG.md` | Agents and humans | Recent history, handoff | Append-only work record |
 | `BACKBURNER.md` | Humans and agents | Planning | Parked backlog |
-| `VERIFY.md` | Agents and CI | Before completion | Required evidence and executable verification commands |
+| `AGENTS.md` `## Commands` | Agents and CI | Before completion | Required evidence and executable verification commands (earlier `VERIFY.md` preserved at `.agents/archive/task-state-migration/VERIFY.3b3c2db1ea41.md`) |
 | `MAP.md` | Agents and humans | Orientation | This document graph and project navigation |
 | `DESIGN.md` | Agents and humans | Feature and architecture work | Goals, constraints, decisions |
 | `MEMORY.md` | Agents | Recall | Lean links to durable topic notes |
@@ -23,9 +23,9 @@
 
 | Component | Purpose | Entry point | Owner |
 |---|---|---|---|
-| Express application | Serves the app shell, health check, favicon, and browser Supabase bundle | `server.js`; `npm start` | `server.js` |
-| Worksheet data | Supplies the default categories, reference copy, reflection prompts, target hours, and slider defaults | `data/categories.js` | `data/categories.js` |
-| Browser interface | Implements Plan, Compare, Reflect, History, Center, local persistence, export, and responsive behavior | `GET *` in `server.js` | `server.js`; design contract in `DESIGN.md` |
+| Express application | Serves the app shell, health check, favicon, and browser Supabase bundle | `server.ts`; `npm start` | `server.ts` |
+| Worksheet data | Supplies the default categories, reference copy, reflection prompts, target hours, and slider defaults | `data/categories.ts` | `data/categories.ts` |
+| Browser interface | Implements Plan, Compare, Reflect, History, Center, local persistence, export, and responsive behavior | `GET *` in `server.ts` | `server.ts`; design contract in `DESIGN.md` |
 | Cloud schema | Defines optional multi-user storage, authorization, sharing, and conflict behavior | `supabase/migrations/` | Supabase migrations and `supabase/tests/rls_contract.sql` |
 | Browser verification | Exercises the assembled interface, All/Focus hierarchy, cloud UI, accessibility, and responsive containment | `npm run test:local`; `npm run test:overview` | `tests/verify-*.mjs` |
 
@@ -33,18 +33,18 @@
 
 | Path | Purpose | Generated | Committed |
 |---|---|---|---|
-| `server.js` | Express entry point and single-page application source | no | yes |
-| `data/categories.js` | Default worksheet and reference content | no | yes |
+| `server.ts` | Express entry point and single-page application source | no | yes |
+| `data/categories.ts` | Default worksheet and reference content | no | yes |
 | `DESIGN.md` | Current interface language and route-specific rules | no | yes |
-| `VERIFY.md` | Release and completion evidence contract | no | yes |
-| `tests/verify-overview.mjs` | Focused All/Focus hierarchy and reordering browser contract | no | yes |
-| `tests/verify-live.mjs` | Full local browser regression | no | yes |
+| `.agents/archive/task-state-migration/VERIFY.3b3c2db1ea41.md` | Archived release and completion evidence contract; live commands are in `AGENTS.md` `## Commands` | no | yes |
+| `tests/verify-overview.mts` | Focused All/Focus hierarchy and reordering browser contract | no | yes |
+| `tests/verify-live.mts` | Full local browser regression | no | yes |
 | `supabase/migrations/` | Versioned optional cloud schema | no | yes |
-| `vercel.json` | Routes the hosted application to `server.js` | no | yes |
+| `vercel.json` | Routes the hosted application to `server.ts` | no | yes |
 
 ## Data flow
 
-`data/categories.js` seeds worksheet rows rendered by `server.js`. Browser edits persist in local storage. Optional authenticated cloud actions cross the Supabase boundary for week sync, group membership, invitations, and explicit sharing. Export and share actions produce user-controlled files or links from the active browser state.
+`data/categories.ts` seeds worksheet rows rendered by `server.ts`. Browser edits persist in local storage. Optional authenticated cloud actions cross the Supabase boundary for week sync, group membership, invitations, and explicit sharing. Export and share actions produce user-controlled files or links from the active browser state.
 
 ## Integrations
 
@@ -55,7 +55,7 @@
 
 ## Ownership and concurrency
 
-`server.js` owns the application and interface implementation; `DESIGN.md` owns its design language; `tests/` owns executable behavioral evidence; `supabase/` owns cloud schema and authorization. Writable workstreams use isolated worktrees, ports, and test resources. `main` and the production deployment remain serial integration targets.
+`server.ts` owns the application and interface implementation; `DESIGN.md` owns its design language; `tests/` owns executable behavioral evidence; `supabase/` owns cloud schema and authorization. Writable workstreams use isolated worktrees, ports, and test resources. `main` and the production deployment remain serial integration targets.
 
 ## State
 

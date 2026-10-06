@@ -62,7 +62,7 @@ The two live Supabase verifiers read `SUPABASE_ACCESS_TOKEN` directly from Windo
 
 ## Stack
 
-- Express with a single-file application shell in `server.js`
+- Express with a single-file application shell in `server.ts`
 - Supabase Auth, Postgres, and RLS when cloud configuration is present
 - `@supabase/supabase-js`, served from the app origin under the CSP
 - Inline HTML, CSS, and JavaScript
@@ -71,7 +71,7 @@ The two live Supabase verifiers read `SUPABASE_ACCESS_TOKEN` directly from Windo
 
 ## Customizing categories
 
-`data/categories.js` seeds the worksheet. Users can add, remove, and rename rows in the app. Changes persist under `168-audit:v1`; “Reset to defaults” restores the seed data.
+`data/categories.ts` seeds the worksheet. Users can add, remove, and rename rows in the app. Changes persist under `168-audit:v1`; “Reset to defaults” restores the seed data.
 
 ## License
 

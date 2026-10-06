@@ -18,10 +18,10 @@ const check = (condition, message) => {
   const overview = await page.evaluate(() => {
     const rows = [...document.querySelectorAll("#auditBody tr")];
     const categoryStarts = rows.filter((row) => row.classList.contains("cat-start"));
-    const download = document.querySelector("#exportTrigger").getBoundingClientRect();
-    const help = document.querySelector("#tourReplay").getBoundingClientRect();
+    const download = document.querySelector<HTMLElement>("#exportTrigger")!.getBoundingClientRect();
+    const help = document.querySelector<HTMLElement>("#tourReplay")!.getBoundingClientRect();
     return {
-      mode: document.querySelector("#view-worksheet")?.dataset.categoryView,
+      mode: document.querySelector<HTMLElement>("#view-worksheet")?.dataset.categoryView,
       visibleRows: rows.filter((row) => !row.classList.contains("mobile-category-hidden")).length,
       totalRows: rows.length,
       categoryStarts: categoryStarts.length,
@@ -66,7 +66,7 @@ const check = (condition, message) => {
   await firstCategoryInput.fill(originalCategory);
   await firstCategoryInput.press("Tab");
   const hoverBounds = await firstRow.evaluate((row) => {
-    const title = row.querySelector(".cell-cat").getBoundingClientRect();
+    const title = row.querySelector<HTMLElement>(".cell-cat")!.getBoundingClientRect();
     const rowRect = row.getBoundingClientRect();
     return { title: title.width, row: rowRect.width };
   });
@@ -152,6 +152,16 @@ const check = (condition, message) => {
     (await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category")) === reorderAfter.first,
     "reordered category did not persist after reload",
   );
+  // html carries scroll-behavior: smooth, so a drop target below the fold makes Playwright's
+  // scroll-into-view race the pointer. Bring both category handles into view instantly first.
+  const frameFirstTwoCategories = () =>
+    page.evaluate(() => {
+      const starts = document.querySelectorAll("#auditBody tr.cat-start");
+      const top = starts[0].getBoundingClientRect().top;
+      const bottom = starts[1].getBoundingClientRect().bottom;
+      window.scrollTo({ top: window.scrollY + (top + bottom) / 2 - window.innerHeight / 2, behavior: "instant" });
+    });
+  await frameFirstTwoCategories();
   const dragFirstCategory = await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category");
   await page.locator("#auditBody tr.cat-start").first().locator('[data-reorder-kind="category"]:visible').dragTo(
     page.locator("#auditBody tr.cat-start").nth(1).locator('[data-reorder-kind="category"]:visible'),
@@ -161,6 +171,7 @@ const check = (condition, message) => {
     "pointer drag did not reorder a category group",
   );
 
+  await frameFirstTwoCategories();
   const touchSource = page.locator("#auditBody tr.cat-start").first().locator('[data-reorder-kind="category"]:visible');
   const touchTarget = page.locator("#auditBody tr.cat-start").nth(1).locator('[data-reorder-kind="category"]:visible');
   const touchSourceCategory = await page.locator("#auditBody tr.cat-start").first().getAttribute("data-category");
@@ -232,9 +243,9 @@ const check = (condition, message) => {
     const rows = [...document.querySelectorAll("#auditBody tr")];
     const picker = document.querySelector(".mobile-category-nav");
     return {
-      mode: document.querySelector("#view-worksheet")?.dataset.categoryView,
+      mode: document.querySelector<HTMLElement>("#view-worksheet")?.dataset.categoryView,
       pickerVisible: picker && getComputedStyle(picker).display !== "none" && !picker.hidden,
-      selected: document.querySelector("#mobileCategory")?.value,
+      selected: document.querySelector<HTMLInputElement>("#mobileCategory")?.value,
       visibleRows: rows.filter((row) => getComputedStyle(row).display !== "none").length,
       totalRows: rows.length,
     };

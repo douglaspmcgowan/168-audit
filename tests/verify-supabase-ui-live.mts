@@ -276,7 +276,7 @@ try {
   if (!externalAppUrl) {
     const port = await reservePort();
     appUrl = `http://127.0.0.1:${port}`;
-    server = spawn(process.execPath, ["server.js"], {
+    server = spawn(process.execPath, ["server.ts"], {
       cwd: process.cwd(),
       env: {
         NODE_ENV: "test",

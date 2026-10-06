@@ -22,7 +22,7 @@ if ([string]::IsNullOrWhiteSpace($token)) {
 try {
   $env:SUPABASE_ACCESS_TOKEN = $token
   $env:LIVE_SUPABASE_PROJECT_REF = $ProjectRef
-  & node "$PSScriptRoot\verify-supabase-live.mjs"
+  & node "$PSScriptRoot\verify-supabase-live.mts"
   exit $LASTEXITCODE
 } finally {
   Remove-Item Env:SUPABASE_ACCESS_TOKEN -ErrorAction SilentlyContinue
