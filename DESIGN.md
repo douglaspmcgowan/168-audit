@@ -112,7 +112,7 @@ The app runs fully signed-out on `localStorage` alone, which is why the auth slo
 | motion | Framer Motion, CSS transitions for plain state changes | CSS transitions only, on duration and easing tokens | **Accepted deviation.** Every state change in this app is a plain one; 50 transition rules, two `@keyframes`, a `prefers-reduced-motion: reduce` block. Framer Motion would be weight with nothing to spend it on. |
 | charts | Recharts when there is a reporting surface | hand-written bars and SVG | **Accepted deviation.** The Compare surface draws one comparative bar form from data the client already holds; a chart library here is a dependency for one shape. |
 | icons | Lucide | hand-written inline SVG in one `ui-icon` class | **Accepted deviation.** One set, project-wide, which is the rule the slot exists to enforce. Emoji appear only as category *content* in `data/categories.ts`, never as interface icons. |
-| fonts | `next/font` with a self-hosted face | system UI stack via `--sans` | **Accepted deviation.** Zero font requests and zero layout shift, which is what the slot buys; there is no display face to self-host. |
+| fonts | `next/font` with a self-hosted face | self-hosted Rethink Sans variable woff2 from `@fontsource-variable/rethink-sans`, served by Express with `font-display: swap` and a size-adjusted fallback | **Converged 2026-10-06** on the slot's intent (a self-hosted face with no layout shift) without `next/font`, which arrives with the framework move. |
 | state/data/forms | TanStack Query, React Hook Form, Zod | `localStorage` plus direct `@supabase/supabase-js` calls | Follows the UI-library row. |
 | tables | TanStack Table | a semantic `<table>` reshaped with CSS grid at narrow widths | **Accepted deviation.** The worksheet is not sorted, filtered or paginated; it is edited in place. |
 | database/ORM | Postgres with Drizzle | Postgres on Supabase, SQL migrations, no ORM | **Accepted deviation.** Four `.sql` files with an explicit row-level-security contract. An ORM over four tables under RLS would move the authorization surface away from the file that states it. |
@@ -164,77 +164,57 @@ The primitive scale is 4, 8, 12, 16, 24, 32, 48, and 64px (`--space-1` through `
 
 Avoid new arbitrary spacing values. Choose the nearest scale value and preserve one shared horizontal rail.
 
-## Typography
+## Design system: Thrive (2026-10-06)
 
-Use the system sans stack throughout. The hierarchy has six roles:
+**Case: completed, not replaced.** The layout rails, spacing scale, nested radius rule, token layer, dark mode by token redefinition and the 20px outline icon set were already sound and stay. What was generic is replaced: the beige-brass-espresso neutrals, the blue accent shared with fellowship-tracker, the platform system font and the hashed category colours that let two categories share a slice.
 
-| Role | Token | Size | Use |
-|---|---|---:|---|
-| Metadata | `--text-meta` | 12px | labels, saved state, table headings, compact status |
-| UI | `--text-ui` | 14px | navigation, buttons, menus, dense rows |
-| Body | `--text-body` | 16px | instructions, prompts, explanations |
-| Section | `--text-section` | 20px | card and subsection headings |
-| Title | `--text-title` | 24px | route headings |
-| Display | `--text-display` | 28px | product title and top-level Center heading |
+**Pulled from.** The Thrive world in the harness language library: `doug-harness/.agents/skills/hue/examples/thrive/design-model.yaml`, registered in `doug-harness/.agents/design/languages/registry.md` ("Small steps, tracked honestly, without being cheered at"), rendered at `design-library/worlds/thrive/`. Taken: the parchment neutral ramp with its faint olive bias, the sage accent, the gentle 6/10/16 radii, typography and air doing the work. Left out on purpose: Fraunces and Inter (both banned as defaults by the universal rules), the painterly hero wash (this app has no hero; it is an instrument), and Phosphor icons (one icon family per project, and this one already has its own).
 
-Use `--leading-tight` for headings, `--leading-ui` for controls and metadata, and `--leading-body` for prose. Hours and totals use tabular numerals. Metadata is sentence case and never drops below 12px. Reading text stays within `--measure` / 68ch.
+**Character.** A week laid flat: what you planned, what you lived, and the gap. Honest numbers, no applause. **Wrong if** the app adds streaks, badges, confetti or coaching copy.
 
-## Color
+### Colour
 
-- Neutral paper and ink establish hierarchy.
-- Blue accent is reserved for focus, current selection, and primary action.
-- Success, warning, and critical colors always include text or an icon.
-- Both themes maintain WCAG AA contrast.
-- Native scrollbars use theme-coordinated track, thumb, hover, and rounded geometry.
+Surface levels are named and off-white or off-black. Dark mode is the same names redefined.
 
-## Shape
+| Token | Role | Light | Dark |
+|---|---|---|---|
+| `--paper` | page | `#FAF8F4` | `#14110E` |
+| `--paper-soft` | card, grouped surface | `#F2EFE8` | `#221F1B` |
+| `--paper-deep` | inset, track, selected row | `#E5E0D4` | `#332F29` |
+| `--paper-solid` | opaque control surface | `#FDFCFA` | `#2A2621` |
+| `--paper-raised` | translucent surface on fixed layers only | `rgba(253,252,250,.72)` | `rgba(34,31,27,.86)` |
+| `--ink` | primary text | `#14110E` | `#FAF8F4` |
+| `--ink-soft` | secondary text | `#4A453D` | `#E5E0D4` |
+| `--ink-faint` | metadata, placeholders (never on `--paper-deep`) | `#6B645A` | `#B3AB9B` |
+| `--rule` / `--rule-soft` | hairlines | ink at 10% / 6% | ink at 12% / 7% |
+| `--accent` | sage: focus ring, current selection, primary fill | `#5E7855` | `#96AC8C` |
+| `--accent-strong` | accent used as text or on `--paper-soft` | `#465C3F` | `#BDCBB5` |
+| `--on-accent` | text on a primary fill | `#FAF8F4` | `#14110E` |
 
-The radius hierarchy is nested:
+Status tokens are separate from the sage accent and always come with a word, sign or icon: `--delta-positive` slate blue (`#2E5F80` / `#8FB8D6`), `--delta-negative` and `--urgent` Thrive rose-700 (`#8E3F2C` / `#E39A86`), `--warn` ochre (`#7A5A12` / `#D9B45E`), `--good` = `--delta-positive`. Each has a `-soft` 12% tint for backgrounds. Measured contrast in light: ink 17.7:1, ink-soft 9.0:1, ink-faint 5.5:1, on-accent on accent 4.6:1, status text 6.0 to 6.8:1 on the page. In dark: ink-faint 8.3:1, accent 7.7:1.
 
-- `--radius-xs` / 4px: tiny internal details.
-- `--radius-control` / 6px: buttons, fields, row controls, icons.
-- `--radius-surface` / 10px: cards and grouped surfaces.
-- `--radius-overlay` / 12px: menus and dialogs.
-- `--radius-pill`: statuses and true pills only.
+**Category slices** `--slice-1..10` are one muted set for both themes: sage `#6F8F64`, clay `#C27A5E`, slate `#5B7FA6`, ochre `#B8913A`, plum `#8C6A9E`, teal `#4F9A93`, rose `#C9828C`, moss `#8F965A`, sand `#A8957A`, steel `#7C8794`. Each sits at 3:1 or better against both page colours. **A category's colour is its position in the category list, not a hash of its name**, so no two categories share a slice until there are more than ten. With more than ten, the colour repeats and the text label and total still carry the meaning.
 
-An inner element never has a larger radius than its containing surface.
+### Type
 
-## Components
+- **Face:** Rethink Sans (OFL-1.1), one variable family for display, interface and prose. It is self-hosted from `@fontsource-variable/rethink-sans` (npm, pinned in the lockfile): the latin woff2 is copied to `public/fonts/` and served at `/fonts/rethink-sans-latin-wght-normal.woff2` with `font-display: swap`. The fallback is the platform sans, tuned with `size-adjust` so that the swap does not reflow. There is no code on screen, so there is no monospace role.
+- **Scale:** one ratio, 1.333 (perfect fourth), from a 16px body: `--text-meta` 0.75rem (body / 1.333), `--text-body` 1rem, `--text-title` 1.333rem (× 1.333), `--text-display` `clamp(1.777rem, 1.4rem + 1.6vw, 2.369rem)` (× 1.333² at 375, × 1.333³ = 37.9px at 1440, which is 2.37 × body). There are four sizes in the whole app, and **at most three on any one screen**. The masthead wordmark is `--text-title`. Route headings are `--text-display`. Card and section headings are `--text-body` at semibold, so hierarchy comes from weight. Metadata, table headings and chips are `--text-meta`. `--text-ui` and `--text-section` survive only as aliases of body and title, so old selectors keep resolving.
+- **Weights:** 400 for prose, 500 for controls, 600 for headings and totals. **Tracking:** display `-0.02em`, body 0, meta `0.01em`. **Measure:** 68ch. **Leading:** 1.15 display, 1.4 interface, 1.6 prose. All quantities use tabular numerals.
 
-- Navigation uses five text labels with an underline for the active destination.
-- Route toolbars share spacing, divider, type, and control-height rules.
-- All interactive controls have a 44px minimum target.
-- Cards group a distinct task or entity. Dividers and whitespace handle ordinary row separation.
-- Icon actions use the shared 20×20 outline SVG language and require accessible names.
-- Empty states use a concise heading, one recovery sentence, and one primary action.
-- Dialogs share overlay radius, padding, focus entry, focus containment, Escape handling, and focus return.
-- Status text is brief, live-region compatible, and placed near the state it describes.
+### Space, shape, elevation
 
-## Route rules
+- **Space:** `--space-1..8` = 4, 8, 12, 16, 24, 32, 48, 64px, unchanged.
+- **Radii:** Thrive's softer set. `--radius-xs` 6px (chips, color keys), `--radius-control` 10px (buttons, fields), `--radius-surface` 16px (cards, panels), `--radius-overlay` 16px (menus, dialogs), `--radius-pill` 999px (status pills, segmented track). An inner radius is never larger than its container's.
+- **Elevation**, each declared once per surface (a border or a shadow, never both):
+  - Level 0, the page: flat.
+  - Level 1, cards and grouped surfaces: a tinted `--paper-soft` fill with no border and no shadow. Grouping comes from spacing, then tint.
+  - Level 2, menus, popovers and the sticky stats bar: `--shadow-pop`, a wide soft shadow tinted toward warm ink at 8–10%, with no border.
+  - Level 3, dialogs and the tour tooltip: `--shadow-modal`, a wider and softer shadow, plus the scrim.
+  - Hairlines (`--rule`) are kept for table rows, input edges and dividers, where a rule does a job.
 
-- Plan: wide worksheet, one stage title, stage selector, compact actions, clear totals.
-- Plan category manager: All is the initial view when no preference is stored and presents the complete schedule. Focus preserves a locally stored preference and places its category picker directly after the All/Focus toggle.
-- In All, each category is a parent group spanning its child rows. The group panel carries the child count, category reorder control, editable name, and a color key at the right edge. Each subcategory keeps its own selection, reorder, name, hours, notes, and removal controls.
-- Category groups use a tinted surface and stronger boundary; subcategories use quieter divided rows beneath that parent. Group separation exceeds spacing within a group.
-- Category colors link group headings to the live allocation donut and expanded legend. Text labels and totals preserve meaning without relying on color.
-- Compare: ranked differences first, totals adjacent to the heading, optional charts below disclosure.
-- Reflect: one question at a time, short progress label, prior answers and reference material under disclosure.
-- History: compact snapshot list with comparison and safe deletion.
-- Center: one 68rem rail, clear signed-in state, entity cards, explicit sharing and membership consequences.
+### Motion
 
-## Responsive behavior
-
-- Preserve the five destination labels down to 320px.
-- Plan changes from table to compact structured editing rows without horizontal page scrolling.
-- Mobile All promotes each category panel to a full-width header above its subcategories. Mobile Focus shows one category and its previous, next, and picker controls.
-- Analysis and reading routes become single-column layouts.
-- Center forms and member controls stack while identity text receives the flexible width.
-- Mobile chrome is compressed so the current task begins in the first viewport where practical.
-- Long labels wrap when they carry meaning; secondary metadata may truncate.
-
-## Motion
-
-Use `--dur-in` for direct hover/press feedback and `--dur-out` for state changes. Motion communicates view, menu, save, tour, and validation changes. `prefers-reduced-motion` reduces transitions to effectively immediate state changes.
+The motion inventory is under Design system: Thrive. `--dur-in` handles direct hover and press feedback, `--dur-out` handles state changes, and `--dur-draw` is reserved for the week-band draw-in.
 
 ## Content
 
