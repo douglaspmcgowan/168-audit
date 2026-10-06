@@ -86,11 +86,18 @@ The block covered only the portable operating rules until 2026-08-09. The startu
 
 ## Commands
 
-- Setup: `<command>`
-- Test: `<command>`
+- Setup: `npm.cmd ci`
+- Test: `npm.cmd run test:schema` (static contracts); `npm.cmd run test:cloud-ui` (deterministic cloud personas)
 - Lint: `<command>`
 - Build: `<command>`
-- End-to-end verification: `<command>`
+- End-to-end verification: start the app, then `npm.cmd run test:overview -- http://localhost:<port>` (focused allocation interface); start `npm.cmd start`, then `npm.cmd run test:local` (local end-to-end)
+- Live RLS and database lifecycle: `npm.cmd run test:supabase-live`
+- Live multi-browser Center: `npm.cmd run test:supabase-ui-live`
+- Syntax: `npx tsc --noEmit`
+- Dependency audit: `npm.cmd audit --omit=dev`
+- Secret scan: `C:\Users\dougl\Tools\gitleaks\gitleaks.exe dir . --redact --no-banner --config .gitleaks.toml`
+- Design detector: `node C:\Users\dougl\.agents\skills\impeccable\scripts\detect.mjs --json server.ts`
+- Diff hygiene: `git diff --check`
 
 ## Safety and evidence
 
