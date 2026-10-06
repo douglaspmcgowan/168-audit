@@ -41,6 +41,15 @@ const check = (condition, message) => {
   check(overview.mode === "all", `expected all mode, got ${overview.mode}`);
   check(overview.visibleRows === overview.totalRows, "all mode hides worksheet rows");
   check(overview.coloredStarts === overview.categoryStarts, "category groups lack stable colors");
+  const startColors = await page.evaluate(() => {
+    const slices = Array.from({ length: 10 }, (_, i) => getComputedStyle(document.documentElement).getPropertyValue(`--slice-${i + 1}`).trim());
+    const colors = [...document.querySelectorAll<HTMLElement>("#auditBody tr.cat-start")].map((row) => row.style.getPropertyValue("--category-color").trim());
+    return { slices, colors };
+  });
+  const firstTen = startColors.colors.slice(0, 10);
+  check(firstTen.length === Math.min(10, startColors.colors.length) && firstTen.length >= 2, `expected the default categories to carry colors, got ${firstTen.length}`);
+  check(new Set(firstTen).size === firstTen.length, `the first ${firstTen.length} categories do not have pairwise distinct --category-color values: ${firstTen.join(", ")}`);
+  check(firstTen.every((color, index) => color === startColors.slices[index]), "category colour is not the slice at the category's position in the list");
   check(overview.chartLabel?.includes("Expand"), "worksheet donut has no accessible expand action");
   check(overview.toggleParent?.includes("worksheet-toolbar"), "category view toggle is outside the row-action toolbar");
   check(overview.chartParent === "stats", "allocation donut is outside the weekly summary");
@@ -144,7 +153,7 @@ const check = (condition, message) => {
     };
   }, reorderBefore.category);
   check(reorderAfter.first !== reorderBefore.category, "keyboard reorder did not move the first category");
-  check(reorderAfter.color === reorderBefore.color, "category color changed after reordering");
+  check(reorderAfter.color !== reorderBefore.color && Boolean(reorderAfter.color), "category color did not follow its new position after reordering");
   check(reorderAfter.focused, "keyboard reorder did not preserve handle focus");
   check((await page.locator("#reorderLive").textContent())?.includes(reorderBefore.category), "category reorder announcement names the wrong object");
   await page.reload({ waitUntil: "networkidle" });
@@ -252,7 +261,7 @@ const check = (condition, message) => {
     return { label: element.textContent.trim(), fontSize: parseFloat(style.fontSize), lineHeight: parseFloat(style.lineHeight) };
   }));
   check(
-    toggleTypography.every(({ fontSize, lineHeight }) => Math.abs(fontSize - 14) < 0.1 && Math.abs(lineHeight - 19.6) < 0.1),
+    toggleTypography.every(({ fontSize, lineHeight }) => Math.abs(fontSize - 16) < 0.1 && Math.abs(lineHeight - 22.4) < 0.1),
     `toggle groups diverge from UI typography tokens: ${JSON.stringify(toggleTypography)}`,
   );
   const desktopRowTargets = await desktopPage.locator(

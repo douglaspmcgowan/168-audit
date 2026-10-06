@@ -660,9 +660,18 @@ async function inspectDesktop(browser) {
   const eyebrowGone = await page.evaluate(() => !document.querySelector(".brand-eyebrow"));
   eyebrowGone ? ok("no .brand-eyebrow in DOM") : fail("brand-eyebrow still present");
 
-  log("\nv9: font is Apple system stack (rendered)");
-  const fontFamily = await page.evaluate(() => getComputedStyle(document.querySelector(".brand-title")).fontFamily);
-  /-apple-system|BlinkMacSystemFont|SF Pro/.test(fontFamily) ? ok(`brand-title font-family: ${fontFamily.slice(0, 60)}`) : fail(`font-family: ${fontFamily}`);
+  log("\nv9: face is self-hosted Rethink Sans (rendered)");
+  const fontState = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return {
+      family: getComputedStyle(document.querySelector(".brand-title")).fontFamily,
+      loaded: document.fonts.check('600 16px "Rethink Sans"') && [...document.fonts].some((face) => face.family.replace(/"/g, "") === "Rethink Sans" && face.status === "loaded"),
+      fallback: [...document.fonts].some((face) => face.family.replace(/"/g, "") === "Rethink Sans Fallback"),
+    };
+  });
+  /^"?Rethink Sans"?,/.test(fontState.family) && fontState.loaded && fontState.fallback
+    ? ok(`brand-title font-family: ${fontState.family.slice(0, 60)}, variable woff2 loaded, size-adjusted fallback declared`)
+    : fail(`font-family: ${JSON.stringify(fontState)}`);
 
   log("\nv8: Working feedback form");
   await page.click("#feedbackBtn");

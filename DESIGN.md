@@ -212,6 +212,13 @@ Status tokens are separate from the sage accent and always come with a word, sig
   - Level 3, dialogs and the tour tooltip: `--shadow-modal`, a wider and softer shadow, plus the scrim.
   - Hairlines (`--rule`) are kept for table rows, input edges and dividers, where a rule does a job.
 
+### Packet 1 record (2026-10-06)
+
+- **Slices as built.** Four spec values sat under 3:1 against `#FAF8F4` and were lowered in lightness only: `--slice-4` ochre `#AE8937`, `--slice-7` rose `#C57984`, `--slice-8` moss `#8D9358`, `--slice-9` sand `#A08C6E`. The other six are as specified. All ten measure 3.06:1 or better on `#FAF8F4` and 4.18:1 or better on `#14110E`.
+- **Type roles as built, differing from the spec.** The spec puts the wordmark on `--text-title` and route headings on `--text-display`, which with body and meta gives four sizes on every route, over the three-per-screen cap. The wordmark is therefore `--text-body` at semibold, route headings and the donut total are `--text-display`, dialog titles are body at semibold, and `--text-title` stays defined for later use. Measured per screen at 1440 and 375: Plan, Compare, Reflect, History, Center and every dialog show exactly three sizes (12px, 16px, display).
+- **Category colour follows position.** `colorFor` takes the slice at the category's index in the ordered list, so reordering a category changes its colour with its position.
+- **Fallback face.** `Rethink Sans Fallback` is `local("Arial")` with `size-adjust` 104.47%, `ascent-override` 94.76%, `descent-override` 29.67% and `line-gap-override` 0%, measured against the shipped woff2.
+
 ### Motion
 
 The motion inventory is under Design system: Thrive. `--dur-in` handles direct hover and press feedback, `--dur-out` handles state changes, and `--dur-draw` is reserved for the week-band draw-in.
