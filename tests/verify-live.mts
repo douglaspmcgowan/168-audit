@@ -660,9 +660,18 @@ async function inspectDesktop(browser) {
   const eyebrowGone = await page.evaluate(() => !document.querySelector(".brand-eyebrow"));
   eyebrowGone ? ok("no .brand-eyebrow in DOM") : fail("brand-eyebrow still present");
 
-  log("\nv9: font is Apple system stack (rendered)");
-  const fontFamily = await page.evaluate(() => getComputedStyle(document.querySelector(".brand-title")).fontFamily);
-  /-apple-system|BlinkMacSystemFont|SF Pro/.test(fontFamily) ? ok(`brand-title font-family: ${fontFamily.slice(0, 60)}`) : fail(`font-family: ${fontFamily}`);
+  log("\nv9: face is self-hosted Rethink Sans (rendered)");
+  const fontState = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return {
+      family: getComputedStyle(document.querySelector(".brand-title")).fontFamily,
+      loaded: document.fonts.check('600 16px "Rethink Sans"') && [...document.fonts].some((face) => face.family.replace(/"/g, "") === "Rethink Sans" && face.status === "loaded"),
+      fallback: [...document.fonts].some((face) => face.family.replace(/"/g, "") === "Rethink Sans Fallback"),
+    };
+  });
+  /^"?Rethink Sans"?,/.test(fontState.family) && fontState.loaded && fontState.fallback
+    ? ok(`brand-title font-family: ${fontState.family.slice(0, 60)}, variable woff2 loaded, size-adjusted fallback declared`)
+    : fail(`font-family: ${JSON.stringify(fontState)}`);
 
   log("\nv8: Working feedback form");
   await page.click("#feedbackBtn");
@@ -1390,6 +1399,107 @@ async function inspectCenterAndDistillation(browser) {
   await ctx.close();
 }
 
+// --- packet 2: week bands, snapshot shelf, one authored motion, deliberate truncation ---
+async function inspectWeekBands(browser) {
+  log("\n=== Week bands, snapshot shelf, draw-in motion ===");
+  const seed = async (page, hours) => {
+    const inputs = page.locator(".num-input[data-field=ideal]");
+    const n = await inputs.count();
+    let total = 0;
+    for (let i = 0; i < n && i < 6; i += 1) {
+      if (!(await inputs.nth(i).isVisible())) continue;
+      await inputs.nth(i).fill(String(hours + i));
+      total += hours + i;
+    }
+    return total;
+  };
+  const stripCounts = (page) => page.evaluate(() => Array.from(document.querySelectorAll("#view-compare .wb-strip")).map((strip) => ({
+    cells: strip.querySelectorAll(".wb-c").length,
+    filled: strip.querySelectorAll(".wb-c:not(.wb-e)").length,
+    label: strip.getAttribute("aria-label"),
+    role: strip.getAttribute("role"),
+  })));
+  const bandAnimations = (page) => page.evaluate(() => document.getAnimations().filter((a) => a.animationName === "wb-draw").length);
+
+  for (const theme of ["light", "dark"]) {
+    for (const width of [375, 768, 1440]) {
+      const ctx = await browser.newContext({ viewport: { width, height: 900 } });
+      await ctx.addInitScript((t) => { try { localStorage.setItem("168-audit:intro-seen-v2", "1"); localStorage.setItem("168-audit:theme", t); } catch (e) {} }, theme);
+      const page = await ctx.newPage();
+      page.on("pageerror", (e) => fail(`pageerror: ${e.message}`));
+      await page.goto(URL, { waitUntil: "networkidle", timeout: 30000 });
+      const tag = `${theme} ${width}px`;
+
+      await page.click('.view-tab[data-view="compare"]');
+      await page.waitForTimeout(200);
+      const emptyBand = await stripCounts(page);
+      const emptySentence = await page.locator("#view-compare .wb-note").innerText().catch(() => "");
+      (emptyBand.length === 2 && emptyBand.every((b) => b.cells === 168 && b.filled === 0) && /Add hours in Plan to fill your week/.test(emptySentence) && (await page.locator("#emptyToPlan").count()) === 1)
+        ? ok(`${tag}: empty Compare shows two outlined strips, the sentence and the action`)
+        : fail(`${tag}: empty week band wrong: ${JSON.stringify(emptyBand)} ${emptySentence}`);
+
+      await page.click('.view-tab[data-view="worksheet"]');
+      const total = await seed(page, 4);
+      await page.click('.view-tab[data-view="compare"]');
+      const early = await bandAnimations(page);
+      const bands = await stripCounts(page);
+      const ideal = bands[0];
+      (bands.length === 2 && bands.every((b) => b.cells === 168 && b.role === "img") && ideal.filled === Math.min(168, total))
+        ? ok(`${tag}: Compare shows two 168-cell strips, ${ideal.filled} filled for ${total}h ideal`)
+        : fail(`${tag}: strips ${JSON.stringify(bands.map((b) => [b.cells, b.filled]))}, expected ${Math.min(168, total)} filled`);
+      /Ideal week, \d+ hours/.test(ideal.label || "") ? ok(`${tag}: strip has an accessible summary`) : fail(`${tag}: strip aria-label: ${ideal.label}`);
+      if (theme === "light" && width === 1440) {
+        early > 0 ? ok("first Compare render draws the band") : fail("first Compare render did not animate");
+        await page.waitForTimeout(1300);
+        await page.click('.view-tab[data-view="reflect"]');
+        await page.click('.view-tab[data-view="compare"]');
+        const again = await bandAnimations(page);
+        again === 0 ? ok("re-rendering Compare does not replay the draw-in") : fail(`draw-in replayed: ${again} animations`);
+        await page.click('.view-tab[data-view="worksheet"]');
+        const sub = await page.evaluate(() => {
+          const el = document.querySelector("#auditBody .cell-sub");
+          return { title: el.title, value: el.value, ellipsis: getComputedStyle(el).textOverflow };
+        });
+        (sub.ellipsis === "ellipsis" && sub.title === sub.value && sub.value.length > 0)
+          ? ok("Plan sub-category inputs truncate with an ellipsis and carry the full value as a title")
+          : fail(`sub-category truncation: ${JSON.stringify(sub)}`);
+        await page.click('.view-tab[data-view="compare"]');
+      }
+      const compareOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      compareOverflow <= 0 ? ok(`${tag}: no horizontal scroll on Compare`) : fail(`${tag}: Compare overflows by ${compareOverflow}px`);
+
+      await page.click('.view-tab[data-view="worksheet"]');
+      await page.click("#snapshotBtn");
+      await page.fill("#appDialogInput", "Shelf A");
+      await page.click("#appDialogConfirm");
+      await page.click('.view-tab[data-view="history"]');
+      await page.waitForTimeout(150);
+      const cards = await page.evaluate(() => Array.from(document.querySelectorAll(".snap-row")).map((card) => ({
+        strip: card.querySelectorAll(".week-band .wb-strip .wb-c").length,
+        del: !!card.querySelector('.snap-del-btn[aria-label="Delete snapshot"]'),
+        animated: card.querySelector(".wb-anim") !== null,
+      })));
+      (cards.length === 1 && cards[0].strip === 168 && cards[0].del && !cards[0].animated)
+        ? ok(`${tag}: History card holds a static mini band and its delete control`)
+        : fail(`${tag}: History card wrong: ${JSON.stringify(cards)}`);
+      const historyOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      historyOverflow <= 0 ? ok(`${tag}: no horizontal scroll on History`) : fail(`${tag}: History overflows by ${historyOverflow}px`);
+      await ctx.close();
+    }
+  }
+
+  const reduced = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  await reduced.addInitScript(() => { try { localStorage.setItem("168-audit:intro-seen-v2", "1"); } catch (e) {} });
+  const rp = await reduced.newPage();
+  await rp.goto(URL, { waitUntil: "networkidle", timeout: 30000 });
+  await seed(rp, 4);
+  await rp.click('.view-tab[data-view="compare"]');
+  await rp.waitForTimeout(100);
+  const running = await bandAnimations(rp);
+  running === 0 ? ok("reduced motion: no band animation runs") : fail(`reduced motion: ${running} band animations running`);
+  await reduced.close();
+}
+
 (async () => {
   log(`\nVerifying: ${URL}`);
   const browser = await chromium.launch();
@@ -1401,6 +1511,7 @@ async function inspectCenterAndDistillation(browser) {
     await inspectHistory(browser);
     await inspectResilience(browser);
     await inspectCenterAndDistillation(browser);
+    await inspectWeekBands(browser);
   } catch (e) {
     fail("uncaught: " + e.message);
   } finally {

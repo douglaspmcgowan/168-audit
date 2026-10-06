@@ -19,6 +19,7 @@
     "test:local": "node tests/verify-live.mts http://localhost:3168"
   },
   "dependencies": {
+    "@fontsource-variable/rethink-sans": "5.3.0",
     "@supabase/supabase-js": "2.57.4",
     "express": "4.22.3"
   },
