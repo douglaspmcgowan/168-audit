@@ -359,7 +359,7 @@ async function inspectDesktop(browser) {
       count: document.getElementById("tourCount").textContent
     };
   });
-  tut.open && tut.interactive && /Tutorial · Step 1 of/.test(tut.count)
+  tut.open && tut.interactive && /Tutorial, step 1 of/.test(tut.count)
     ? ok(`tutorial open + interactive: ${tut.count}`)
     : fail(`tutorial state: ${JSON.stringify(tut)}`);
   const totalTutSteps = parseInt(tut.count.split(" of ")[1] || "0");
@@ -378,8 +378,8 @@ async function inspectDesktop(browser) {
   /\b(top|left|width|height)\b/.test(tourMotion.spotlight)
     ? fail(`tutorial spotlight should snap, not animate position: ${tourMotion.spotlight}`)
     : ok("tutorial spotlight snaps position by design (no top/left/width/height transition)");
-  (/opacity 0\.18s/.test(tourMotion.tooltip)
-    && /transform 0\.22s/.test(tourMotion.tooltip)
+  (/opacity 0\.24s/.test(tourMotion.tooltip)
+    && /transform 0\.24s/.test(tourMotion.tooltip)
     && /cubic-bezier/.test(tourMotion.tooltip))
     ? ok(`tutorial tooltip entry is eased: ${tourMotion.tooltip}`)
     : fail(`tutorial tooltip entry is not eased: ${tourMotion.tooltip}`);
@@ -825,7 +825,10 @@ async function inspectTourLayouts(browser) {
       });
       if (!geometry.tipInside || !geometry.spotInside) boundaryFailures++;
       if (geometry.overlap) overlapFailures++;
-      if (index < total - 1) await page.evaluate(() => document.getElementById("tourNext").click());
+      if (index < total - 1) {
+        await page.evaluate(() => document.getElementById("tourNext").click());
+        await page.waitForTimeout(700); // let a smooth scroll start before the settle check reads geometry
+      }
     }
     (boundaryFailures === 0 && overlapFailures === 0)
       ? ok(`${viewport.name} ${viewport.width}x${viewport.height}: ${total} steps contained and separated`)
@@ -1216,7 +1219,7 @@ async function inspectResilience(browser) {
     ? ok("corrupted storage recovers to a usable audit with visible warning")
     : fail(`corrupted storage recovery: ${JSON.stringify(recovery)}`);
   recovery.theme === "light" ? ok("explicit light preference is honored") : fail(`preference theme: ${recovery.theme}`);
-  (recovery.transition === "0.01ms" || recovery.transition === "0.00001s" || recovery.transition === "1e-05s" || recovery.transition === "0s")
+  (recovery.transition.split(",").every(part => { const sec = parseFloat(part); return Number.isFinite(sec) && sec <= 0.001; }))
     ? ok(`reduced motion collapses transitions (${recovery.transition})`)
     : fail(`reduced motion transition: ${recovery.transition}`);
 
